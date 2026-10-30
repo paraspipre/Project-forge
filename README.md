@@ -114,6 +114,30 @@ Any character or prop can use a `.glb` or `.gltf` file instead of the procedural
 { "type": "model", "src": "models/fountain.glb", "x": 4, "z": -6, "rot": 90, "height": 3, "collider": [2, 2] }
 ```
 
+**Generating the cast with Meshy.** `tools/generate_meshy.py` runs the whole pipeline for every character in `tools/meshy_characters.json`. That file holds an editable prompt per character, written from the story's character designs. For each character the script:
+
+1. generates geometry with text-to-3D;
+2. refines it with PBR textures;
+3. auto-rigs it, which adds walk and run clips;
+4. optionally adds more library animations, configured per role in the config file;
+5. downloads everything to `models/<id>/` and adds `model`, `modelHeight` and `animationFiles` to the story.
+
+```bash
+export MESHY_API_KEY=...        # never commit it
+python3 tools/generate_meshy.py --dry-run          # check prompts first
+python3 tools/generate_meshy.py                    # all characters (or --only nightjar vale)
+```
+
+**Resuming.** Task IDs are saved in `models/meshy_state.json`, so re-running resumes without paying for finished steps again.
+
+**Fallbacks.**
+- If rigging fails, the textured, unrigged model is still used; the engine moves it procedurally.
+- A rig with walk and run but no idle clip stands in a held mid-stride pose.
+
+**Extra animations.** For idle, punch and hit clips, add Meshy animation-library action IDs under `"animations": { "idle": <id>, "punch": <id> }`, either in `defaults` or per character.
+
+**Cloud sessions.** Allow `api.meshy.ai` and `assets.meshy.ai` in the environment's network settings, and provide `MESHY_API_KEY` as an environment secret.
+
 **Model inspector.** Open `dev/models.html` and drop in a GLB. It shows:
 - which clip each game action will use;
 - whether a head bone and face blend shapes were found;

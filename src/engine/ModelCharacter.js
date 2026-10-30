@@ -103,6 +103,15 @@ export class ModelCharacter {
       if (!clip && !(look.animations && role in look.animations)) clip = bestClip(clips, ROLES[role]);
       if (clip) this.actions[role] = this.mixer.clipAction(clip);
     }
+    // no idle clip (e.g. Meshy auto-rig gives walk/run only): hold the walk cycle at mid-stance
+    if (!this.actions.idle && (this.actions.walk || this.actions.run)) {
+      const src = (this.actions.walk || this.actions.run).getClip().clone();
+      src.name += ' (rest pose)';
+      const rest = this.mixer.clipAction(src);
+      rest.timeScale = 0;
+      rest.time = src.duration * 0.25;
+      this.actions.idle = rest;
+    }
     this.animated = !!(this.actions.idle || this.actions.walk || this.actions.run);
     for (const r of ['idle', 'walk', 'run', 'talk']) {
       const a = this.actions[r];

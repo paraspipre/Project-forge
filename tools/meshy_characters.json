@@ -1,0 +1,58 @@
+{
+  "_about": "Prompts and settings for tools/generate_meshy.py. Edit prompts freely; delete a character to skip it. Animation action ids come from Meshy's animation library (see README).",
+  "defaults": {
+    "art_style": "realistic",
+    "ai_model": "latest",
+    "topology": "triangle",
+    "target_polycount": 30000,
+    "pose_mode": "a-pose",
+    "style_suffix": "full body, standing in A-pose, single character, original design, stylized-realistic game character, clean PBR textures, noir 1970s city, no text, no logos",
+    "animations": {}
+  },
+  "characters": {
+    "nightjar": {
+      "height_m": 1.9,
+      "prompt": "masked vigilante detective, sleek matte-black armored bodysuit with dark grey leather panels, full-face cowl with a short pointed bird-beak brow and two glowing white eye lenses, swept feather-like crest at the back of the cowl, long tattered dark charcoal cape, brass utility belt with pouches, small gold stylised nightjar bird emblem on the chest, athletic build"
+    },
+    "ibarra": {
+      "height_m": 1.72,
+      "prompt": "police commissioner, Latina woman in her fifties, dark hair in a tight bun, tired determined expression, belted tan trench coat over a brown suit, gold police badge on the chest, sensible dark shoes"
+    },
+    "dunn": {
+      "height_m": 1.8,
+      "prompt": "1970s city police patrol officer, middle-aged man with a brown moustache, navy blue police uniform and peaked cap, silver badge, utility belt, rain-spotted jacket"
+    },
+    "pike": {
+      "height_m": 1.78,
+      "prompt": "nervous asylum orderly, bald heavyset man with a moustache, white orderly uniform shirt and trousers, white shoes, keys on a belt clip, worried expression"
+    },
+    "tobias": {
+      "height_m": 1.7,
+      "prompt": "gaunt old asylum inmate, long unkempt grey hair, pale skin, faded orange prison jumpsuit, barefoot slippers, unsettling knowing smile"
+    },
+    "vale": {
+      "height_m": 1.9,
+      "prompt": "sinister ringmaster stage magician villain, thin man, face painted chalk white with a wide red painted smile extending past the lips, dark eye makeup, slicked silver hair, tall black top hat with a gold band, crimson velvet tailcoat with gold buttons and long tails, gold brocade waistcoat and cravat, white gloves, black trousers"
+    },
+    "harlan": {
+      "height_m": 1.87,
+      "prompt": "charming young stage magician from the 1960s, slicked dark hair, warm smile, black tailcoat with tails, red cravat, white gloves, white shirt cuffs, black trousers, vintage showman"
+    },
+    "mira": {
+      "height_m": 1.68,
+      "prompt": "1960s stage magician's assistant, young woman, long dark brown hair, bright red sequined showgirl dress to the knee, red heels, confident smile, vintage glamour"
+    },
+    "crowe": {
+      "height_m": 1.85,
+      "prompt": "ruthless 1960s real-estate tycoon, heavyset middle-aged man, grey hair, charcoal three-piece suit with a long dark overcoat, dark red tie, grey fedora hat, smug expression"
+    },
+    "grinner": {
+      "height_m": 1.8,
+      "prompt": "street thug henchman wearing a white porcelain mask with a painted red grin and black hollow eyes, dark purple hooded sweatshirt with the hood up, black gloves, dark cargo trousers, boots"
+    },
+    "brute": {
+      "height_m": 2.05,
+      "prompt": "huge muscular henchman bruiser wearing a white porcelain mask with a painted red grin, purple sleeveless jacket over a black shirt, green flat cap, fingerless black gloves, heavy boots, very broad shoulders"
+    }
+  }
+}
