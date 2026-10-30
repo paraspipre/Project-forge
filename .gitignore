@@ -3,3 +3,4 @@ node_modules/
 *.log
 models/_test/
 story/_test*.json
+__pycache__/
