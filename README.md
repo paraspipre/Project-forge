@@ -58,6 +58,8 @@ src/engine/
   Script.js     runs story "steps": dialogue (voiced), choices, flags, camera shots, engine actions
   World.js      builds environments from prop lists (gothic buildings, cells, lamps, cars, tents, ferris wheel…), rain, colliders
   Character.js  procedurally sculpted humanoid from a "look" + procedural animation, blinking, look-at, lip-sync
+  ModelCharacter.js  GLB-backed character with the same interface (clip mapping, blend-shape lip-sync, look-at)
+  Models.js     glTF/GLB loading (Draco + Meshopt), per-scene preloading, cache
   Textures.js   procedural PBR texture sets (albedo / normal / roughness)
   Materials.js  material library, light cones, canvas text textures
   Sky.js        sky dome, clouds, moon, lightning, skyline, environment map
@@ -70,7 +72,54 @@ story/the-grinning-hour.json   the demo story
 voice/                          rendered voice-over (mp3) + manifest.json
 tools/generate_voices.py        renders voice/ from a story with Kokoro TTS
 dev/characters.html             character viewer (?focus=<id>&anim=walk|punch|talk)
+dev/models.html                 GLB inspector: drop a model, see clip mapping, preview actions, copy JSON
+models/                         your .glb/.gltf characters and props
 ```
+
+## Using real 3D models (GLB / glTF)
+
+Any character or prop can use a `.glb` or `.gltf` file instead of the procedural model. Sources include an artist, Blender, Mixamo, Ready Player Me, or AI generators such as Meshy, Tripo or Rodin. Put the files in `models/` and reference them from the story:
+
+```jsonc
+"nightjar": {
+  "name": "Nightjar",
+  "look": {
+    "model": "models/nightjar.glb",
+    "height": 1.05,             // × 1.8 m (or "modelHeight": 1.9 in metres)
+    "modelRotation": 180,       // if the model faces away from the camera
+    "animations": { "punch": "Jab_Right" },              // optional: override auto-matched clips
+    "animationFiles": ["models/anims/mixamo-pack.glb"],  // optional: clips stored in other files
+    // …keep the procedural look fields too: they're the fallback if the file fails to load
+  }
+}
+```
+
+**Animations.** Clips are matched to game actions by name: `idle`, `walk`, `run`, `punch`/`attack`, `kick`, `hit`/`hurt`, `dodge`/`roll`, `death`/`knock`, `talk`, `laugh`, `wave`/`gesture`.
+- Walking and running blend with movement speed.
+- One-shot clips are time-stretched to match the game's attack timing.
+- Any action without a clip, and a model with no rig at all (common for AI generators), falls back to procedural whole-body motion: bobbing, leaning, recoiling and falling.
+
+**Animation packs.** `animationFiles` can be a list of files, or a map of roles to single-clip files, e.g. `{ "walk": "models/anims/walk.glb" }`. With Mixamo, download each animation "without skin" and convert it to GLB; it then works on every Mixamo-rigged character.
+
+**Faces.** If the model has blend shapes, they drive the face:
+- Lip-sync follows the voice-over through shapes named like `jawOpen`, `mouthOpen` or `viseme_aa` (Ready Player Me, ARKit and VRoid avatars have these).
+- Blinking uses shapes named like `eyeBlink…`.
+- Heads turn toward whoever is speaking via the head bone (Mixamo, VRM and Blender naming).
+
+**Compression.** Draco- and Meshopt-compressed files are supported. Large models load much faster after `npx @gltf-transform/cli optimize in.glb out.glb`.
+
+**Props.** Add GLB scenery to a scene:
+
+```json
+{ "type": "model", "src": "models/fountain.glb", "x": 4, "z": -6, "rot": 90, "height": 3, "collider": [2, 2] }
+```
+
+**Model inspector.** Open `dev/models.html` and drop in a GLB. It shows:
+- which clip each game action will use;
+- whether a head bone and face blend shapes were found;
+- the triangle count;
+- buttons to preview every action;
+- the JSON snippet to paste into your story.
 
 ## Voice-over
 

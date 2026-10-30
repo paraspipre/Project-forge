@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { Input } from './Input.js';
 import { Audio } from './Audio.js';
 import { Character } from './Character.js';
+import { ModelCharacter } from './ModelCharacter.js';
+import { preloadModels, sceneModelUrls } from './Models.js';
 import { World } from './World.js';
 import { Script } from './Script.js';
 import { Fx } from './Fx.js';
@@ -195,7 +197,8 @@ export class Game {
     this.aborting = true;
     this.script.cancel();
     $('fade').classList.add('on');
-    await this.sleep(500);
+    // load this scene's GLB characters/props while the screen fades out
+    await Promise.all([this.sleep(500), preloadModels(sceneModelUrls(this.story, data))]);
 
     // Teardown
     if (this.world) this.world.dispose();
@@ -271,8 +274,9 @@ export class Game {
   _makeActor(charId, x, z, rotDeg = 0) {
     const def = this.story.characters[charId];
     if (!def) throw new Error(`Unknown character: ${charId}`);
-    const char = new Character(def.look);
-    char.root.traverse((o) => { if (o.isMesh) o.castShadow = this.quality === 'high' && !o.userData.isOutline; });
+    // a GLB model when the story provides one and it loaded; the procedural character otherwise
+    const char = (def.look.model && ModelCharacter.create(def.look)) || new Character(def.look);
+    char.root.traverse((o) => { if (o.isMesh) o.castShadow = this.quality === 'high'; });
     const actor = { id: charId, char, pos: new THREE.Vector3(x, 0, z), rot: rotDeg * Math.PI / 180 };
     char.root.position.copy(actor.pos);
     char.root.rotation.y = actor.rot;

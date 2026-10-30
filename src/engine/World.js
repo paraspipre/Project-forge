@@ -3,6 +3,8 @@ import { mergeGeometries } from '../../vendor/jsm/utils/BufferGeometryUtils.js';
 import { std, glow, mesh, textTexture, lightCone } from './Materials.js';
 import { worldUV } from './Textures.js';
 import { Sky } from './Sky.js';
+import { getModel, fitToHeight } from './Models.js';
+import { clone as cloneSkinned } from '../../vendor/jsm/utils/SkeletonUtils.js';
 
 // Builds a playable environment from scene data:
 //   environment: { sky, fog, ambient, moon, ground, groundTex, rain, lightning, flashback, exposure }
@@ -834,6 +836,27 @@ P.table = (p, ctx) => {
     const hatGeo = new THREE.LatheGeometry([[0, 0.001], [0, 0.17], [0.012, 0.172], [0.018, 0.11], [0.03, 0.1], [0.19, 0.105], [0.2, 0.1], [0.2, 0.001]].map(([y, r]) => new THREE.Vector2(r, y)), 24);
     g.add(rot(at(mesh(hatGeo, std('#141216', { tex: 'fabric', rough: 0.7, sheen: 0.6 })), 0, 1.07, 0.15), 0, 0, Math.PI));
   }
+  return g;
+};
+
+// A GLB/glTF prop (preloaded by the scene). { type:'model', src, height | scale, rot, y, solid, collider:[w,d] }
+P.model = (p, ctx) => {
+  const g = new THREE.Group();
+  const gltf = getModel(p.src);
+  if (!gltf) { g.userData.solid = false; return g; }
+  const obj = cloneSkinned(gltf.scene);
+  g.add(obj);
+  if (p.height) fitToHeight(obj, p.height);
+  else fitToHeight(obj, 0);
+  obj.position.y += p.y || 0;
+  if (gltf.animations.length && p.animate !== false) {
+    // ambient animation (flags, signs, rides…)
+    const mixer = new THREE.AnimationMixer(obj);
+    const clip = (p.clip && gltf.animations.find((c) => c.name === p.clip)) || gltf.animations[0];
+    mixer.clipAction(clip).play();
+    ctx.anim((t, dt) => mixer.update(dt));
+  }
+  if (p.collider) g.userData.collider = { w: p.collider[0], d: p.collider[1] };
   return g;
 };
 

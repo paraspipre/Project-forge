@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Model Inspector</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0812; color: #eee; font: 14px system-ui, sans-serif; overflow: hidden; }
+    canvas { display: block; }
+    #panel { position: fixed; top: 0; right: 0; width: min(360px, 92vw); max-height: 100%; overflow: auto; background: rgba(15, 12, 24, .92); border-left: 1px solid #333; padding: 14px; box-sizing: border-box; }
+    h2 { margin: 0 0 8px; font-size: 16px; }
+    .row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+    button, label.file { background: #2a2338; color: #eee; border: 1px solid #555; padding: 6px 10px; border-radius: 6px; cursor: pointer; }
+    button:hover { background: #5b2a86; }
+    .ok { color: #7bd34f; } .miss { color: #888; }
+    pre { background: #000; padding: 8px; border-radius: 6px; white-space: pre-wrap; word-break: break-all; font-size: 12px; }
+    #drop { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; font-size: 28px; background: rgba(91, 42, 134, .5); }
+    small { color: #aaa; }
+  </style>
+  <script type="importmap">{ "imports": { "three": "../vendor/three.module.js" } }</script>
+</head>
+<body>
+  <div id="panel">
+    <h2>GLB model inspector</h2>
+    <small>Drop a .glb/.gltf anywhere, or pick a file. Checks how the game engine will use it.</small>
+    <div class="row">
+      <label class="file">Open model…<input id="file" type="file" accept=".glb,.gltf" hidden></label>
+      <label class="file">+ Animation pack…<input id="anim" type="file" accept=".glb,.gltf" multiple hidden></label>
+    </div>
+    <div class="row"><label>Facing <input id="rot" type="number" value="0" step="90" style="width:60px">°</label><label>Height <input id="h" type="number" value="1.8" step="0.05" style="width:60px"> m</label></div>
+    <div class="row"><label>Speed <input id="speed" type="range" min="0" max="1" step="0.01" value="0"></label></div>
+    <div class="row" id="acts"></div>
+    <div id="info"></div>
+  </div>
+  <div id="drop">Drop the model</div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { ModelCharacter } from '../src/engine/ModelCharacter.js';
+    import { loadModel } from '../src/engine/Models.js';
+    import { Post } from '../src/engine/Post.js';
+    import { Sky } from '../src/engine/Sky.js';
+    import { std } from '../src/engine/Materials.js';
+    import { worldUV } from '../src/engine/Textures.js';
+
+    const $ = (id) => document.getElementById(id);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    document.body.prepend(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
+    const sky = new Sky(renderer, scene, { sky: '#0a0814', skyHorizon: '#2a2338', skyline: false }, scene, 'high');
+    scene.add(new THREE.HemisphereLight('#8a90c8', '#201820', 0.8));
+    const key = new THREE.DirectionalLight('#ffe2c0', 2.4); key.position.set(3, 5, 4); key.castShadow = true;
+    Object.assign(key.shadow.camera, { left: -3, right: 3, top: 3, bottom: -1 });
+    const rim = new THREE.DirectionalLight('#8aa0ff', 2.5); rim.position.set(-4, 3, -5);
+    scene.add(key, rim);
+    const floor = new THREE.Mesh(worldUV(new THREE.PlaneGeometry(30, 30).rotateX(-Math.PI / 2), 3), std('#3a3640', { tex: 'concrete', rough: 1 }));
+    floor.receiveShadow = true;
+    scene.add(floor);
+    // a 1.8 m reference post next to the model
+    const ref = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.8, 0.05).translate(0, 0.9, 0), new THREE.MeshBasicMaterial({ color: '#7bd34f' }));
+    ref.position.x = -0.7;
+    scene.add(ref);
+    const post = new Post(renderer, scene, camera, 'high');
+
+    let char = null, modelUrl = null, modelName = '', anims = [];
+    const look = () => ({ model: modelUrl, modelRotation: +$('rot').value, modelHeight: +$('h').value, animationFiles: anims.map((a) => a.url) });
+
+    async function build() {
+      if (!modelUrl) return;
+      await Promise.all([loadModel(modelUrl), ...anims.map((a) => loadModel(a.url))]);
+      if (char) scene.remove(char.root);
+      char = ModelCharacter.create(look());
+      if (!char) { $('info').innerHTML = '<p class="miss">Could not load this file (see console).</p>'; return; }
+      char.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+      scene.add(char.root);
+      report();
+    }
+
+    function report() {
+      const roles = ['idle', 'walk', 'run', 'punch', 'kick', 'hit', 'dodge', 'down', 'talk', 'laugh', 'gesture', 'windup'];
+      let tris = 0;
+      char.model.traverse((o) => { if (o.isMesh) tris += (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3; });
+      const rows = roles.map((r) => `<div>${r}: ${char.actions[r] ? `<span class="ok">${char.actions[r].getClip().name}</span>` : '<span class="miss">— procedural</span>'}</div>`).join('');
+      const morph = char.morphs.length ? `<span class="ok">yes (${char.morphs.reduce((n, m) => n + m.mouth.length, 0)} mouth, ${char.morphs.reduce((n, m) => n + m.blink.length, 0)} blink)</span>` : '<span class="miss">none</span>';
+      const snippet = { model: `models/${modelName}`, modelRotation: +$('rot').value || undefined, height: +(+$('h').value / 1.8).toFixed(3) };
+      if (anims.length) snippet.animationFiles = anims.map((a) => `models/${a.name}`);
+      $('info').innerHTML = `
+        <p><b>${modelName}</b> · ${Math.round(tris).toLocaleString()} triangles · ${char.clipNames.length} clips</p>
+        <p>Rig: ${char.animated ? '<span class="ok">animated</span>' : '<span class="miss">no locomotion clips → whole-body procedural motion</span>'}<br>
+        Head bone: ${char.headBone ? `<span class="ok">${char.headBone.name}</span>` : '<span class="miss">none (no look-at)</span>'}<br>
+        Face blend shapes: ${morph}</p>
+        <p><b>Action → clip</b></p>${rows}
+        <p><b>All clips</b><br><small>${char.clipNames.join(', ') || 'none'}</small></p>
+        <p><b>Story JSON</b> <small>(characters.&lt;id&gt;.look)</small></p><pre>${JSON.stringify(snippet, null, 1)}</pre>
+        <small>Rename clips with "animations": {"punch": "ClipName"}. Facing: the model should face the camera at 0°.</small>`;
+    }
+
+    for (const a of ['punch', 'kick', 'hit', 'dodge', 'windup', 'gesture', 'laugh']) {
+      const b = document.createElement('button'); b.textContent = a;
+      b.onclick = () => char && char.play(a, a === 'windup' ? 0.9 : 0.6, { side: 1 });
+      $('acts').appendChild(b);
+    }
+    const tb = document.createElement('button'); tb.textContent = 'talk';
+    tb.onclick = () => { if (char) char.talking = !char.talking; };
+    const db = document.createElement('button'); db.textContent = 'down / up';
+    db.onclick = () => { if (char) char.downed = !char.downed; };
+    const lb = document.createElement('button'); lb.textContent = 'look left/right';
+    lb.onclick = () => { if (char) char.lookYaw = char.lookYaw > 0 ? -0.9 : 0.9; };
+    $('acts').append(tb, db, lb);
+
+    const openFile = (f) => { modelName = f.name; modelUrl = URL.createObjectURL(f); build(); };
+    $('file').onchange = (e) => e.target.files[0] && openFile(e.target.files[0]);
+    $('anim').onchange = (e) => { for (const f of e.target.files) anims.push({ name: f.name, url: URL.createObjectURL(f) }); build(); };
+    $('rot').onchange = $('h').onchange = build;
+    addEventListener('dragover', (e) => { e.preventDefault(); $('drop').style.display = 'flex'; });
+    addEventListener('dragleave', () => { $('drop').style.display = 'none'; });
+    addEventListener('drop', (e) => { e.preventDefault(); $('drop').style.display = 'none'; const f = e.dataTransfer.files[0]; if (f) openFile(f); });
+
+    const q = new URLSearchParams(location.search);
+    if (q.get('src')) { modelUrl = q.get('src'); modelName = modelUrl.split('/').pop(); if (q.get('rot')) $('rot').value = q.get('rot'); build(); }
+
+    const resize = () => { const w = innerWidth, h = innerHeight; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(w, h); post.setSize(w, h, Math.min(devicePixelRatio, 2)); camera.aspect = w / h; camera.updateProjectionMatrix(); };
+    addEventListener('resize', resize); resize();
+    let dragging = false, yaw = 0.4, px = 0;
+    renderer.domElement.addEventListener('pointerdown', (e) => { dragging = true; px = e.clientX; });
+    addEventListener('pointerup', () => { dragging = false; });
+    addEventListener('pointermove', (e) => { if (dragging) { yaw -= (e.clientX - px) * 0.01; px = e.clientX; } });
+    const clock = new THREE.Clock();
+    let t = 0;
+    renderer.setAnimationLoop(() => {
+      const dt = Math.min(clock.getDelta(), 0.05); t += dt;
+      if (char) { char.speed = +$('speed').value; char.update(dt); }
+      // keep the model left of the side panel
+      const shift = innerWidth > 700 ? 0.9 : 0;
+      camera.position.set(Math.sin(yaw) * 4.2 + Math.cos(yaw) * shift, 1.5, Math.cos(yaw) * 4.2 - Math.sin(yaw) * shift);
+      camera.lookAt(Math.cos(yaw) * shift, 0.95, -Math.sin(yaw) * shift);
+      sky.update(t, camera.position);
+      post.render(dt, 0);
+    });
+    window.inspector = { get char() { return char; } };
+  </script>
+</body>
+</html>

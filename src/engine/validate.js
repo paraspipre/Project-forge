@@ -21,7 +21,16 @@ export function validateStory(story) {
     }
   };
 
+  const isModel = (u) => typeof u === 'string' && /\.(glb|gltf)(\?.*)?$/i.test(u);
+  for (const [id, c] of Object.entries(chars)) {
+    const L = c.look || {};
+    if (L.model && !isModel(L.model)) errs.push(`character ${id}: model should be a .glb or .gltf file`);
+    const files = Array.isArray(L.animationFiles) ? L.animationFiles : Object.values(L.animationFiles || {});
+    for (const f of files) if (!isModel(f)) errs.push(`character ${id}: animation file "${f}" should be .glb/.gltf`);
+  }
+
   for (const [id, sc] of Object.entries(scenes)) {
+    for (const p of sc.props || []) if (p.type === 'model' && !isModel(p.src)) errs.push(`${id}: model prop needs "src" pointing to a .glb/.gltf`);
     if (sc.playAs && !chars[sc.playAs]) errs.push(`${id}: playAs unknown character "${sc.playAs}"`);
     checkSteps(sc.intro, `${id}.intro`, sc);
     for (const n of sc.npcs || []) {

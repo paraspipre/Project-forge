@@ -1,3 +1,5 @@
 node_modules/
 .DS_Store
 *.log
+models/_test/
+story/_test*.json
