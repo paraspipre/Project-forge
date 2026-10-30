@@ -190,3 +190,44 @@ h1.small { font-size: clamp(40px, 8vw, 72px); }
 .act.cue { background: var(--gold); box-shadow: 0 0 0 4px rgba(240,180,41,.5), 3px 3px 0 var(--ink); animation: pulse .5s infinite; }
 .act.danger { background: #ff5a5a; color: #fff; }
 .in-script #combo, .in-script #waypoint, .in-script #counter-cue { display: none !important; }
+
+/* ---------- cinematic subtitles (GTA-style, overrides the comic panel) ---------- */
+#dialogue { pointer-events: none; padding-bottom: calc(5vh + var(--safe-b)); }
+#dlg-panel {
+  pointer-events: none; cursor: default; width: min(900px, 100%); text-align: center;
+  background: none; border: 0; box-shadow: none; border-radius: 0; padding: 0;
+}
+#dlg-panel::before {
+  content: ""; position: absolute; inset: -18px -40px -14px; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(5, 3, 10, .62), rgba(5, 3, 10, 0) 70%);
+}
+#dlg-name {
+  position: static; display: inline; transform: none; border: 0; padding: 0; margin-right: .45em; background: none;
+  font-family: "Comic Neue", system-ui, sans-serif; font-weight: 700; font-size: clamp(16px, 2.2vw, 22px);
+  letter-spacing: .5px; text-transform: none; text-shadow: 0 2px 3px #000, 0 0 2px #000;
+}
+#dlg-name:not(:empty)::after { content: ":"; }
+#dlg-text {
+  display: inline; min-height: 0; color: #fff; font-weight: 700; line-height: 1.4;
+  font-size: clamp(16px, 2.2vw, 22px); text-shadow: 0 2px 3px #000, 0 0 2px #000, 0 0 8px rgba(0, 0, 0, .6);
+}
+#dlg-text.narration { font-style: italic; color: #f2e6c8; }
+#dlg-text.in { animation: subIn .22s ease-out; }
+@keyframes subIn { from { opacity: 0; } }
+#dlg-next { position: static; display: block; margin-top: 4px; font-size: 13px; color: rgba(255, 255, 255, .6); animation: none; text-shadow: 0 1px 2px #000; }
+#dlg-choices { pointer-events: auto; align-items: center; margin-top: 12px; }
+.choice {
+  min-width: min(520px, 90vw); text-align: left; background: rgba(12, 8, 20, .82); color: #fff;
+  border: 2px solid rgba(255, 255, 255, .25); box-shadow: none; border-radius: 6px; font-size: clamp(14px, 1.9vw, 18px);
+}
+.choice:hover, .choice.sel { background: rgba(240, 180, 41, .92); color: var(--ink); border-color: var(--gold); }
+.choice .n { color: var(--gold); }
+.choice:hover .n, .choice.sel .n { color: var(--ink); }
+.choice-timer { width: min(520px, 90vw); height: 4px; background: var(--gold); transform-origin: left; animation: shrink linear forwards; border-radius: 2px; }
+@keyframes shrink { to { transform: scaleX(0); } }
+/* walk-and-talk lines sit low and narrow so they never cover the controls */
+#dialogue.ambient { padding-bottom: calc(12px + var(--safe-b)); }
+#dialogue.ambient #dlg-panel { width: min(720px, 100%); }
+.touch #dialogue.ambient #dlg-panel { width: min(560px, 52vw); }
+.touch #dialogue.ambient #dlg-text, .touch #dialogue.ambient #dlg-name { font-size: 14px; }
+#letterbox div { height: 7vh; }

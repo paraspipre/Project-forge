@@ -190,10 +190,67 @@ export class Audio {
     return g;
   }
 
+  // Real-sounding rain: thousands of individual drops (ticks on stone, bloops in puddles) spread
+  // across the stereo field, rendered once into a seamlessly looping buffer.
+  _renderRain(sec, perSecond) {
+    const sr = this.ctx.sampleRate, len = Math.floor(sr * sec);
+    const buf = this.ctx.createBuffer(2, len, sr);
+    const L = buf.getChannelData(0), R = buf.getChannelData(1);
+    const add = (start, n, pan, gen) => {
+      const gl = Math.cos((pan + 1) * Math.PI / 4), gr = Math.sin((pan + 1) * Math.PI / 4);
+      for (let i = 0; i < n; i++) { const v = gen(i); const j = (start + i) % len; L[j] += v * gl; R[j] += v * gr; }
+    };
+    for (let d = 0, n = Math.floor(sec * perSecond); d < n; d++) {
+      const start = Math.floor(Math.random() * len);
+      const pan = Math.random() * 1.8 - 0.9;
+      const amp = Math.pow(Math.random(), 3.2) * 0.5 + 0.004;   // mostly faint, a few close and loud
+      if (Math.random() < 0.05) {
+        // a drop landing in a puddle: short rising "bloop"
+        const f0 = 500 + Math.random() * 1100, dur = Math.floor(sr * (0.012 + Math.random() * 0.03));
+        let ph = 0;
+        add(start, dur, pan, (i) => { const k = i / dur; ph += 2 * Math.PI * f0 * (1 + k * 1.8) / sr; return Math.sin(ph) * Math.sin(k * Math.PI) * Math.exp(-k * 3) * amp * 0.7; });
+      } else {
+        // a drop on stone, metal or leaves: tiny filtered tick
+        const dur = Math.floor(sr * (0.003 + Math.random() * 0.008));
+        const bright = Math.random();
+        let prev = 0, lp = 0, lp2 = 0;
+        const k = 0.1 + bright * 0.32;          // one-pole cutoff ≈ 0.7–3 kHz: soft pats, not fizz
+        add(start, dur, pan, (i) => {
+          const w = Math.random() * 2 - 1;
+          const hp = w - prev * 0.7; prev = w;
+          lp += (hp - lp) * k;
+          lp2 += (lp - lp2) * k * 1.6;
+          return lp2 * Math.exp(-(i / dur) * 5) * amp * 2.2;
+        });
+      }
+    }
+    // normalise to a gentle level
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += L[i] * L[i] + R[i] * R[i];
+    const k = 0.07 / Math.sqrt(sum / (2 * len) || 1);
+    for (let i = 0; i < len; i++) { L[i] *= k; R[i] *= k; }
+    return buf;
+  }
+
   _buildAmbience() {
+    this.rainBuf = this._renderRain(7, 1400);
+    const rainDrops = this.ctx.createBufferSource();
+    rainDrops.buffer = this.rainBuf;
+    rainDrops.loop = true;
+    const dropGain = this.ctx.createGain();
+    dropGain.gain.value = 0;
+    dropGain.target = 0.9;
+    const soft = this.ctx.createBiquadFilter();
+    soft.type = 'lowpass'; soft.frequency.value = 6500; soft.Q.value = 0.5;
+    const lowCut = this.ctx.createBiquadFilter();
+    lowCut.type = 'highpass'; lowCut.frequency.value = 120;
+    rainDrops.connect(soft).connect(lowCut).connect(dropGain).connect(this.ambBus);
+    rainDrops.start();
     this.amb = {
-      rainHiss: this._loop(this.pink, [['highpass', 500], ['lowpass', 9000]], 0.32),
-      rainBody: this._loop(this.brown, [['lowpass', 380]], 0.35),
+      rainDrops: dropGain,
+      // soft wash of distant rain on roofs and the river: dark, never hissy
+      rainWash: this._loop(this.pink, [['highpass', 180], ['lowpass', 1400], ['lowpass', 2200]], 0.16),
+      rainBody: this._loop(this.brown, [['lowpass', 260]], 0.22),
       wind: this._loop(this.brown, [['bandpass', 420, 1.2]], 0.25),
       room: this._loop(this.pink, [['bandpass', 300, 0.6]], 0.05),
       crowd: this._loop(this.pink, [['bandpass', 650, 2.5], ['peaking', 1200, 1]], 0.08),
@@ -217,11 +274,11 @@ export class Audio {
     const prev = this.mood;
     this.mood = mood;
     const amb = {
-      rain: { rainHiss: rain ? 1 : 0, rainBody: rain ? 1 : 0, wind: 0.8 },
-      carnival: { rainHiss: rain ? 0.8 : 0, rainBody: rain ? 0.7 : 0, wind: 1 },
+      rain: { rainDrops: rain ? 1 : 0, rainWash: rain ? 1 : 0, rainBody: rain ? 1 : 0, wind: 0.7 },
+      carnival: { rainDrops: rain ? 0.8 : 0, rainWash: rain ? 0.8 : 0, rainBody: rain ? 0.7 : 0, wind: 0.9 },
       flashback: { room: 1, crowd: 1 },
-      combat: { rainHiss: rain ? 0.7 : 0, rainBody: rain ? 0.6 : 0, wind: 0.5, room: this.surface === 'wood' ? 1 : 0 },
-      tense: { rainHiss: rain ? 0.7 : 0, rainBody: rain ? 0.6 : 0, wind: 0.6 },
+      combat: { rainDrops: rain ? 0.75 : 0, rainWash: rain ? 0.6 : 0, rainBody: rain ? 0.6 : 0, wind: 0.4, room: this.surface === 'wood' ? 1 : 0 },
+      tense: { rainDrops: rain ? 0.75 : 0, rainWash: rain ? 0.6 : 0, rainBody: rain ? 0.6 : 0, wind: 0.5 },
       silent: {},
     }[mood] || {};
     this._setAmb(amb);

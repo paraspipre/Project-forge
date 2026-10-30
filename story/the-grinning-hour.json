@@ -592,7 +592,8 @@
             {"s": "pike", "t": "They came back for me. Said I'd ruined the trick by remembering it."},
             {"s": "nightjar", "t": "Then remember it for me."},
             {"set": "pike_saved"}
-          ]
+          ],
+          "ambientClear": true
         }
       },
       "objectives": [
@@ -779,14 +780,14 @@
           "z": 9,
           "r": 4,
           "if": "!wave_midway",
-          "cinematic": true,
+          "cinematic": false,
           "script": [
-            {"cam": {"pos": [0, 3.2, 12], "look": [0, 2, -2]}},
-            {"s": "vale_pa", "t": "Ladies and gentlemen, boys and girls, birds of the night! Please find your seats!", "sfx": "laugh"},
-            {"s": "vale_pa", "t": "Our first act: three gentlemen with nothing to lose, and they've already lost it!"},
             {"do": "wave", "id": "midway"},
-            {"do": "toast", "text": "FIGHT!"}
-          ]
+            {"do": "toast", "text": "FIGHT!"},
+            {"s": "vale_pa", "t": "Ladies and gentlemen, boys and girls, birds of the night! Please find your seats!", "sfx": "laugh"},
+            {"s": "vale_pa", "t": "Our first act: three gentlemen with nothing to lose, and they've already lost it!"}
+          ],
+          "ambient": true
         },
         {
           "x": 1.6,
@@ -801,7 +802,8 @@
               "if": "!clue_musicbox",
               "then": [{"s": "nightjar", "t": "That tune from the music box... I've heard it twice tonight. It's coming from the carousel."}]
             }
-          ]
+          ],
+          "ambient": true
         },
         {
           "x": 0,
@@ -830,7 +832,8 @@
             {"s": "nightjar", "t": "Hired help, painted to look like him. He's not here yet. Or he wants me to think he isn't."},
             {"s": "ibarra_radio", "t": "Nightjar, we're at the perimeter. Thermal shows nothing moving inside but you."},
             {"s": "nightjar", "t": "Then thermal is watching the wrong hand. Stay put."}
-          ]
+          ],
+          "ambientClear": true
         },
         "stage": {
           "enemies": [

@@ -52,8 +52,17 @@ Load a different story with `?story=<name>`, which reads `story/<name>.json`.
 | Evade / **counter** | Space / Shift | ⤴ | B |
 | Detective scan | Q | 👁 | Y |
 | Interact / talk | E | ✋ | A |
-| Dialogue | Enter / Space / click, 1–4 for choices | tap | A, D-pad |
+| Dialogue | plays by itself; Enter / click skips a line, 1–4 picks a reply | tap to skip | A, D-pad |
 | Pause (sound, auto-dialogue, quality) | Esc | II | Start |
+
+## Dialogue
+
+Conversations play hands-free, GTA-style:
+- Each line advances when its voice-over ends; an unvoiced line advances after a reading pause.
+- Subtitles show the speaker's name in their colour.
+- Reply choices pick a default after a short countdown, but you can still choose one.
+- Scripts marked `"ambient": true` (triggers) or `"ambientClear": true` (fight waves) play as walk-and-talk while you keep control.
+- To make every line wait for a tap, set the pause menu's **Dialogue** option to **Tap to continue**.
 
 ## Combat
 

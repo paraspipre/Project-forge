@@ -122,9 +122,10 @@ export class Game {
     const muteLabel = () => { $('btn-mute').textContent = `Sound: ${this.audio.muted ? 'Off' : 'On'}`; };
     muteLabel();
     $('btn-mute').onclick = () => { this.audio.setMuted(!this.audio.muted); muteLabel(); };
-    this.settings = { autoDialogue: false };
-    try { this.settings.autoDialogue = localStorage.getItem('gh_auto') === '1'; } catch {}
-    const autoLabel = () => { $('btn-auto').textContent = `Auto dialogue: ${this.settings.autoDialogue ? 'On' : 'Off'}`; };
+    // conversations flow on their own unless the player switches to tap-to-continue
+    this.settings = { autoDialogue: true };
+    try { this.settings.autoDialogue = localStorage.getItem('gh_auto') !== '0'; } catch {}
+    const autoLabel = () => { $('btn-auto').textContent = `Dialogue: ${this.settings.autoDialogue ? 'Auto' : 'Tap to continue'}`; };
     autoLabel();
     $('btn-auto').onclick = () => {
       this.settings.autoDialogue = !this.settings.autoDialogue;
@@ -360,8 +361,9 @@ export class Game {
 
   // ---------- scripting hooks ----------
 
-  runScript(steps, cinematic = false) {
+  runScript(steps, cinematic = false, ambient = false) {
     if (!steps) return;
+    if (ambient && !this.script.active) { this.script.runAmbient(steps); return; }
     if (this.script.active) { this.scriptQueue.push([steps, cinematic]); return; }
     this.script.run(steps, { cinematic });
   }
@@ -371,6 +373,10 @@ export class Game {
     $('sticks').style.visibility = 'hidden';
     $('prompt').classList.add('hidden');
     this.player && (this.player.char.speed = 0);
+  }
+
+  onAmbientEnd() {
+    if (!this.script.active) this._setObjective(this._currentObjective());
   }
 
   onScriptEnd() {
@@ -581,7 +587,7 @@ export class Game {
       this.enemies.push(a);
       return a;
     });
-    this.waves[id] = { list, onClear: w.onClear, cleared: false };
+    this.waves[id] = { list, onClear: w.onClear, ambient: !!w.ambientClear, cleared: false };
     this.audio.setMood('combat', !!this.sceneData.environment?.rain);
     if (w.announce) this.toast(w.announce, 1600);
   }
@@ -861,8 +867,9 @@ export class Game {
         w.cleared = true;
         this.state.flags[`wave_${id}`] = true;
         this.attackTokens = 2;
+        this._setObjective(this._currentObjective());
         this.audio.setMood(this.sceneData.mood || 'rain', !!this.sceneData.environment?.rain);
-        setTimeout(() => this.runScript(w.onClear || []), 900);
+        setTimeout(() => this.runScript(w.onClear || [], false, w.ambient), 900);
       }
     }
   }
@@ -1213,7 +1220,7 @@ export class Game {
       if (t.if && !this.script.test(t.if)) continue;
       if (Math.hypot(p.pos.x - t.x, p.pos.z - t.z) < (t.r || 2)) {
         t.fired = true;
-        this.runScript(t.script, !!t.cinematic);
+        this.runScript(t.script, !!t.cinematic, !!t.ambient);
         return;
       }
     }
