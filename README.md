@@ -28,6 +28,8 @@ It runs on desktop and mobile with no install and no build step.
 
 Open `index.html` through any static web server (below), or host the folder on GitHub Pages: **Settings → Pages → Deploy from a branch**, pick this branch and `/ (root)`.
 
+To build a self-contained copy for other hosts (no import map; the CSS is inlined), run `python3 tools/build_web.py --out dist`. Add `--fragment` for hosts that wrap pages in their own `<html>`.
+
 ## Run it
 
 ```bash
