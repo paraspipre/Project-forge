@@ -26,9 +26,9 @@ It runs on desktop and mobile with no install and no build step.
 
 ## Play
 
-**Live:** https://paraspipre.github.io/Project-forge/
+**Live:** https://game.paraspipre.com (also reachable via https://paraspipre.github.io/Project-forge/, which redirects there)
 
-The site is served from the `gh-pages` branch. `.github/workflows/deploy-pages.yml` rebuilds it with `tools/build_web.py` on every push that changes the game, so the live version stays current. Locally, open `index.html` through any static web server (below).
+The site is served from the `gh-pages` branch, with the custom domain set by the `CNAME` file. The domain's DNS needs a CNAME record `game` → `paraspipre.github.io`. `.github/workflows/deploy-pages.yml` rebuilds it with `tools/build_web.py` on every push that changes the game, so the live version stays current. Locally, open `index.html` through any static web server (below).
 
 To build a self-contained copy for other hosts (no import map; the CSS is inlined), run `python3 tools/build_web.py --out dist`. Add `--fragment` for hosts that wrap pages in their own `<html>`.
 

@@ -5,7 +5,7 @@ name: Deploy game to GitHub Pages
 on:
   push:
     branches: [ccr-0acdf87b-pbount]
-    paths: ['index.html', 'src/**', 'vendor/**', 'story/**', 'voice/**', 'tools/build_web.py']
+    paths: ['index.html', 'src/**', 'vendor/**', 'story/**', 'voice/**', 'tools/build_web.py', 'CNAME']
   workflow_dispatch:
 
 permissions:

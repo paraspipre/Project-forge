@@ -54,6 +54,10 @@ def main():
     for n in sorted(os.listdir(vdir)):
         copy(f"voice/{n}")
 
+    # custom domain for GitHub Pages
+    if os.path.exists(os.path.join(ROOT, "CNAME")):
+        copy("CNAME")
+
     html = open(os.path.join(ROOT, "index.html"), encoding="utf-8").read()
     css = open(os.path.join(ROOT, "src/ui/style.css"), encoding="utf-8").read()
     html = html.replace('<link rel="stylesheet" href="src/ui/style.css">', f"<style>\n{css}</style>")
