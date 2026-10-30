@@ -171,3 +171,22 @@ h1.small { font-size: clamp(40px, 8vw, 72px); }
   .touch #rotate-hint.show { animation: hintOut .5s 5s forwards; }
 }
 @keyframes hintOut { to { opacity: 0; visibility: hidden; } }
+
+/* ---------- combat & navigation HUD ---------- */
+#combo { position: absolute; right: calc(18px + var(--safe-r)); top: 74px; text-align: right; transform: skew(-6deg); }
+#combo-n { display: block; font-family: Bangers, Impact, sans-serif; font-size: 46px; line-height: .9; color: var(--gold); -webkit-text-stroke: 2px var(--ink); text-shadow: 4px 4px 0 var(--ink); }
+#combo .label { font-family: Bangers, sans-serif; letter-spacing: 3px; font-size: 16px; color: var(--paper); text-shadow: 2px 2px 0 var(--ink); }
+#combo-bar { width: 120px; height: 7px; margin: 4px 0 0 auto; background: rgba(0,0,0,.6); border: 2px solid var(--ink); }
+#combo-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--red)); transition: width .15s; }
+#combo.bump #combo-n { animation: bump .25s ease-out; }
+@keyframes bump { 40% { transform: scale(1.35); } }
+#takedown { display: block; margin-top: 4px; font-family: Bangers, sans-serif; letter-spacing: 2px; color: var(--red); background: var(--paper); border: 2px solid var(--ink); padding: 0 6px; animation: pulse .8s infinite; }
+#waypoint { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); text-align: center; color: var(--gold); font-weight: 700; text-shadow: 2px 2px 0 var(--ink); pointer-events: none; }
+#wp-arrow { font-size: 30px; line-height: 1; filter: drop-shadow(2px 2px 0 var(--ink)); }
+#wp-dist { font-size: 13px; }
+#counter-cue { position: absolute; left: 50%; top: 34%; transform: translateX(-50%); font-family: Bangers, Impact, sans-serif; font-size: 30px; letter-spacing: 2px; color: var(--gold); -webkit-text-stroke: 1.5px var(--ink); text-shadow: 3px 3px 0 var(--ink); animation: pulse .5s infinite; pointer-events: none; }
+#counter-cue.danger { color: #ff5a5a; }
+.act.small { width: 50px; height: 50px; font-size: 20px; right: 132px; bottom: 98px; background: #9fd4ff; }
+.act.cue { background: var(--gold); box-shadow: 0 0 0 4px rgba(240,180,41,.5), 3px 3px 0 var(--ink); animation: pulse .5s infinite; }
+.act.danger { background: #ff5a5a; color: #fff; }
+.in-script #combo, .in-script #waypoint, .in-script #counter-cue { display: none !important; }

@@ -37,7 +37,11 @@ export class Audio {
     this.master.gain.value = this.muted ? 0 : 0.9;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -14; comp.ratio.value = 3; comp.attack.value = 0.005; comp.release.value = 0.2;
-    this.master.connect(comp).connect(ctx.destination);
+    // master → compressor → slow-motion low-pass → speakers
+    this.slowFilter = ctx.createBiquadFilter();
+    this.slowFilter.type = 'lowpass';
+    this.slowFilter.frequency.value = 20000;
+    this.master.connect(comp).connect(this.slowFilter).connect(ctx.destination);
     this.reverb = ctx.createConvolver();
     this.reverbGain = ctx.createGain();
     this.reverbGain.gain.value = 0.5;
@@ -379,6 +383,42 @@ export class Audio {
     const t = this.ctx.currentTime;
     [69, 72, 76, 81].forEach((n, i) => this._bell(t + i * 0.09, NOTE(n), 0.08, this.sfxBus, 2));
     this._tone({ t, freq: NOTE(45), dur: 1.4, vol: 0.12, type: 'triangle', attack: 0.02 });
+  }
+
+  counter() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this._burst({ t, dur: 0.12, vol: 0.4, freq: 4000, type: 'highpass' });
+    this._tone({ t, freq: 900, freqEnd: 1800, dur: 0.12, vol: 0.06, type: 'triangle' });
+    this._bell(t + 0.02, NOTE(88), 0.05, this.sfxBus, 0.6);
+  }
+
+  comboTier(n) {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    [0, 4, 7].forEach((iv, i) => this._bell(t + i * 0.06, NOTE(72 + iv + Math.min(12, n)), 0.05, this.sfxBus, 0.9));
+  }
+
+  takedown() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this._tone({ t, freq: 70, freqEnd: 28, dur: 0.6, vol: 0.8 });
+    this._burst({ t, dur: 0.5, vol: 0.5, freq: 200, type: 'lowpass', buf: this.brown });
+    this._burst({ t, dur: 0.9, vol: 0.18, freq: 2000, freqEnd: 300, q: 0.7, buf: this.pink });
+  }
+
+  scan() {
+    if (!this.ctx) return;
+    const t = this.ctx.currentTime;
+    this._tone({ t, freq: 1400, freqEnd: 700, dur: 0.9, vol: 0.06, type: 'sine', bus: this.sfxBus });
+    this._tone({ t: t + 0.25, freq: 1400, freqEnd: 700, dur: 0.9, vol: 0.03, type: 'sine', bus: this.sfxBus });
+    this._burst({ t, dur: 0.6, vol: 0.06, freq: 6000, freqEnd: 1500, type: 'bandpass', q: 3, buf: this.pink });
+  }
+
+  // slow-motion: everything dips into a low-passed underwater feel
+  setSlow(on) {
+    if (!this.ctx) return;
+    this.slowFilter.frequency.setTargetAtTime(on ? 900 : 20000, this.ctx.currentTime, on ? 0.05 : 0.3);
   }
 
   sting() {

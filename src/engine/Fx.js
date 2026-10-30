@@ -31,18 +31,23 @@ function wordTexture(word, color) {
   return t;
 }
 
-const iconTex = (() => {
+// attack telegraphs: gold "!" = counterable, red "!!" = unblockable (dodge it)
+const iconTex = {};
+function makeIcon(kind) {
+  if (iconTex[kind]) return iconTex[kind];
   const c = document.createElement('canvas');
   c.width = c.height = 64;
   const g = c.getContext('2d');
-  g.fillStyle = '#d8323c';
+  g.fillStyle = kind === 'danger' ? '#e8323c' : '#f0b429';
   g.beginPath(); g.moveTo(32, 2); g.lineTo(62, 58); g.lineTo(2, 58); g.closePath(); g.fill();
   g.lineWidth = 4; g.strokeStyle = '#0b0812'; g.stroke();
-  g.fillStyle = '#fff'; g.font = 'bold 38px sans-serif'; g.textAlign = 'center'; g.fillText('!', 32, 52);
+  g.fillStyle = kind === 'danger' ? '#fff' : '#0b0812';
+  g.font = 'bold 36px sans-serif'; g.textAlign = 'center';
+  g.fillText(kind === 'danger' ? '!!' : '!', 32, 52);
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
-  return t;
-})();
+  return (iconTex[kind] = t);
+}
 
 export class Fx {
   constructor(scene) {
@@ -81,8 +86,8 @@ export class Fx {
     }
   }
 
-  icon() {
-    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: iconTex, depthTest: false }));
+  icon(kind = 'counter') {
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: makeIcon(kind), depthTest: false }));
     s.scale.set(0.45, 0.45, 1);
     s.renderOrder = 11;
     return s;
@@ -103,6 +108,15 @@ export class Fx {
     return g;
   }
 
+  // detective-scan pulse: a ring sweeping out across the ground
+  ring(pos, color = '#7fd4ff') {
+    const m = new THREE.Mesh(new THREE.RingGeometry(0.9, 1, 64).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending }));
+    m.position.set(pos.x, 0.06, pos.z);
+    this.scene.add(m);
+    this.items.push({ obj: m, t: 0, dur: 1.6, kind: 'ring' });
+  }
+
   update(dt) {
     for (let i = this.items.length - 1; i >= 0; i--) {
       const it = this.items[i];
@@ -119,13 +133,16 @@ export class Fx {
         o.position.addScaledVector(it.v, dt);
         o.scale.setScalar(1 + k * 2);
         o.material.opacity = 0.8 * (1 - k);
+      } else if (it.kind === 'ring') {
+        o.scale.setScalar(1 + k * 38);
+        o.material.opacity = 0.9 * (1 - k);
       } else if (it.kind === 'spark') {
         it.v.y -= 15 * dt;
         o.position.addScaledVector(it.v, dt);
       }
       if (k >= 1) {
         this.scene.remove(o);
-        if (it.kind === 'smoke') { o.geometry.dispose(); o.material.dispose(); }
+        if (it.kind === 'smoke' || it.kind === 'ring') { o.geometry.dispose(); o.material.dispose(); }
         if (it.kind === 'word') o.material.dispose();
         this.items.splice(i, 1);
       }

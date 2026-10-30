@@ -205,7 +205,7 @@
         "hairStyle": "bald",
         "gloves": "#1a1a1a"
       },
-      "combat": {"hp": 7, "damage": 2, "speed": 0.8, "windup": 0.95, "reach": 1.8},
+      "combat": {"hp": 7, "damage": 2, "speed": 0.8, "windup": 0.95, "reach": 1.8, "unblockable": true},
       "voice": {"kokoro": "am_santa*0.5+am_onyx*0.5", "speed": 0.85},
       "efforts": {"hurt": ["Hrrgh!", "Oof!"], "attack": ["Raah!"]}
     }
@@ -368,7 +368,8 @@
                         },
                         {"s": "ibarra", "t": "Look around. His cell, the orderly, anything that's wrong. You see things my people don't."},
                         {"s": "nightjar", "t": "Your people see fine. They just don't look where he doesn't want them to.", "set": "talked_ibarra"},
-                        {"do": "toast", "text": "INVESTIGATE!"}
+                        {"do": "toast", "text": "INVESTIGATE!"},
+                        {"caption": "Press Q / 👁 for DETECTIVE SCAN: it reveals clues through walls. Follow the gold beacon to your objective.", "voice": false}
                       ]
                     }
                   ]
@@ -576,7 +577,7 @@
               "then": [
                 {"set": "tutorial"},
                 {
-                  "caption": "ATTACK: ✊ button / J / click. Hit three times in a row to finish with a kick. DODGE: ⤴ button / SPACE. Dodge when you see a red ! over an enemy.",
+                  "caption": "ATTACK with ✊ / J / click and chain hits for a COMBO. A gold ! means a punch is coming: press ⤴ / SPACE to COUNTER. A red !! can't be countered: the same button DODGES it.",
                   "voice": false
                 }
               ]
@@ -595,16 +596,17 @@
         }
       },
       "objectives": [
-        {"text": "Speak with Commissioner Ibarra", "until": "talked_ibarra"},
-        {"text": "Help the orderly!", "if": "talked_ibarra", "until": "wave_yard"},
+        {"text": "Speak with Commissioner Ibarra", "until": "talked_ibarra", "target": "ibarra"},
+        {"text": "Help the orderly!", "if": "talked_ibarra", "until": "wave_yard", "target": [-9, -6]},
         {
           "text": "Search Blackmere for clues",
           "if": "talked_ibarra",
           "until": ["clue_ticket", "clue_chalk", "clue_pike"],
-          "count": ["clue_ticket", "clue_chalk", "clue_pike"]
+          "count": ["clue_ticket", "clue_chalk", "clue_pike"],
+          "target": ["ticket", "chalk", {"id": "talk_pike", "until": "clue_pike"}]
         },
-        {"text": "Report back to Commissioner Ibarra", "until": "deduced"},
-        {"text": "Head to the car at the gate", "if": "deduced"}
+        {"text": "Report back to Commissioner Ibarra", "until": "deduced", "target": "ibarra"},
+        {"text": "Head to the car at the gate", "if": "deduced", "target": "exit"}
       ],
       "exits": [{"x": 0, "z": 17.4, "r": 1.6, "if": "deduced", "to": "merriment", "spawn": "gate"}],
       "intro": [
@@ -812,6 +814,7 @@
             {"s": "vale_pa", "t": "And now, the moment you've all been waiting for! Please welcome... the Big Grin!"},
             {"do": "wave", "id": "stage"},
             {"s": "nightjar", "t": "More of them. He's stalling."},
+            {"caption": "The Big Grin hits too hard to counter. When you see a red !!, DODGE.", "voice": false},
             {"do": "toast", "text": "FINAL ACT!"}
           ]
         }
@@ -914,9 +917,9 @@
         }
       },
       "objectives": [
-        {"text": "Find Harlan Vale in Merriment Park", "until": "wave_midway"},
-        {"text": "Look around. What is this place to Vale?", "if": "wave_midway", "until": "saw_flashback"},
-        {"text": "Confront Vale at the main stage", "if": "saw_flashback", "until": "wave_stage"}
+        {"text": "Find Harlan Vale in Merriment Park", "until": "wave_midway", "target": [0, 9]},
+        {"text": "Look around. What is this place to Vale?", "if": "wave_midway", "until": "saw_flashback", "target": "poster"},
+        {"text": "Confront Vale at the main stage", "if": "saw_flashback", "until": "wave_stage", "target": [0, -10.5]}
       ],
       "intro": [
         {"cam": {"pos": [-14, 9, 24], "look": [10, 7, -15], "cut": true}},
@@ -1095,7 +1098,10 @@
           ]
         }
       ],
-      "objectives": [{"text": "Two minutes to curtain. Talk to Mira", "until": "met_mira"}, {"text": "Find your top hat", "if": "met_mira", "until": "got_hat"}],
+      "objectives": [
+        {"text": "Two minutes to curtain. Talk to Mira", "until": "met_mira", "target": "talk_mira"},
+        {"text": "Find your top hat", "if": "met_mira", "until": "got_hat", "target": "hat"}
+      ],
       "intro": [
         {"cam": {"pos": [6, 3, 5], "look": [0, 1.2, 0], "cut": true}},
         {"s": "harlan", "t": "Full house. Full house on closing night. Mira's going to be insufferable."}

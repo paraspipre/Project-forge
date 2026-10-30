@@ -19,13 +19,13 @@ export class Input {
       if (e.repeat) return;
       this.keys.add(e.code);
       const map = {
-        KeyE: 'interact', KeyF: 'interact', KeyJ: 'attack', KeyK: 'attack', Space: 'dodge', ShiftLeft: 'dodge',
+        KeyE: 'interact', KeyF: 'interact', KeyJ: 'attack', KeyK: 'attack', Space: 'dodge', ShiftLeft: 'dodge', KeyL: 'dodge', KeyQ: 'scan', Tab: 'scan',
         Enter: 'advance', Escape: 'pause', KeyP: 'pause',
         Digit1: 'choice1', Digit2: 'choice2', Digit3: 'choice3', Digit4: 'choice4', ArrowUp: 'up', ArrowDown: 'down',
       };
       if (map[e.code]) this.edges.add(map[e.code]);
       if (e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') this.edges.add('advance');
-      if (e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+      if (e.code.startsWith('Arrow') || e.code === 'Space' || e.code === 'Tab') e.preventDefault();
     });
     addEventListener('keyup', (e) => this.keys.delete(e.code));
     addEventListener('blur', () => this.keys.clear());
@@ -63,6 +63,9 @@ export class Input {
     };
     bind('btn-attack', 'attack');
     bind('btn-dodge', 'dodge');
+    bind('btn-scan', 'scan');
+    this.padPrev = [];
+    addEventListener('gamepadconnected', () => { this.hasPad = true; document.body.classList.add('pad'); });
     bind('btn-interact', 'interact');
   }
 
@@ -117,6 +120,23 @@ export class Input {
     this.knob.style.transform = `translate(${dx}px, ${dy}px)`;
   }
 
+  // Standard-mapping gamepad: left stick move, right stick look,
+  // A interact/advance, X attack, B evade/counter, Y scan, Start pause, D-pad choices.
+  _pollPad() {
+    if (!this.hasPad || !navigator.getGamepads) return null;
+    const gp = [...navigator.getGamepads()].find((g) => g && g.connected);
+    if (!gp) return null;
+    const b = gp.buttons.map((x) => x.pressed);
+    const edge = (i, action) => { if (b[i] && !this.padPrev[i]) this.edges.add(action); };
+    edge(0, 'interact'); edge(0, 'advance'); edge(2, 'attack'); edge(1, 'dodge'); edge(3, 'scan'); edge(5, 'attack');
+    edge(9, 'pause'); edge(12, 'up'); edge(13, 'down');
+    this.padPrev = b;
+    const dz = (v) => (Math.abs(v) < 0.15 ? 0 : v);
+    const rx = dz(gp.axes[2] || 0), ry = dz(gp.axes[3] || 0);
+    this.lookDelta.x += rx * 14; this.lookDelta.y += ry * 9;
+    return { x: dz(gp.axes[0] || 0), y: dz(gp.axes[1] || 0) };
+  }
+
   pressed(action) { return this.edges.has(action); }
   consume(action) { const had = this.edges.has(action); this.edges.delete(action); return had; }
 
@@ -129,6 +149,8 @@ export class Input {
     if (k.has('KeyA') || k.has('ArrowLeft')) x -= 1;
     if (k.has('KeyD') || k.has('ArrowRight')) x += 1;
     if (this.joy.id !== null) { x = this.joy.x; y = this.joy.y; }
+    const pad = this._pollPad();
+    if (pad && Math.hypot(pad.x, pad.y) > 0.15) { x = pad.x; y = pad.y; }
     const len = Math.hypot(x, y);
     if (len > 1) { x /= len; y /= len; }
     // small dead zone for thumbs

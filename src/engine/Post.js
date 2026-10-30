@@ -10,11 +10,11 @@ import { ShaderPass } from '../../vendor/jsm/postprocessing/ShaderPass.js';
 const GradeShader = {
   uniforms: {
     tDiffuse: { value: null }, uTime: { value: 0 }, uSepia: { value: 0 }, uVignette: { value: 0.9 },
-    uGrain: { value: 0.06 }, uAberr: { value: 0.0015 }, uHurt: { value: 0 }, uTint: { value: new THREE.Color(1, 1, 1) },
+    uGrain: { value: 0.06 }, uAberr: { value: 0.0015 }, uHurt: { value: 0 }, uScan: { value: 0 }, uSlow: { value: 0 }, uTint: { value: new THREE.Color(1, 1, 1) },
   },
   vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
   fragmentShader: `
-    uniform sampler2D tDiffuse; uniform float uTime, uSepia, uVignette, uGrain, uAberr, uHurt; uniform vec3 uTint;
+    uniform sampler2D tDiffuse; uniform float uTime, uSepia, uVignette, uGrain, uAberr, uHurt, uScan, uSlow; uniform vec3 uTint;
     varying vec2 vUv;
     float rnd(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)) + uTime * 7.13) * 43758.5453); }
     void main(){
@@ -35,7 +35,15 @@ const GradeShader = {
         col += sc * uSepia;
         col *= 1. - uSepia * .06 * rnd(vec2(floor(uTime * 20.), 1.));
       }
-      col *= 1. - smoothstep(.15, .85, r2 * 2.2) * uVignette * .75;
+      // detective vision: cold desaturated read with a sweeping scanline
+      if (uScan > 0.) {
+        vec3 cold = vec3(l) * vec3(.55, .85, 1.15);
+        float sweep = smoothstep(.02, 0., abs(fract(vUv.y * .5 - uTime * .35) - .5) - .47);
+        col = mix(col, cold + col * .35, uScan * .75) + vec3(.2, .5, .7) * sweep * uScan * .25;
+      }
+      // slow-motion: crushed edges, slight warm push
+      col = mix(col, col * vec3(1.08, 1.0, .9), uSlow * .5);
+      col *= 1. - smoothstep(.15, .85, r2 * 2.2) * (uVignette + uSlow * .6) * .75;
       col += (rnd(vUv * 731.) - .5) * uGrain;
       col = mix(col, vec3(.7, .02, .05), uHurt * smoothstep(.05, .5, r2 * 2.));
       gl_FragColor = vec4(col, 1.);
@@ -72,9 +80,11 @@ export class Post {
     if (opts.tint) this.u.uTint.value.set(opts.tint);
   }
 
-  render(dt, hurt) {
+  render(dt, hurt, scan = 0, slow = 0) {
     this.u.uTime.value += dt;
     this.u.uHurt.value = hurt || 0;
+    this.u.uScan.value = scan;
+    this.u.uSlow.value = slow;
     this.composer.render(dt);
   }
 }

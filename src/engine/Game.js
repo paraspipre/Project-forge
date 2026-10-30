@@ -16,6 +16,7 @@ import { setTextureSize } from './Textures.js';
 
 const $ = (id) => document.getElementById(id);
 const SAVE_KEY = 'gh_save_v1';
+const TAKEDOWN_AT = 8;      // combo needed for an instant takedown
 const tmpV = new THREE.Vector3();
 
 const angleTo = (from, to) => Math.atan2(to.x - from.x, to.z - from.z);
@@ -62,6 +63,14 @@ export class Game {
     this.seenIntros = new Set();
     this.scriptQueue = [];
     this.attackTokens = 2;
+    this.combo = { n: 0, t: 0 };
+    this.slow = { t: 0, scale: 1, amt: 0 };
+    this.scanT = 0; this.scanCd = 0; this.scanAmt = 0; this.scanBeams = [];
+    this.wp = { t: 0, pos: null };
+    this.beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 40, 12, 1, true),
+      new THREE.MeshBasicMaterial({ color: '#f0b429', transparent: true, opacity: 0.16, blending: THREE.AdditiveBlending, depthWrite: false }));
+    this.beacon.visible = false;
+    this.scene.add(this.beacon);
     this.clock = new THREE.Clock();
     this.t = 0;
 
@@ -134,7 +143,7 @@ export class Game {
   }
 
   newGame() {
-    this.state = { sceneId: null, flags: {}, stats: { defeated: 0, start: Date.now() } };
+    this.state = { sceneId: null, flags: {}, stats: { defeated: 0, start: Date.now(), bestCombo: 0, counters: 0, takedowns: 0 } };
     this.seenIntros.clear();
     this._start(this.story.start);
   }
@@ -212,6 +221,12 @@ export class Game {
 
     this.state.sceneId = id;
     this.sceneData = data;
+    this._clearScan();
+    this.combo.n = 0;
+    this._updateCombo();
+    this.finisher = null;
+    this.slow.t = 0;
+    this.audio.setSlow(false);
     this.entryFlags = { ...this.state.flags };
     this.entrySpawn = spawnName;
     this.world = new World(this.renderer, this.scene, data, this.quality);
@@ -313,6 +328,15 @@ export class Game {
     if (it.if && !this.script.test(it.if)) return false;
     if (!it.repeat && it.kind !== 'talk' && this.state.flags[`_used_${this.state.sceneId}_${it.id}`]) return false;
     return true;
+  }
+
+  _currentObjectiveObj() {
+    for (const o of this.sceneData.objectives || []) {
+      if (o.if && !this.script.test(o.if)) continue;
+      if (o.until && this.script.test(o.until)) continue;
+      return o;
+    }
+    return null;
   }
 
   _currentObjective() {
@@ -528,7 +552,8 @@ export class Game {
     ul.innerHTML = '';
     const clues = Object.keys(f).filter((k) => k.startsWith('clue_')).length;
     const mins = Math.round((Date.now() - this.state.stats.start) / 60000);
-    const rows = [[`Clues found`, `${clues} / ${this.story.totalClues || clues}`], ['Grinners knocked out', this.state.stats.defeated], ['Time', `${mins} min`]];
+    const sx = this.state.stats;
+    const rows = [[`Clues found`, `${clues} / ${this.story.totalClues || clues}`], ['Grinners knocked out', sx.defeated], ['Best combo', `x${sx.bestCombo || 0}`], ['Counters', sx.counters || 0], ['Takedowns', sx.takedowns || 0], ['Time', `${mins} min`]];
     for (const r of st.stats || []) if (this.script.test(r.if)) rows.push([r.label, r.value]);
     for (const [k, v] of rows) { const li = document.createElement('li'); li.innerHTML = `${k}: <b>${v}</b>`; ul.appendChild(li); }
     $('hud').classList.add('hidden');
@@ -547,7 +572,7 @@ export class Game {
       Object.assign(a, {
         enemy: true, wave: id, hp: kind.hp || 3, maxHp: kind.hp || 3, dmg: kind.damage || 1, speedMul: kind.speed || 1,
         windup: kind.windup || 0.6, reach: kind.reach || 1.5, strafe: Math.random() < 0.5 ? 1 : -1, state: 'chase', t: 0, cd: 0.5 + Math.random(), vel: new THREE.Vector3(),
-        bar: this.fx.healthBar(), icon: this.fx.icon(),
+        unblockable: !!kind.unblockable, bar: this.fx.healthBar(), icon: this.fx.icon(kind.unblockable ? 'danger' : 'counter'),
       });
       a.bar.position.y = 2.35 * (this.story.characters[e.character].look.height || 1);
       a.icon.position.y = 2.75;
@@ -561,68 +586,176 @@ export class Game {
     if (w.announce) this.toast(w.announce, 1600);
   }
 
-  _playerAttack() {
+  // Best enemy to attack: close, and in the direction the stick is pushed (freeflow targeting).
+  _pickTarget(range, wish) {
     const p = this.player;
-    if (p.atkT > 0 || p.dodgeT > 0) return;
-    const step = p.comboT > 0 ? (p.combo + 1) % 3 : 0;
-    p.combo = step;
-    p.comboT = 0.75;
-    p.atkT = step === 2 ? 0.42 : 0.3;
-    p.hitDone = false;
-    if (step === 2) p.char.play('kick', 0.42);
-    else p.char.play('punch', 0.3, { side: step === 0 ? 1 : -1 });
-    this.audio.whoosh(step === 2);
-    if (Math.random() < 0.45) this.audio.effort(this.playerId, 'attack');
-    // soft auto-aim to the nearest enemy in front-ish
-    let best = null, bd = 3.2;
+    let best = null, bs = Infinity;
     for (const e of this.enemies) {
       if (e.hp <= 0) continue;
-      const d = e.pos.distanceTo(p.pos);
-      if (d < bd) { bd = d; best = e; }
+      const to = e.pos.clone().sub(p.pos).setY(0);
+      const d = to.length();
+      if (d > range) continue;
+      let score = d;
+      if (wish && wish.lengthSq() > 0.01) score -= to.normalize().dot(wish.clone().normalize()) * 2.5;
+      if (score < bs) { bs = score; best = e; }
     }
-    if (best) p.rot = angleTo(p.pos, best.pos);
+    return best;
+  }
+
+  // Dash in front of an enemy before striking.
+  _leapTo(e, gap = 1.1) {
+    const p = this.player;
+    const dir = e.pos.clone().sub(p.pos).setY(0);
+    const d = dir.length();
+    if (d <= gap + 0.35) return 0;
+    dir.normalize();
+    const dur = 0.1 + d * 0.022;
+    p.leap = { from: p.pos.clone(), to: e.pos.clone().addScaledVector(dir, -gap), t: 0, dur };
+    this.audio.whoosh(true);
+    return dur;
+  }
+
+  _playerAttack(wish) {
+    const p = this.player;
+    if (p.atkT > 0.05 || p.dodgeT > 0) return;
+    const target = this._pickTarget(6.5, wish);
+    const takedown = !!target && this.combo.n >= TAKEDOWN_AT;
+    const step = takedown ? 2 : p.comboT > 0 ? (p.combo + 1) % 3 : 0;
+    p.combo = step;
+    p.comboT = 0.75;
+    const flow = this.combo.n >= 5 ? 0.82 : 1;     // attacks speed up once you're in the flow
+    const leap = target ? this._leapTo(target) : 0;
+    p.atkT = (step === 2 ? 0.42 : 0.3) * flow + leap;
+    p.hitDone = false;
+    p.takedown = takedown;
+    p.target = target;
+    if (target) p.rot = angleTo(p.pos, target.pos);
+    const anim = () => {
+      if (step === 2) p.char.play('kick', 0.42 * flow);
+      else p.char.play('punch', 0.3 * flow, { side: step === 0 ? 1 : -1 });
+    };
+    if (leap) setTimeout(anim, leap * 600); else anim();
+    this.audio.whoosh(step === 2);
+    if (Math.random() < 0.45) this.audio.effort(this.playerId, 'attack');
+  }
+
+  // Apply damage to one enemy; returns true if it went down.
+  _hurtEnemy(e, dmg, dir, { heavy = false, word } = {}) {
+    e.hp -= dmg;
+    e.bar.setValue(e.hp / e.maxHp);
+    e.vel.copy(dir).multiplyScalar(heavy ? 7 : 3.5);
+    e.icon.visible = false;
+    if (e.state === 'windup') this.attackTokens++;
+    const head = e.pos.clone().setY(1.6);
+    this.fx.sparks(head);
+    const words = heavy ? ['KRAK!', 'WHAM!', 'BOOM!'] : ['POW!', 'BIFF!', 'THWAK!', 'SOCK!'];
+    this.fx.word(head.clone().add(new THREE.Vector3(0, 0.6, 0)), word || words[(Math.random() * words.length) | 0], heavy || word ? '#d8323c' : '#f0b429');
+    this.audio.effort(e.id, 'hurt');
+    if (e.hp <= 0) {
+      this.audio.bodyFall();
+      e.state = 'down'; e.t = 0;
+      e.char.downed = true;
+      e.bar.visible = false;
+      this.state.stats.defeated++;
+      // last one standing: slow-motion finisher
+      if (!this.enemies.some((o) => o.hp > 0)) {
+        this._slowmo(1.1, 0.22);
+        this.finisher = { pos: e.pos.clone(), t: 1.1, side: Math.random() < 0.5 ? 1 : -1 };
+      }
+      return true;
+    }
+    e.state = 'stagger'; e.t = heavy ? 0.6 : 0.35;
+    e.char.play('hit', e.t);
+    return false;
   }
 
   _resolvePlayerHit() {
     const p = this.player;
     const fwd = new THREE.Vector3(Math.sin(p.rot), 0, Math.cos(p.rot));
     const heavy = p.combo === 2;
-    let hitAny = false;
+    let hits = 0;
     for (const e of this.enemies) {
       if (e.hp <= 0) continue;
-      const to = e.pos.clone().sub(p.pos);
+      if (p.takedown && e !== p.target) continue;
+      const to = e.pos.clone().sub(p.pos).setY(0);
       const d = to.length();
       if (d > (heavy ? 1.9 : 1.7)) continue;
       to.normalize();
       if (to.dot(fwd) < 0.35) continue;
-      hitAny = true;
-      e.hp -= heavy ? 2 : 1;
-      e.bar.setValue(e.hp / e.maxHp);
-      e.vel.copy(to).multiplyScalar(heavy ? 7 : 3.5);
-      e.icon.visible = false;
-      if (e.state === 'windup') this.attackTokens++;
-      const head = e.pos.clone().setY(1.6);
-      this.fx.sparks(head);
-      const words = heavy ? ['KRAK!', 'WHAM!', 'BOOM!'] : ['POW!', 'BIFF!', 'THWAK!', 'SOCK!'];
-      this.fx.word(head.clone().add(new THREE.Vector3(0, 0.6, 0)), words[(Math.random() * words.length) | 0], heavy ? '#d8323c' : '#f0b429');
-      this.audio.effort(e.id, 'hurt');
-      if (e.hp <= 0) {
-        this.audio.bodyFall();
-        e.state = 'down'; e.t = 0;
-        e.char.downed = true;
-        e.bar.visible = false;
-        this.state.stats.defeated++;
-      } else {
-        e.state = 'stagger'; e.t = heavy ? 0.6 : 0.35;
-        e.char.play('hit', e.t);
-      }
+      hits++;
+      if (p.takedown) {
+        this._hurtEnemy(e, e.maxHp > 4 ? 4 : 99, to, { heavy: true, word: 'TAKEDOWN!' });
+        this.combo.n = 0;
+        this.state.stats.takedowns = (this.state.stats.takedowns || 0) + 1;
+        this.audio.takedown();
+        if (!this.finisher) this._slowmo(0.45, 0.3);
+      } else this._hurtEnemy(e, heavy ? 2 : 1, to, { heavy });
     }
-    if (hitAny) {
+    if (hits) {
+      if (!p.takedown) this._comboHit(hits);
+      this._updateCombo();
       this.audio.hit(heavy);
       this.hitstop = heavy ? 0.09 : 0.05;
-      this.cam.shake = heavy ? 0.35 : 0.18;
-      if (navigator.vibrate) try { navigator.vibrate(heavy ? 40 : 20); } catch {}
+      this.cam.shake = p.takedown ? 0.6 : heavy ? 0.35 : 0.18;
+      if (navigator.vibrate) try { navigator.vibrate(p.takedown ? 80 : heavy ? 40 : 20); } catch {}
     }
+    p.takedown = false;
+  }
+
+  // Counter every attacker currently telegraphing a (counterable) punch.
+  _counter(list) {
+    const p = this.player;
+    list.sort((a, b) => a.pos.distanceTo(p.pos) - b.pos.distanceTo(p.pos));
+    const first = list[0];
+    p.rot = angleTo(p.pos, first.pos);
+    const leap = this._leapTo(first, 1.0);
+    p.atkT = 0.34 + leap;
+    p.hitDone = true;
+    p.invuln = Math.max(p.invuln, 0.7 + leap);
+    p.dodgeT = 0;
+    setTimeout(() => p.char.play(Math.random() < 0.5 ? 'kick' : 'punch', 0.32, { side: 1 }), leap * 700);
+    for (const e of list) {
+      const dir = e.pos.clone().sub(p.pos).setY(0).normalize();
+      this._hurtEnemy(e, 2, dir, { heavy: true, word: 'COUNTER!' });
+      if (e.hp > 0) { e.state = 'stagger'; e.t = 1.0; e.char.play('hit', 0.8); }
+    }
+    this.state.stats.counters = (this.state.stats.counters || 0) + list.length;
+    this._comboHit(list.length);
+    this._updateCombo();
+    this.audio.counter();
+    this.audio.hit(true);
+    if (!this.finisher) this._slowmo(0.35, 0.35);
+    this.cam.shake = 0.3;
+  }
+
+  _comboHit(n) {
+    const c = this.combo;
+    const before = c.n;
+    c.n += n;
+    c.t = 2.6;
+    this.state.stats.bestCombo = Math.max(this.state.stats.bestCombo || 0, c.n);
+    for (const tier of [5, TAKEDOWN_AT, 15, 25]) {
+      if (before < tier && c.n >= tier) {
+        this.audio.comboTier(tier);
+        this.toast(tier === TAKEDOWN_AT ? 'TAKEDOWN READY!' : tier === 5 ? 'FREEFLOW!' : `${tier} HIT COMBO!`, 900);
+      }
+    }
+    const el = $('combo');
+    el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump');
+  }
+
+  _updateCombo() {
+    const c = this.combo;
+    $('combo').classList.toggle('hidden', c.n < 2);
+    $('combo-n').textContent = `x${c.n}`;
+    $('combo-fill').style.width = `${Math.min(1, c.n / TAKEDOWN_AT) * 100}%`;
+    $('takedown').classList.toggle('hidden', c.n < TAKEDOWN_AT);
+  }
+
+  _slowmo(sec, scale) {
+    this.slow.t = Math.max(this.slow.t, sec);
+    this.slow.scale = scale;
+    this.audio.setSlow(true);
   }
 
   _damagePlayer(dmg, from) {
@@ -630,6 +763,9 @@ export class Game {
     if (p.invuln > 0 || p.hp <= 0) return;
     p.hp -= dmg;
     p.invuln = 0.7;
+    if (this.combo.n >= 3) this.toast('COMBO BROKEN', 800);
+    this.combo.n = 0;
+    this._updateCombo();
     p.char.play('hit', 0.35);
     p.vel.copy(p.pos).sub(from).setY(0).normalize().multiplyScalar(5);
     this.audio.hit(false);
@@ -731,6 +867,139 @@ export class Game {
     }
   }
 
+  // Enemies mid-windup close enough to counter (unblockable ones must be dodged instead).
+  _counterable() {
+    const p = this.player;
+    return this.enemies.filter((e) => e.hp > 0 && e.state === 'windup' && !e.unblockable && e.pos.distanceTo(p.pos) < 3.6);
+  }
+
+  // On-screen prompts for the incoming attack: COUNTER (gold) or DODGE (red).
+  _updateCues() {
+    const p = this.player;
+    let cue = null;
+    if (!this.script.active && p.hp > 0) {
+      for (const e of this.enemies) {
+        if (e.hp <= 0 || e.state !== 'windup' || e.pos.distanceTo(p.pos) > 3.6) continue;
+        if (!e.unblockable) { cue = 'counter'; break; }
+        cue = 'dodge';
+      }
+      // the windup icon pulses so it reads in a crowd
+      for (const e of this.enemies) if (e.icon.visible) e.icon.scale.setScalar(0.45 + Math.abs(Math.sin(this.t * 10)) * 0.15);
+    }
+    const el = $('counter-cue');
+    el.classList.toggle('hidden', !cue);
+    if (cue) {
+      el.textContent = cue === 'counter' ? (this.input.isTouch ? 'COUNTER! ⤴' : 'COUNTER! [SPACE]') : (this.input.isTouch ? 'DODGE! ⤴' : 'DODGE! [SPACE]');
+      el.classList.toggle('danger', cue === 'dodge');
+    }
+    const btn = $('btn-dodge');
+    btn.classList.toggle('cue', cue === 'counter');
+    btn.classList.toggle('danger', cue === 'dodge');
+  }
+
+  // ---------- detective scan ----------
+
+  _startScan() {
+    if (this.scanCd > 0 || this.script.active) return;
+    this.scanT = 7;
+    this.scanCd = 9;
+    this.audio.scan();
+    this.fx.ring(this.player.pos);
+    let n = 0;
+    for (const it of this.interactables) {
+      if (it.kind === 'talk' || !this._available(it)) continue;
+      const pos = this._interactPos(it);
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.35, 30, 16, 1, true),
+        new THREE.MeshBasicMaterial({ color: '#7fd4ff', transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: false }));
+      beam.position.set(pos.x, 15, pos.z);
+      beam.renderOrder = 20;
+      this.scene.add(beam);
+      this.scanBeams.push(beam);
+      n++;
+    }
+    this.toast(n ? `${n} CLUE${n > 1 ? 'S' : ''} DETECTED` : 'NOTHING HERE', 1300);
+  }
+
+  _updateScan(dt) {
+    this.scanCd = Math.max(0, this.scanCd - dt);
+    $('btn-scan').style.opacity = this.scanCd > 0 ? 0.45 : 1;
+    if (this.scanT > 0) {
+      this.scanT -= dt;
+      for (const b of this.scanBeams) b.material.opacity = Math.min(0.35, this.scanT * 0.2) * (0.75 + Math.sin(this.t * 6) * 0.25);
+      if (this.scanT <= 0) this._clearScan();
+    }
+    this.scanAmt = THREE.MathUtils.lerp(this.scanAmt, this.scanT > 0.6 ? 1 : 0, 1 - Math.exp(-dt * 5));
+  }
+
+  _clearScan() {
+    for (const b of this.scanBeams) { this.scene.remove(b); b.geometry.dispose(); b.material.dispose(); }
+    this.scanBeams = [];
+    this.scanT = 0;
+  }
+
+  // ---------- objective waypoint ----------
+
+  _resolveTarget(t) {
+    if (Array.isArray(t) && typeof t[0] === 'number') return new THREE.Vector3(t[0], 0, t[1]);
+    const id = typeof t === 'string' ? t : t.id;
+    if (typeof t === 'object' && t.until && this.script.test(t.until)) return null;
+    if (id === 'exit') {
+      const e = this.exits.find((x) => !x.if || this.script.test(x.if));
+      return e ? new THREE.Vector3(e.x, 0, e.z) : null;
+    }
+    const it = this.interactables.find((i) => i.id === id);
+    if (it) return this._available(it) ? this._interactPos(it) : null;
+    return this.npcs[id]?.pos || null;
+  }
+
+  _updateWaypoint(dt) {
+    const el = $('waypoint');
+    const p = this.player;
+    this.wp.t -= dt;
+    if (this.wp.t <= 0) {
+      this.wp.t = 0.25;
+      const o = this._currentObjectiveObj();
+      let best = null, bd = Infinity;
+      if (o?.target) {
+        const list = Array.isArray(o.target) && typeof o.target[0] !== 'number' ? o.target : [o.target];
+        for (const t of list) {
+          const pos = this._resolveTarget(t);
+          if (!pos) continue;
+          const d = pos.distanceTo(p.pos);
+          if (d < bd) { bd = d; best = pos.clone(); }
+        }
+      }
+      this.wp.pos = best;
+    }
+    const pos = this.wp.pos;
+    const show = pos && !this.script.active && !this._combatNow && pos.distanceTo(p.pos) > 3;
+    this.beacon.visible = !!show;
+    el.classList.toggle('hidden', !show);
+    if (!show) return;
+    this.beacon.position.set(pos.x, 20, pos.z);
+    this.beacon.material.opacity = 0.12 + Math.sin(this.t * 3) * 0.04;
+    // project to the screen; clamp to the edge when off-screen
+    const v = pos.clone().setY(1.6).project(this.camera);
+    const behind = v.z > 1;
+    let x = v.x, y = v.y;
+    if (behind) { x = -x; y = -y; }
+    const W = innerWidth, H = innerHeight, m = 46;
+    let sx = (x * 0.5 + 0.5) * W, sy = (-y * 0.5 + 0.5) * H;
+    const off = behind || sx < m || sx > W - m || sy < m + 60 || sy > H - m;
+    const arrow = $('wp-arrow');
+    if (off) {
+      const cx = W / 2, cy = H / 2;
+      let dx = sx - cx, dy = sy - cy;
+      if (behind && Math.abs(dy) < 1) dy = 1;
+      const k = Math.min((W / 2 - m) / Math.abs(dx || 1e-3), (H / 2 - m - 30) / Math.abs(dy || 1e-3));
+      sx = cx + dx * k; sy = cy + dy * k;
+      arrow.style.transform = `rotate(${Math.atan2(dy, dx)}rad)`;
+    } else arrow.style.transform = 'rotate(90deg)';
+    el.style.left = `${sx}px`;
+    el.style.top = `${sy}px`;
+    $('wp-dist').textContent = `${Math.round(pos.distanceTo(p.pos))} m`;
+  }
+
   get inCombat() { return this.enemies.some((e) => e.hp > 0 && e.pos.distanceTo(this.player.pos) < 20); }
 
   // ---------- frame ----------
@@ -752,7 +1021,19 @@ export class Game {
       this.input.endFrame();
       return;
     }
+    const realDt = dt;
     if (this.hitstop > 0) { this.hitstop -= dt; dt *= 0.08; }
+    if (this.slow.t > 0) {
+      this.slow.t -= realDt;
+      dt *= this.slow.scale;
+      if (this.slow.t <= 0) this.audio.setSlow(false);
+    }
+    this.slow.amt = THREE.MathUtils.lerp(this.slow.amt, this.slow.t > 0 ? 1 : 0, 1 - Math.exp(-realDt * 10));
+    if (this.finisher) { this.finisher.t -= realDt; if (this.finisher.t <= 0) this.finisher = null; }
+    if (this.combo.n > 0 && !this.script.active) {
+      this.combo.t -= realDt;
+      if (this.combo.t <= 0) { this.combo.n = 0; this._updateCombo(); }
+    }
     this.t += dt;
 
     if (this.script.active) { this.input.takeLook(); this.script.update(this.input); }
@@ -775,8 +1056,11 @@ export class Game {
     this._updateCamera(dt);
     this.world.update(dt, this.t, this.camera.position, () => this.audio.thunder());
     this.fx.update(dt);
+    this._updateScan(realDt);
+    this._updateWaypoint(realDt);
+    this._updateCues();
     this.hurtFlash = Math.max(0, this.hurtFlash - dt * 2.5);
-    this.post.render(dt, this.hurtFlash * 0.6);
+    this.post.render(dt, this.hurtFlash * 0.6, this.scanAmt, this.slow.amt);
     this.input.endFrame();
   }
 
@@ -797,7 +1081,14 @@ export class Game {
     const fwd = new THREE.Vector3(-sy, 0, -cy), right = new THREE.Vector3(cy, 0, -sy);
     const wish = fwd.multiplyScalar(-my).add(right.multiplyScalar(mx));
 
-    if (inp.consume('dodge') && p.dodgeT <= 0 && p.atkT <= 0) {
+    if (inp.consume('scan')) this._startScan();
+    const counterable = this._counterable();
+    if (counterable.length && inp.pressed('dodge') && p.atkT <= 0.12) {
+      inp.consume('dodge');
+      this._counter(counterable);
+    } else if (inp.consume('dodge') && p.dodgeT <= 0 && !p.leap) {
+      // evading cancels an attack's recovery so red !! attacks can always be escaped
+      p.atkT = 0; p.hitDone = true; p.queued = 0;
       p.dodgeT = 0.38;
       p.invuln = Math.max(p.invuln, 0.38);
       const dir = mag > 0.1 ? wish.clone().normalize() : new THREE.Vector3(-Math.sin(p.rot), 0, -Math.cos(p.rot));
@@ -806,10 +1097,23 @@ export class Game {
       p.char.play('dodge', 0.38);
       this.audio.whoosh();
     }
-    if (inp.consume('attack') && !this.nearInteract) this._playerAttack();
+    // buffer an attack pressed mid-swing so combos chain smoothly
+    if (inp.consume('attack') && !this.nearInteract) p.queued = 0.45;
+    if (p.queued > 0) {
+      p.queued -= dt;
+      if (p.atkT <= 0.05 && p.dodgeT <= 0 && !p.leap) { p.queued = 0; this._playerAttack(wish); }
+    }
 
     let speed = 0;
-    if (p.dodgeT > 0) {
+    if (p.leap) {
+      // dash between enemies (freeflow)
+      const L = p.leap;
+      L.t += dt;
+      const k = Math.min(1, L.t / L.dur);
+      p.pos.lerpVectors(L.from, L.to, 1 - (1 - k) * (1 - k));
+      speed = 8;
+      if (k >= 1) p.leap = null;
+    } else if (p.dodgeT > 0) {
       p.dodgeT -= dt;
     } else if (p.atkT > 0) {
       // attack lunge
@@ -977,7 +1281,13 @@ export class Game {
   _updateCamera(dt) {
     const c = this.cam, p = this.player;
     const k = 1 - Math.exp(-dt * 6);
-    const shot = c.cine || (this.script.active ? c.speakerShot : null);
+    let shot = c.cine || (this.script.active ? c.speakerShot : null);
+    if (!shot && this.finisher) {
+      // slow-motion finisher: a low, close orbit around the final blow
+      const f = this.finisher, mid = f.pos.clone().lerp(p.pos, 0.5);
+      const a = angleTo(p.pos, f.pos) + Math.PI / 2 * f.side + (1.1 - f.t) * 0.5 * f.side;
+      shot = { pos: new THREE.Vector3(mid.x + Math.sin(a) * 2.8, 1.25, mid.z + Math.cos(a) * 2.8), look: mid.setY(1.0) };
+    }
     if (shot) {
       const kk = shot.cut ? 1 : 1 - Math.exp(-dt * (c.cine ? 3 : 5));
       this.camera.position.lerp(shot.pos, kk);

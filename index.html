@@ -23,11 +23,15 @@
       <div id="health"><div id="health-fill"></div></div>
       <button id="btn-pause" class="icon-btn" aria-label="Pause">II</button>
       <div id="prompt" class="hidden"></div>
+      <div id="combo" class="hidden"><span id="combo-n">x0</span><span class="label">COMBO</span><div id="combo-bar"><div id="combo-fill"></div></div><span id="takedown" class="hidden">TAKEDOWN READY</span></div>
+      <div id="waypoint" class="hidden"><div id="wp-arrow">➤</div><span id="wp-dist"></span></div>
+      <div id="counter-cue" class="hidden">COUNTER!</div>
       <div id="toast" class="hidden"></div>
       <div id="sticks">
         <div id="joy"><div id="joy-knob"></div></div>
         <div id="actions">
           <button id="btn-interact" class="act hidden" aria-label="Interact">✋</button>
+          <button id="btn-scan" class="act small" aria-label="Detective scan">👁</button>
           <button id="btn-dodge" class="act" aria-label="Dodge">⤴</button>
           <button id="btn-attack" class="act big" aria-label="Attack">✊</button>
         </div>
@@ -62,8 +66,10 @@
         </div>
         <div id="howto" class="hidden">
           <p>🎧 Best with headphones. Fully voiced.</p>
-          <p><b>Desktop:</b> WASD / arrows to move · drag mouse to look · <b>E</b> interact · <b>J</b> / click attack · <b>Space</b> dodge · <b>Enter</b> advance dialogue · <b>Esc</b> pause</p>
-          <p><b>Mobile:</b> left thumb to move · drag right side to look · buttons to act · tap to advance dialogue</p>
+          <p><b>Desktop:</b> WASD / arrows move · drag mouse to look · <b>E</b> interact · <b>J</b> / click attack · <b>Space</b> evade / counter · <b>Q</b> detective scan · <b>Enter</b> advance dialogue · <b>Esc</b> pause</p>
+          <p><b>Mobile:</b> left thumb moves · drag the right side to look · ✊ attack · ⤴ evade / counter · 👁 scan · tap to advance dialogue</p>
+          <p><b>Gamepad:</b> sticks move / look · X attack · B evade / counter · A interact · Y scan · Start pause</p>
+          <p><b>Combat:</b> chain hits to build a combo — attacks leap to enemies nearby. A <span style="color:#f0b429">gold !</span> means a punch is coming: press evade to <b>counter</b>. A <span style="color:#ff5a5a">red !!</span> can't be countered — the same button dodges it. A full combo meter unlocks an instant <b>takedown</b>.</p>
         </div>
         <div class="loading" id="loading">Loading…</div>
       </div>

@@ -24,6 +24,10 @@ It runs on desktop and mobile with no install and no build step.
 - Layered ambience and synthesized foley.
 - Voice-over with radio and loudspeaker processing, and music ducking under dialogue.
 
+## Play
+
+Open `index.html` through any static web server (below), or host the folder on GitHub Pages: **Settings → Pages → Deploy from a branch**, pick this branch and `/ (root)`.
+
 ## Run it
 
 ```bash
@@ -37,15 +41,24 @@ Load a different story with `?story=<name>`, which reads `story/<name>.json`.
 
 ## Controls
 
-| | Desktop | Mobile |
-|---|---|---|
-| Move | WASD / arrows | left-thumb joystick |
-| Look | drag mouse | drag right side of the screen |
-| Attack (3-hit combo) | J / click | ✊ |
-| Dodge | Space / Shift | ⤴ |
-| Interact / talk | E | ✋ (appears when near something) |
-| Dialogue | Enter / Space / click, 1–4 for choices | tap |
-| Pause (sound, auto-dialogue, quality) | Esc | II |
+| | Desktop | Mobile | Gamepad |
+|---|---|---|---|
+| Move / look | WASD + drag mouse | left thumb + drag right side | sticks |
+| Attack | J / click | ✊ | X |
+| Evade / **counter** | Space / Shift | ⤴ | B |
+| Detective scan | Q | 👁 | Y |
+| Interact / talk | E | ✋ | A |
+| Dialogue | Enter / Space / click, 1–4 for choices | tap | A, D-pad |
+| Pause (sound, auto-dialogue, quality) | Esc | II | Start |
+
+## Combat
+
+- **Freeflow:** attacks leap to the enemy you're pushing toward, up to about 6 m away, and a press mid-swing queues the next hit.
+- **Counter:** a gold **!** over an enemy means a punch is coming. Press evade to counter it; this hits every attacker who is winding up.
+- **Dodge:** a red **!!** (the Big Grin) can't be countered; the same button dodges it. Evading cancels an attack's recovery.
+- **Combo:** chain hits without getting hit. At x5 you enter *freeflow* and attack faster. At x8 the next attack is an instant **takedown**.
+- **Finisher:** the last knockout of a fight plays in slow motion with a close camera.
+- **Navigation:** a gold beacon and an edge-of-screen arrow point at the current objective. **Detective scan** reveals clues through walls.
 
 ## Layout
 
