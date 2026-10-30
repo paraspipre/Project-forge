@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Character Viewer</title>
+  <style>html,body{margin:0;height:100%;background:#0b0812;overflow:hidden;font-family:system-ui;color:#eee}#ui{position:fixed;left:12px;top:12px;display:flex;gap:6px;flex-wrap:wrap}button{background:#222;color:#eee;border:1px solid #555;padding:6px 10px;border-radius:6px;cursor:pointer}button.on{background:#5b2a86}</style>
+  <script type="importmap">{ "imports": { "three": "../vendor/three.module.js" } }</script>
+</head>
+<body>
+  <div id="ui"></div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { Character } from '../src/engine/Character.js';
+    import { Post } from '../src/engine/Post.js';
+    import { Sky } from '../src/engine/Sky.js';
+    import { std } from '../src/engine/Materials.js';
+    import { worldUV } from '../src/engine/Textures.js';
+
+    // Dev tool: inspect every character in a story. ?story=<name>&focus=<id>&anim=<walk|punch|talk>
+    const q = new URLSearchParams(location.search);
+    const story = await (await fetch(`../story/${q.get('story') || 'the-grinning-hour'}.json`)).json();
+    const renderer = new THREE.WebGLRenderer({ antialias: false });
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 500);
+    const sky = new Sky(renderer, scene, { sky: '#0a0814', skyHorizon: '#2a2338', fog: '#1d1a2a', skyline: false }, scene, 'high');
+    scene.add(new THREE.HemisphereLight('#8a90c8', '#201820', 0.7));
+    const key = new THREE.DirectionalLight('#ffe2c0', 2.2); key.position.set(3, 5, 4); key.castShadow = true; key.shadow.mapSize.set(2048, 2048);
+    Object.assign(key.shadow.camera, { left: -8, right: 8, top: 6, bottom: -2 });
+    const rim = new THREE.DirectionalLight('#8aa0ff', 2.5); rim.position.set(-4, 3, -5);
+    scene.add(key, rim);
+    const floor = new THREE.Mesh(worldUV(new THREE.PlaneGeometry(40, 40).rotateX(-Math.PI / 2), 3), std('#4a4650', { tex: 'cobble', rough: 0.8 }));
+    floor.receiveShadow = true;
+    scene.add(floor);
+    const post = new Post(renderer, scene, camera, 'high');
+
+    const ids = Object.keys(story.characters).filter((k) => Object.keys(story.characters[k].look || {}).length);
+    const chars = ids.map((id, i) => {
+      const c = new Character(story.characters[id].look);
+      c.root.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+      c.root.position.x = (i - (ids.length - 1) / 2) * 0.95;
+      scene.add(c.root);
+      return { id, c };
+    });
+    let focus = q.get('focus');
+    const anim = q.get('anim') || '';
+    const ui = document.getElementById('ui');
+    const btn = (label, fn) => { const b = document.createElement('button'); b.textContent = label; b.onclick = fn; ui.appendChild(b); return b; };
+    btn('All', () => { focus = null; });
+    ids.forEach((id) => btn(story.characters[id].name, () => { focus = id; }));
+
+    const resize = () => { renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.setSize(innerWidth, innerHeight); post.setSize(innerWidth, innerHeight, Math.min(devicePixelRatio, 2)); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); };
+    addEventListener('resize', resize); resize();
+    const clock = new THREE.Clock();
+    let t = 0;
+    renderer.setAnimationLoop(() => {
+      const dt = Math.min(clock.getDelta(), 0.05); t += dt;
+      for (const { id, c } of chars) {
+        c.talking = anim === 'talk' || (focus === id && anim !== 'walk');
+        c.speed = anim === 'walk' ? 0.6 : 0;
+        if (anim === 'punch' && !c.busy) c.play('punch', 0.35, { side: Math.random() < 0.5 ? 1 : -1 });
+        c.update(dt);
+      }
+      const f = chars.find((x) => x.id === focus);
+      if (f) {
+        const p = f.c.root.position, h = 1.73 * (story.characters[focus].look.height || 1);
+        camera.position.set(p.x + Math.sin(t * 0.3) * 0.25, h + 0.02, p.z + 0.75);
+        camera.lookAt(p.x, h - 0.04, p.z);
+      } else {
+        camera.position.set(0, 1.5, ids.length * 0.95 + 1.5);
+        camera.lookAt(0, 1.0, 0);
+      }
+      sky.update(t, camera.position);
+      post.render(dt, 0);
+    });
+  </script>
+</body>
+</html>

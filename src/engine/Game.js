@@ -6,6 +6,8 @@ import { World } from './World.js';
 import { Script } from './Script.js';
 import { Fx } from './Fx.js';
 import { glow } from './Materials.js';
+import { Post } from './Post.js';
+import { setTextureSize } from './Textures.js';
 
 // The engine. Everything story-specific comes from the `story` object (see story/*.json);
 // this file only knows how to stage it: scenes, actors, clues, exits, fights, choices.
@@ -29,12 +31,22 @@ export class Game {
     this.audio = new Audio();
     this.quality = this._loadQuality();
 
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: this.quality === 'high', powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.shadowMap.enabled = this.quality === 'high';
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1;
+    setTextureSize(this.quality === 'high' ? 512 : 256);
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(60, 1, 0.1, 200);
     this.fx = new Fx(this.scene);
+    this.post = new Post(this.renderer, this.scene, this.camera, this.quality);
+    // soft key light that follows the player so faces stay readable at night
+    this.keyLight = new THREE.PointLight('#c8d0ff', 4, 7, 1.5);
+    this.scene.add(this.keyLight);
+    this.hurtFlash = 0;
+    for (const [id, c] of Object.entries(story.characters)) if (c.voice?.style) this.audio.voiceStyle[id] = c.voice.style;
+    this.audio.loadManifest();
     this.script = new Script(this);
     this._resize();
     addEventListener('resize', () => this._resize());
@@ -68,6 +80,7 @@ export class Game {
     const pr = Math.min(devicePixelRatio || 1, this.quality === 'high' ? 2 : 1.25);
     this.renderer.setPixelRatio(pr);
     this.renderer.setSize(w, h, false);
+    this.post?.setSize(w, h, pr);
     this.camera.aspect = w / h;
     // Wider FOV in portrait so the player can see around them.
     this.camera.fov = w < h ? 75 : 60;
@@ -98,6 +111,15 @@ export class Game {
     const muteLabel = () => { $('btn-mute').textContent = `Sound: ${this.audio.muted ? 'Off' : 'On'}`; };
     muteLabel();
     $('btn-mute').onclick = () => { this.audio.setMuted(!this.audio.muted); muteLabel(); };
+    this.settings = { autoDialogue: false };
+    try { this.settings.autoDialogue = localStorage.getItem('gh_auto') === '1'; } catch {}
+    const autoLabel = () => { $('btn-auto').textContent = `Auto dialogue: ${this.settings.autoDialogue ? 'On' : 'Off'}`; };
+    autoLabel();
+    $('btn-auto').onclick = () => {
+      this.settings.autoDialogue = !this.settings.autoDialogue;
+      try { localStorage.setItem('gh_auto', this.settings.autoDialogue ? '1' : '0'); } catch {}
+      autoLabel();
+    };
     const qLabel = () => { $('btn-quality').textContent = `Quality: ${this.quality === 'high' ? 'High' : 'Low'}`; };
     qLabel();
     $('btn-quality').onclick = () => {
@@ -189,9 +211,12 @@ export class Game {
     this.sceneData = data;
     this.entryFlags = { ...this.state.flags };
     this.entrySpawn = spawnName;
-    this.world = new World(this.scene, data, this.quality);
-    this.canvas.classList.toggle('flashback', !!data.environment?.flashback);
-    this.audio.setMood(data.mood || 'rain', !!data.environment?.rain);
+    this.world = new World(this.renderer, this.scene, data, this.quality);
+    const env = data.environment || {};
+    this.renderer.toneMappingExposure = env.exposure ?? 1;
+    this.post.set({ sepia: env.flashback ? 0.85 : 0 });
+    this.audio.setMood(data.mood || 'rain', !!env.rain, env.groundTex === 'wood' ? 'wood' : 'wet');
+    this.audio.preload(this._sceneLines(data));
 
     // Player
     this.playerId = data.playAs || this.story.player;
@@ -336,7 +361,47 @@ export class Game {
     return this.npcs?.[id];
   }
 
+  // Every spoken line in a scene, for voice preloading (mirrors tools/generate_voices.py).
+  _sceneLines(sc) {
+    const out = [];
+    const player = sc.playAs || this.story.player;
+    const walk = (steps) => {
+      for (const st of steps || []) {
+        if (st.s && st.t) out.push([st.s, st.t]);
+        if (st.caption) out.push(['narrator', st.caption]);
+        for (const c of st.choices || []) { out.push([player, c.t]); walk(c.then); }
+        walk(st.then); walk(st.else); walk(st.talk);
+      }
+    };
+    walk(sc.intro); walk(sc.resume);
+    for (const n of sc.npcs || []) walk(n.talk);
+    for (const it of sc.interactables || []) walk(it.script);
+    for (const t of sc.triggers || []) walk(t.script);
+    for (const w of Object.values(sc.waves || {})) walk(w.onClear);
+    return out;
+  }
+
+  // Heads turn toward whoever is speaking; mouths follow the voice; fists come up in a fight.
+  _lookAndTalk(a) {
+    let target = null;
+    if (this.script.active && this.talkingId) {
+      const sp = this.actorById(this.talkingId);
+      target = a === sp ? (a === this.player ? this.actorById(this.convoPartner) : this.player) : sp;
+    } else if (a.enemy) target = this.player;
+    else if (a !== this.player && a.pos.distanceTo(this.player.pos) < 6) target = this.player;
+    if (target && target !== a) {
+      let rel = angleTo(a.pos, target.pos) - a.rot;
+      rel = Math.atan2(Math.sin(rel), Math.cos(rel));
+      a.char.lookYaw = Math.abs(rel) < 2 ? rel : 0;
+    } else a.char.lookYaw = 0;
+    a.char.voiceDriven = a.char.talking && !!this.audio.curVoice && this.audio.speakingAs === a.id;
+    if (a.char.voiceDriven) a.char.mouthTarget = this.audio.voiceLevel();
+    if (a === this.player) a.char.setFist(this._combatNow);
+    else if (a.enemy) a.char.setFist(a.hp > 0);
+  }
+
   setTalking(id) {
+    this.talkingId = id;
     for (const a of this.actors) a.char.talking = false;
     const a = id && this.actorById(id);
     if (a) a.char.talking = true;
@@ -344,7 +409,7 @@ export class Game {
 
   animate(id, anim) {
     const a = this.actorById(id);
-    if (anim === 'laugh') { this.audio.laugh(); if (a) a.char.play('gesture', 0.8); return; }
+    if (anim === 'laugh') { this.audio.laugh(id); if (a) a.char.play('laugh', 1.4); return; }
     if (a) a.char.play(anim, 0.7);
   }
 
@@ -378,7 +443,7 @@ export class Game {
     $('card-title').textContent = title;
     $('card-sub').textContent = sub;
     $('card').classList.remove('hidden');
-    this.audio.tone(98, 1.2, 0.2, 'sawtooth', -40);
+    this.audio.sting();
     await this.sleep(dur * 1000);
     $('card').classList.add('hidden');
   }
@@ -416,7 +481,7 @@ export class Game {
       case 'npcRemove': {
         const a = this.npcs[st.id];
         if (a) {
-          if (st.smoke) { this.fx.smoke(a.pos); this.audio.burst(0.6, 0.4, 600); }
+          if (st.smoke) { this.fx.smoke(a.pos); this.audio.smoke(); }
           this.scene.remove(a.char.root);
           this.actors = this.actors.filter((x) => x !== a);
           delete this.npcs[st.id];
@@ -437,7 +502,7 @@ export class Game {
         if (a) a.faceTarget = b ? angleTo(a.pos, b.pos) : (st.rot ?? 0) * Math.PI / 180;
         break;
       }
-      case 'smoke': this.fx.smoke(new THREE.Vector3(st.x, 0, st.z)); this.audio.burst(0.6, 0.4, 600); break;
+      case 'smoke': this.fx.smoke(new THREE.Vector3(st.x, 0, st.z)); this.audio.smoke(); break;
       case 'heal': this.player.hp = this.player.maxHp; this._updateHealth(); break;
       case 'fade':
         $('fade').classList.toggle('on', !!st.out);
@@ -488,7 +553,7 @@ export class Game {
       return a;
     });
     this.waves[id] = { list, onClear: w.onClear, cleared: false };
-    this.audio.setMood('tense', !!this.sceneData.environment?.rain);
+    this.audio.setMood('combat', !!this.sceneData.environment?.rain);
     if (w.announce) this.toast(w.announce, 1600);
   }
 
@@ -502,7 +567,8 @@ export class Game {
     p.hitDone = false;
     if (step === 2) p.char.play('kick', 0.42);
     else p.char.play('punch', 0.3, { side: step === 0 ? 1 : -1 });
-    this.audio.whoosh();
+    this.audio.whoosh(step === 2);
+    if (Math.random() < 0.45) this.audio.effort(this.playerId, 'attack');
     // soft auto-aim to the nearest enemy in front-ish
     let best = null, bd = 3.2;
     for (const e of this.enemies) {
@@ -535,7 +601,9 @@ export class Game {
       this.fx.sparks(head);
       const words = heavy ? ['KRAK!', 'WHAM!', 'BOOM!'] : ['POW!', 'BIFF!', 'THWAK!', 'SOCK!'];
       this.fx.word(head.clone().add(new THREE.Vector3(0, 0.6, 0)), words[(Math.random() * words.length) | 0], heavy ? '#d8323c' : '#f0b429');
+      this.audio.effort(e.id, 'hurt');
       if (e.hp <= 0) {
+        this.audio.bodyFall();
         e.state = 'down'; e.t = 0;
         e.char.downed = true;
         e.bar.visible = false;
@@ -546,7 +614,7 @@ export class Game {
       }
     }
     if (hitAny) {
-      this.audio.hit();
+      this.audio.hit(heavy);
       this.hitstop = heavy ? 0.09 : 0.05;
       this.cam.shake = heavy ? 0.35 : 0.18;
       if (navigator.vibrate) try { navigator.vibrate(heavy ? 40 : 20); } catch {}
@@ -560,13 +628,16 @@ export class Game {
     p.invuln = 0.7;
     p.char.play('hit', 0.35);
     p.vel.copy(p.pos).sub(from).setY(0).normalize().multiplyScalar(5);
-    this.audio.hurt();
+    this.audio.hit(false);
+    this.audio.effort(this.playerId, 'hurt');
+    this.hurtFlash = 1;
     this.cam.shake = 0.4;
     this.fx.word(p.pos.clone().setY(2.4), 'OOF!', '#d8323c');
     this._updateHealth();
     if (p.hp <= 0) {
       p.char.downed = true;
-      this.audio.laugh();
+      this.audio.bodyFall();
+      this.audio.laugh('vale');
       setTimeout(() => { if (this.running) $('gameover').classList.remove('hidden'); }, 1300);
     }
   }
@@ -605,6 +676,7 @@ export class Game {
           e.icon.visible = false;
           e.char.play('punch', 0.3, { side: 1 });
           this.audio.whoosh();
+          if (Math.random() < 0.3) this.audio.effort(e.id, 'attack');
           const fwd = new THREE.Vector3(Math.sin(e.rot), 0, Math.cos(e.rot));
           if (d < e.reach + 0.2 && toP.normalize().dot(fwd) > 0.3 && p.dodgeT <= 0) this._damagePlayer(e.dmg, e.pos);
           e.state = 'recover'; e.t = 0.5;
@@ -664,7 +736,7 @@ export class Game {
     this.input.update();
     if (this.input.consume('pause') && this.running) this.pause(!this.paused);
     if (!this.running || this.paused || this.loading || !this.world) {
-      if (this.world) this.renderer.render(this.scene, this.camera);
+      if (this.world) this.post.render(0, 0);
       this.input.takeLook();
       this.input.endFrame();
       return;
@@ -686,17 +758,21 @@ export class Game {
     if (this.enemies.length) this._updateEnemies(dt);
     if (!this.script.active) { this._checkTriggers(); this._updateInteract(); }
 
+    this._combatNow = this.inCombat;
+    this.keyLight.position.set(this.player.pos.x + (this.camera.position.x - this.player.pos.x) * 0.3, 2.4, this.player.pos.z + (this.camera.position.z - this.player.pos.z) * 0.3);
     for (const a of this.actors) {
       a.char.root.position.x = a.pos.x;
       a.char.root.position.z = a.pos.z;
       a.char.root.rotation.y = a.rot;
+      this._lookAndTalk(a);
       a.char.update(dt);
     }
     this._updateMarkers(dt);
     this._updateCamera(dt);
     this.world.update(dt, this.t, this.camera.position, () => this.audio.thunder());
     this.fx.update(dt);
-    this.renderer.render(this.scene, this.camera);
+    this.hurtFlash = Math.max(0, this.hurtFlash - dt * 2.5);
+    this.post.render(dt, this.hurtFlash * 0.6);
     this.input.endFrame();
   }
 

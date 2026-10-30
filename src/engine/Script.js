@@ -76,7 +76,7 @@ export class Script {
     }
     if (st.do) { await g.action(st); }
     if (st.wait) await g.sleep(st.wait * 1000);
-    if (st.caption) await this._caption(st.caption);
+    if (st.caption) await this._caption(st.caption, st.voice !== false);
     if (st.t) await this._line(st);
     if (st.choices) await this._choose(st);
   }
@@ -89,12 +89,16 @@ export class Script {
     this.game.setTalking(null);
   }
 
-  _caption(text) {
+  async _caption(text, voiced = true) {
+    const a = this.game.audio;
     this.el.box.classList.add('hidden');
     this.el.caption.textContent = text;
     this.el.caption.classList.remove('hidden');
-    this.game.audio.blip();
-    return this._waitAdvance().then(() => this.el.caption.classList.add('hidden'));
+    a.page();
+    const v = voiced ? await a.playLine('narrator', text) : null;
+    await this._waitAdvance(v);
+    a.stopVoice();
+    this.el.caption.classList.add('hidden');
   }
 
   async _line(st) {
@@ -110,9 +114,11 @@ export class Script {
     if (st.anim) g.animate(st.s, st.anim);
     if (st.sfx) g.sfx(st.sfx);
     if (!st.cam && sp) g.focusSpeaker(st.s);
-    await this._type(this.flagsInterp(st.t));
+    const v = await g.audio.playLine(st.s, st.vt || st.t);
+    await this._type(this.flagsInterp(st.t), v && v.duration);
     this.el.next.classList.remove('hidden');
-    await this._waitAdvance();
+    await this._waitAdvance(v);
+    g.audio.stopVoice();
     this.el.next.classList.add('hidden');
   }
 
@@ -120,16 +126,17 @@ export class Script {
     return text.replace(/\{player\}/g, this.game.story.characters[this.game.playerId]?.name || '');
   }
 
-  _type(text) {
+  // Typewriter; when a voice clip plays, the text is paced to finish with the speech.
+  _type(text, voiceDur) {
     return new Promise((resolve) => {
       const el = this.el.text;
       el.textContent = '';
       let i = 0;
-      const speed = 28; // chars / 100ms-ish
+      const speed = voiceDur ? Math.max(14, (text.length / 2) / (voiceDur * 0.85)) : 28; // ticks per second
       const tick = () => {
         i = Math.min(text.length, i + 2);
         el.textContent = text.slice(0, i);
-        if (i % 6 === 0) this.game.audio.blip();
+        if (!voiceDur && i % 6 === 0) this.game.audio.blip();
         if (i >= text.length) { this.typing = null; resolve(); return; }
         this.typing = setTimeout(tick, 1000 / speed);
       };
@@ -138,8 +145,15 @@ export class Script {
     });
   }
 
-  _waitAdvance() {
-    return new Promise((resolve) => { this.waiter = { kind: 'advance', resolve, at: performance.now() }; });
+  // Waits for the player; with auto-dialogue on, a voiced line also advances itself once spoken.
+  _waitAdvance(voice) {
+    return new Promise((resolve) => {
+      const w = { kind: 'advance', resolve, at: performance.now() };
+      this.waiter = w;
+      if (voice && this.game.settings.autoDialogue) {
+        voice.ended.then(() => setTimeout(() => { if (this.waiter === w) { this.waiter = null; resolve(); } }, 700));
+      }
+    });
   }
 
   _advance() {
@@ -176,6 +190,9 @@ export class Script {
     this.el.choices.innerHTML = '';
     if (picked.once) this.flags['_ch_' + picked.once] = true;
     if (picked.set) [].concat(picked.set).forEach((f) => { this.flags[f] = true; });
+    // the player character speaks the chosen reply
+    const said = (picked.t || '').replace(/\[[^\]]*\]\s*/g, '').trim();
+    if (said && !picked.silent) await this._line({ s: this.game.playerId, t: said, vt: picked.t });
     if (picked.then) await this._runList(picked.then);
     if (st.loop && !picked.exit) await this._choose(st);
   }

@@ -9,18 +9,23 @@
     "nightjar": {
       "name": "Nightjar",
       "look": {
-        "cowl": "#1f1d29",
-        "skin": "#d2a07c",
-        "top": "#3a3848",
-        "pants": "#1f1d29",
-        "gloves": "#3b3a48",
-        "shoes": "#111016",
-        "cape": "#3a2f58",
-        "eyes": "glow",
-        "emblem": "#c9b26a",
-        "height": 1.05,
-        "build": 1.1
-      }
+        "cowl": "#1c1b24",
+        "skin": "#c99a78",
+        "top": "#2a2a36",
+        "pants": "#1f1e27",
+        "gloves": "#2a2830",
+        "shoes": "#141218",
+        "cape": "#16141e",
+        "emblem": "#c9a24a",
+        "belt": "#3a2e22",
+        "leather": true,
+        "wet": true,
+        "height": 1.04,
+        "build": 1.12,
+        "eyes": "#3a2a20"
+      },
+      "voice": {"kokoro": "am_fenrir*0.6+am_onyx*0.4", "speed": 0.9},
+      "efforts": {"attack": ["Hah!", "Hmph!", "Yah!"], "hurt": ["Ugh!", "Argh!"]}
     },
     "ibarra": {
       "name": "Commissioner Ibarra",
@@ -32,41 +37,86 @@
         "hair": "#1a1210",
         "hairStyle": "bun",
         "badge": "#f0b429",
-        "accent": "#5b3b2a"
-      }
+        "accent": "#5b3b2a",
+        "figure": "slim",
+        "coatLength": 0.62,
+        "eyes": "#2a1a10",
+        "lips": "#8a4a44"
+      },
+      "voice": {"kokoro": "af_kore*0.5+af_sarah*0.5", "speed": 1.0}
     },
-    "ibarra_radio": {"name": "Ibarra (radio)", "look": {}},
+    "ibarra_radio": {"name": "Ibarra (radio)", "look": {}, "voice": {"kokoro": "af_kore*0.5+af_sarah*0.5", "speed": 1.05, "style": "radio"}},
     "dunn": {
       "name": "Officer Dunn",
-      "look": {"skin": "#e2b693", "top": "#26324d", "pants": "#26324d", "hat": "cap", "hatColor": "#1b2438", "badge": "#f0b429", "build": 1.1}
+      "look": {
+        "skin": "#e2b693",
+        "top": "#26324d",
+        "pants": "#26324d",
+        "hat": "cap",
+        "hatColor": "#1b2438",
+        "badge": "#f0b429",
+        "build": 1.1,
+        "mustache": true,
+        "hair": "#5a3a24",
+        "eyes": "#4a6a8a"
+      },
+      "voice": {"kokoro": "am_eric", "speed": 1.05}
     },
-    "pike": {"name": "Orderly Pike", "look": {"skin": "#e2b693", "top": "#e6e1d3", "pants": "#d6d0c0", "shoes": "#e6e1d3", "hairStyle": "bald", "build": 1.15}},
-    "tobias": {"name": "Inmate 4471", "look": {"skin": "#d9a98a", "top": "#d8823c", "pants": "#d8823c", "hair": "#8a8a8a", "hairStyle": "long", "build": 0.9}},
+    "pike": {
+      "name": "Orderly Pike",
+      "look": {
+        "skin": "#e2b693",
+        "top": "#e6e1d3",
+        "pants": "#d6d0c0",
+        "shoes": "#cfcac0",
+        "hairStyle": "bald",
+        "build": 1.15,
+        "hair": "#6a4a30",
+        "mustache": true,
+        "eyes": "#5a7a5a"
+      },
+      "voice": {"kokoro": "am_adam*0.6+am_echo*0.4", "speed": 1.12}
+    },
+    "tobias": {
+      "name": "Inmate 4471",
+      "look": {"skin": "#d9a98a", "top": "#d8823c", "pants": "#d8823c", "hair": "#9a9a9a", "hairStyle": "long", "build": 0.9, "eyes": "#8a9aa0"},
+      "voice": {"kokoro": "am_puck*0.5+bm_daniel*0.5", "speed": 1.05}
+    },
     "vale": {
       "name": "Harlan Vale",
       "look": {
         "skin": "#f1ece4",
-        "facePaint": "#f1ece4",
-        "grin": "#c0283a",
+        "facePaint": "#f3efe8",
+        "lips": "#b01828",
+        "grinWide": true,
+        "eyeShadow": "#2a0a20",
+        "browAngle": -0.35,
         "top": "#7a1022",
         "coat": "#7a1022",
-        "accent": "#f0b429",
+        "coatLength": 0.7,
+        "tails": true,
+        "buttons": true,
+        "accent": "#c9a24a",
+        "cuffs": "#e8e2d4",
         "pants": "#1a1220",
         "gloves": "#f4ecd6",
         "hat": "top",
-        "hatColor": "#1a1220",
-        "hatBand": "#f0b429",
-        "hair": "#cfcfd8",
+        "hatColor": "#151218",
+        "hatBand": "#c9a24a",
+        "hair": "#c8c8d4",
         "hairStyle": "slick",
-        "height": 1.08,
-        "build": 0.92
-      }
+        "eyes": "#5a8a3a",
+        "height": 1.06,
+        "build": 0.9
+      },
+      "voice": {"kokoro": "bm_fable*0.6+bm_george*0.4", "speed": 1.0},
+      "efforts": {"laugh": ["Ha ha ha ha ha ha!", "Ahahahaha!"]}
     },
-    "vale_pa": {"name": "Vale (loudspeaker)", "look": {}},
+    "vale_pa": {"name": "Vale (loudspeaker)", "look": {}, "voice": {"kokoro": "bm_fable*0.6+bm_george*0.4", "speed": 1.0, "style": "pa"}},
     "harlan": {
       "name": "Harlan Vale",
       "look": {
-        "skin": "#e3b892",
+        "skin": "#e0b892",
         "top": "#1d1a2e",
         "coat": "#1d1a2e",
         "accent": "#c0283a",
@@ -75,57 +125,89 @@
         "hair": "#2a1d14",
         "hairStyle": "slick",
         "height": 1.04,
-        "build": 0.92
-      }
+        "build": 0.92,
+        "tails": true,
+        "buttons": true,
+        "cuffs": "#e8e2d4",
+        "coatLength": 0.62,
+        "eyes": "#5a8a3a"
+      },
+      "voice": {"kokoro": "bm_fable", "speed": 1.05}
     },
     "mira": {
       "name": "Mira Vale",
       "look": {
         "skin": "#e8bf9a",
-        "top": "#b0203a",
+        "top": "#9a1830",
         "sleeve": "#e8bf9a",
-        "coat": "#b0203a",
+        "coat": "#9a1830",
+        "coatLength": 0.78,
+        "flare": 0.08,
+        "collar": false,
         "pants": "#e8bf9a",
-        "shoes": "#b0203a",
+        "shoes": "#7a1020",
         "hair": "#3a1d14",
         "hairStyle": "long",
-        "build": 0.88,
+        "figure": "slim",
+        "lips": "#b02838",
+        "eyes": "#3a2a1a",
+        "build": 0.9,
         "height": 0.97
-      }
+      },
+      "voice": {"kokoro": "bf_isabella*0.6+bf_emma*0.4", "speed": 1.02}
     },
     "crowe": {
       "name": "Silas Crowe",
       "look": {
         "skin": "#e0b48f",
         "top": "#3b3f46",
-        "accent": "#c9b26a",
+        "accent": "#7a1a22",
         "pants": "#3b3f46",
         "hair": "#9a9a9a",
         "hat": "fedora",
         "hatColor": "#2a2d33",
         "build": 1.25,
-        "coat": "#2f3238"
-      }
+        "coat": "#2f3238",
+        "coatLength": 0.66,
+        "eyes": "#6a7a8a",
+        "browAngle": 0.2
+      },
+      "voice": {"kokoro": "am_michael*0.5+am_onyx*0.5", "speed": 0.9}
     },
     "grinner": {
       "name": "Grinner",
-      "look": {"skin": "#f1ece4", "facePaint": "#f1ece4", "grin": "#c0283a", "top": "#4a3b5c", "hat": "hood", "pants": "#22202a"},
-      "combat": {"hp": 3, "damage": 1, "speed": 1, "windup": 0.6, "reach": 1.5}
+      "look": {
+        "skin": "#f1ece4",
+        "grin": "#b01828",
+        "top": "#3a2d4a",
+        "hat": "hood",
+        "pants": "#1e1c24",
+        "mask": "#f1ece4",
+        "hairStyle": "bald",
+        "gloves": "#1a1a1a"
+      },
+      "combat": {"hp": 3, "damage": 1, "speed": 1, "windup": 0.6, "reach": 1.5},
+      "voice": {"kokoro": "am_puck", "speed": 1.05},
+      "efforts": {"hurt": ["Oof!", "Agh!", "Ngh!"], "attack": ["Hyah!"]}
     },
     "brute": {
       "name": "Big Grin",
       "look": {
         "skin": "#f1ece4",
-        "facePaint": "#f1ece4",
-        "grin": "#c0283a",
+        "grin": "#b01828",
         "top": "#5b2a86",
         "pants": "#2a1d36",
         "hat": "cap",
         "hatColor": "#7bd34f",
         "build": 1.5,
-        "height": 1.15
+        "height": 1.15,
+        "mask": "#f1ece4",
+        "hairStyle": "bald",
+        "gloves": "#1a1a1a"
       },
-      "combat": {"hp": 7, "damage": 2, "speed": 0.8, "windup": 0.95, "reach": 1.8}
+      "combat": {"hp": 7, "damage": 2, "speed": 0.8, "windup": 0.95, "reach": 1.8},
+      "voice": {"kokoro": "am_santa*0.5+am_onyx*0.5", "speed": 0.85},
+      "efforts": {"hurt": ["Hrrgh!", "Oof!"], "attack": ["Raah!"]}
     }
   },
   "scenes": {
@@ -134,32 +216,55 @@
       "mood": "rain",
       "card": {"kicker": "CHAPTER ONE", "title": "RAIN ON BLACKMERE", "sub": "Gravenport. 2:13 a.m."},
       "environment": {
-        "sky": "#141022",
-        "fog": "#191428",
+        "sky": "#07060e",
+        "fog": "#1d1a2a",
         "fogNear": 14,
         "fogFar": 60,
-        "ground": "#2a2733",
+        "ground": "#3a3844",
         "rain": true,
         "lightning": true,
-        "ambient": 3.0,
-        "moonIntensity": 2.6,
-        "paths": [{"x": 0, "z": 3, "w": 4, "d": 32, "color": "#38323f"}, {"x": -8, "z": -7, "w": 22, "d": 5, "color": "#38323f"}]
+        "ambient": 0.65,
+        "moonIntensity": 1.1,
+        "paths": [
+          {"x": 0, "z": 3, "w": 4, "d": 32, "color": "#5a5662", "tex": "cobble"},
+          {"x": -8, "z": -7, "w": 22, "d": 5, "color": "#5a5662", "tex": "cobble"}
+        ],
+        "skyHorizon": "#2a2338",
+        "cityGlow": "#4a2e38",
+        "fogDensity": 0.024,
+        "groundTex": "asphalt",
+        "skyLight": "#7a80c0",
+        "exposure": 1.15
       },
       "bounds": [-21, 21, -16.6, 18.6],
       "spawn": {"x": 0, "z": 15.5, "rot": 180},
       "spawns": {"gate": {"x": 0, "z": 15.5, "rot": 180}},
       "props": [
-        {"type": "building", "x": 0, "z": -21, "w": 30, "h": 12, "d": 8, "color": "#4a4458", "sign": "BLACKMERE ASYLUM", "door": true, "seed": 3},
+        {
+          "type": "building",
+          "x": 0,
+          "z": -21,
+          "w": 30,
+          "h": 12,
+          "d": 8,
+          "color": "#5a4a4a",
+          "sign": "BLACKMERE ASYLUM",
+          "door": true,
+          "seed": 3,
+          "style": "gothic",
+          "trim": "#8a8478",
+          "litRatio": 0.25
+        },
         {"type": "cell", "x": -15, "z": -12, "w": 4, "d": 4},
         {"type": "cell", "x": -11, "z": -12, "w": 4, "d": 4, "open": true},
         {"type": "cell", "x": -7, "z": -12, "w": 4, "d": 4},
-        {"type": "wall", "x": -11, "z": -14.6, "w": 13, "h": 3.4, "d": 0.6, "color": "#5c5868"},
+        {"type": "wall", "x": -11, "z": -14.6, "w": 13, "h": 3.4, "d": 0.6, "color": "#6a6a6a", "mat": "concrete"},
         {"type": "chalk", "x": 9, "z": -16.9, "w": 4, "y": 2.2, "text": "THE SHOW STARTS AT THE GRINNING HOUR", "size": 58},
         {"type": "gate", "x": 0, "z": 19.2, "w": 6, "sign": "BLACKMERE"},
         {"type": "fence", "x": -12.5, "z": 19.2, "w": 18},
         {"type": "fence", "x": 12.5, "z": 19.2, "w": 18},
-        {"type": "wall", "x": -21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90},
-        {"type": "wall", "x": 21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90},
+        {"type": "wall", "x": -21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90, "wire": true, "color": "#5a4440"},
+        {"type": "wall", "x": 21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90, "wire": true, "color": "#5a4440"},
         {"type": "car", "x": 7, "z": 13, "rot": 20},
         {"type": "car", "x": -8, "z": 14, "rot": -30},
         {"type": "lamp", "x": 3.2, "z": 3, "rot": -90},
@@ -471,7 +576,8 @@
               "then": [
                 {"set": "tutorial"},
                 {
-                  "caption": "ATTACK: ✊ button / J / click. Hit three times in a row to finish with a kick. DODGE: ⤴ button / SPACE. Dodge when you see a red ! over an enemy."
+                  "caption": "ATTACK: ✊ button / J / click. Hit three times in a row to finish with a kick. DODGE: ⤴ button / SPACE. Dodge when you see a red ! over an enemy.",
+                  "voice": false
                 }
               ]
             }
@@ -515,24 +621,42 @@
       "mood": "carnival",
       "card": {"kicker": "PART TWO", "title": "MERRIMENT PARK", "sub": "2:58 a.m. The lights came on by themselves."},
       "environment": {
-        "sky": "#170c22",
-        "fog": "#24112e",
+        "sky": "#0a0612",
+        "fog": "#24142e",
         "fogNear": 16,
         "fogFar": 70,
-        "ground": "#2d2531",
+        "ground": "#5a5058",
         "rain": true,
         "lightning": false,
-        "ambient": 2.8,
-        "skyLight": "#a07fc8",
+        "ambient": 0.75,
+        "skyLight": "#9a7ac8",
         "moon": "#c9a8ff",
-        "moonIntensity": 2.0,
-        "paths": [{"x": 0, "z": 0, "w": 5, "d": 40, "color": "#47353f"}, {"x": -6, "z": -9, "w": 10, "d": 4, "color": "#47353f"}]
+        "moonIntensity": 0.9,
+        "paths": [
+          {"x": 0, "z": 0, "w": 5, "d": 40, "color": "#7a6a6a", "tex": "cobble"},
+          {"x": -6, "z": -9, "w": 10, "d": 4, "color": "#7a6a6a", "tex": "cobble"}
+        ],
+        "skyHorizon": "#3a1a3a",
+        "cityGlow": "#6a2a40",
+        "fogDensity": 0.02,
+        "groundTex": "asphalt",
+        "exposure": 1.3
       },
       "bounds": [-23, 23, -22.5, 22],
       "spawn": {"x": 0, "z": 20.5, "rot": 180},
       "spawns": {"gate": {"x": 0, "z": 20.5, "rot": 180}, "booth": {"x": 1.6, "z": 6, "rot": 90}},
       "props": [
-        {"type": "gate", "x": 0, "z": 18, "w": 6, "sign": "MERRIMENT PARK", "signBg": "#5b2a86", "signFg": "#f0b429", "color": "#c0283a"},
+        {
+          "type": "gate",
+          "x": 0,
+          "z": 18,
+          "w": 6,
+          "sign": "MERRIMENT PARK",
+          "signBg": "#5b2a86",
+          "signFg": "#f0b429",
+          "color": "#c0283a",
+          "carnival": true
+        },
         {"type": "fence", "x": -13.5, "z": 18, "w": 21},
         {"type": "fence", "x": 13.5, "z": 18, "w": 21},
         {"type": "fence", "x": -23.3, "z": -2, "w": 41, "rot": 90},
@@ -809,26 +933,33 @@
       "card": {"kicker": "TWELVE YEARS AGO", "title": "CLOSING NIGHT", "sub": "Backstage at the Merriment Park Theatre."},
       "environment": {
         "flashback": true,
-        "sky": "#2a1d14",
+        "sky": "#1a120c",
         "fog": "#2a1d14",
         "fogNear": 20,
         "fogFar": 50,
-        "ground": "#6b4a32",
+        "ground": "#7a5236",
         "rain": false,
-        "ambient": 3.0,
+        "ambient": 0.9,
         "skyLight": "#ffd9a8",
         "groundLight": "#3a2414",
         "moon": "#ffe2b8",
-        "moonIntensity": 1.2,
-        "groundSize": 40
+        "moonIntensity": 0.6,
+        "groundSize": 40,
+        "skyHorizon": "#3a2a1a",
+        "fogDensity": 0.01,
+        "groundTex": "wood",
+        "skyline": false,
+        "clouds": 0,
+        "exposure": 1.15,
+        "envLights": "#ffc080"
       },
       "bounds": [-7.6, 7.6, -5.6, 5.6],
       "spawn": {"x": -3, "z": 3, "rot": 90},
       "props": [
-        {"type": "wall", "x": 0, "z": -6.2, "w": 17, "h": 4.5, "color": "#5a2a1e"},
-        {"type": "wall", "x": 0, "z": 6.2, "w": 17, "h": 1.2, "color": "#5a2a1e"},
-        {"type": "wall", "x": -8.2, "z": 0, "w": 13, "h": 2.0, "rot": 90, "color": "#5a2a1e"},
-        {"type": "wall", "x": 8.2, "z": 0, "w": 13, "h": 2.0, "rot": 90, "color": "#5a2a1e"},
+        {"type": "wall", "x": 0, "z": -6.2, "w": 17, "h": 4.5, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": 0, "z": 6.2, "w": 17, "h": 4.5, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": -8.2, "z": 0, "w": 13, "h": 4.5, "rot": 90, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": 8.2, "z": 0, "w": 13, "h": 4.5, "rot": 90, "color": "#6a2a2a", "mat": "plaster"},
         {"type": "stage", "x": 0, "z": -4.6, "w": 9, "d": 2.4, "spot": true},
         {"type": "table", "x": 5, "z": -1.5, "items": true},
         {"type": "table", "x": -5.5, "z": 4, "w": 2},
@@ -970,5 +1101,6 @@
         {"s": "harlan", "t": "Full house. Full house on closing night. Mira's going to be insufferable."}
       ]
     }
-  }
+  },
+  "narrator": {"voice": {"kokoro": "am_onyx*0.5+bm_lewis*0.5", "speed": 0.9}}
 }
