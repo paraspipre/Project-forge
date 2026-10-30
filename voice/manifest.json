@@ -1,0 +1,771 @@
+{
+"18ac697f": {
+"file": "18ac697f.mp3",
+"dur": 3.22,
+"s": "narrator"
+},
+"35d486bd": {
+"file": "35d486bd.mp3",
+"dur": 5.55,
+"s": "narrator"
+},
+"ed8281ef": {
+"file": "ed8281ef.mp3",
+"dur": 1.33,
+"s": "ibarra"
+},
+"1339c461": {
+"file": "1339c461.mp3",
+"dur": 4.04,
+"s": "ibarra"
+},
+"1b8238c2": {
+"file": "1b8238c2.mp3",
+"dur": 3.37,
+"s": "nightjar"
+},
+"eac0cad6": {
+"file": "eac0cad6.mp3",
+"dur": 5.88,
+"s": "nightjar"
+},
+"3321875d": {
+"file": "3321875d.mp3",
+"dur": 3.23,
+"s": "ibarra"
+},
+"301c2976": {
+"file": "301c2976.mp3",
+"dur": 5.23,
+"s": "nightjar"
+},
+"ce31477a": {
+"file": "ce31477a.mp3",
+"dur": 3.25,
+"s": "nightjar"
+},
+"339a1f97": {
+"file": "339a1f97.mp3",
+"dur": 6.86,
+"s": "ibarra"
+},
+"3c29e97e": {
+"file": "3c29e97e.mp3",
+"dur": 7.11,
+"s": "nightjar"
+},
+"58d4230d": {
+"file": "58d4230d.mp3",
+"dur": 2.33,
+"s": "ibarra"
+},
+"212ac149": {
+"file": "212ac149.mp3",
+"dur": 3.62,
+"s": "nightjar"
+},
+"69b8d238": {
+"file": "69b8d238.mp3",
+"dur": 2.7,
+"s": "ibarra"
+},
+"67a0ad19": {
+"file": "67a0ad19.mp3",
+"dur": 4.17,
+"s": "ibarra"
+},
+"dfd1cd51": {
+"file": "dfd1cd51.mp3",
+"dur": 5.19,
+"s": "ibarra"
+},
+"737165f6": {
+"file": "737165f6.mp3",
+"dur": 3.95,
+"s": "ibarra"
+},
+"e0e5a95e": {
+"file": "e0e5a95e.mp3",
+"dur": 1.22,
+"s": "ibarra"
+},
+"ad217f55": {
+"file": "ad217f55.mp3",
+"dur": 2.04,
+"s": "nightjar"
+},
+"ce63e05c": {
+"file": "ce63e05c.mp3",
+"dur": 8.15,
+"s": "ibarra"
+},
+"1fb1556d": {
+"file": "1fb1556d.mp3",
+"dur": 2.02,
+"s": "nightjar"
+},
+"2e9ca3e6": {
+"file": "2e9ca3e6.mp3",
+"dur": 5.16,
+"s": "ibarra"
+},
+"d14e1634": {
+"file": "d14e1634.mp3",
+"dur": 1.26,
+"s": "nightjar"
+},
+"018798b7": {
+"file": "018798b7.mp3",
+"dur": 6.22,
+"s": "ibarra"
+},
+"a9ca14c4": {
+"file": "a9ca14c4.mp3",
+"dur": 1.3,
+"s": "nightjar"
+},
+"2047d21d": {
+"file": "2047d21d.mp3",
+"dur": 5.73,
+"s": "ibarra"
+},
+"0b554905": {
+"file": "0b554905.mp3",
+"dur": 6.65,
+"s": "ibarra"
+},
+"8092810c": {
+"file": "8092810c.mp3",
+"dur": 4.81,
+"s": "ibarra"
+},
+"03d8ae1f": {
+"file": "03d8ae1f.mp3",
+"dur": 3.74,
+"s": "nightjar"
+},
+"8eebc9a8": {
+"file": "8eebc9a8.mp3",
+"dur": 2.14,
+"s": "dunn"
+},
+"4ab2c7cc": {
+"file": "4ab2c7cc.mp3",
+"dur": 1.71,
+"s": "dunn"
+},
+"16131470": {
+"file": "16131470.mp3",
+"dur": 6.0,
+"s": "dunn"
+},
+"c4dda789": {
+"file": "c4dda789.mp3",
+"dur": 1.87,
+"s": "dunn"
+},
+"b6a1bf4e": {
+"file": "b6a1bf4e.mp3",
+"dur": 2.25,
+"s": "tobias"
+},
+"b08bc1ab": {
+"file": "b08bc1ab.mp3",
+"dur": 1.34,
+"s": "nightjar"
+},
+"cbd431ca": {
+"file": "cbd431ca.mp3",
+"dur": 4.18,
+"s": "tobias"
+},
+"0dde77d2": {
+"file": "0dde77d2.mp3",
+"dur": 3.92,
+"s": "tobias"
+},
+"f941f367": {
+"file": "f941f367.mp3",
+"dur": 1.67,
+"s": "nightjar"
+},
+"9589289e": {
+"file": "9589289e.mp3",
+"dur": 3.79,
+"s": "tobias"
+},
+"bac8116b": {
+"file": "bac8116b.mp3",
+"dur": 1.29,
+"s": "nightjar"
+},
+"6a9a6aa6": {
+"file": "6a9a6aa6.mp3",
+"dur": 3.02,
+"s": "tobias"
+},
+"c90df4a9": {
+"file": "c90df4a9.mp3",
+"dur": 2.86,
+"s": "pike"
+},
+"ee129c9a": {
+"file": "ee129c9a.mp3",
+"dur": 5.73,
+"s": "pike"
+},
+"416574d3": {
+"file": "416574d3.mp3",
+"dur": 2.08,
+"s": "nightjar"
+},
+"41287bf4": {
+"file": "41287bf4.mp3",
+"dur": 6.1,
+"s": "pike"
+},
+"20eb46ed": {
+"file": "20eb46ed.mp3",
+"dur": 3.24,
+"s": "pike"
+},
+"622b33e9": {
+"file": "622b33e9.mp3",
+"dur": 1.96,
+"s": "nightjar"
+},
+"e5f881af": {
+"file": "e5f881af.mp3",
+"dur": 5.97,
+"s": "pike"
+},
+"822a3d0d": {
+"file": "822a3d0d.mp3",
+"dur": 3.98,
+"s": "pike"
+},
+"7ba6d71d": {
+"file": "7ba6d71d.mp3",
+"dur": 4.14,
+"s": "nightjar"
+},
+"5402f160": {
+"file": "5402f160.mp3",
+"dur": 3.82,
+"s": "nightjar"
+},
+"8721db17": {
+"file": "8721db17.mp3",
+"dur": 4.8,
+"s": "narrator"
+},
+"6011fbb0": {
+"file": "6011fbb0.mp3",
+"dur": 4.04,
+"s": "nightjar"
+},
+"6591e1b6": {
+"file": "6591e1b6.mp3",
+"dur": 4.61,
+"s": "nightjar"
+},
+"6b2a7c9b": {
+"file": "6b2a7c9b.mp3",
+"dur": 5.46,
+"s": "nightjar"
+},
+"fc3cf711": {
+"file": "fc3cf711.mp3",
+"dur": 6.84,
+"s": "nightjar"
+},
+"f6980720": {
+"file": "f6980720.mp3",
+"dur": 1.52,
+"s": "nightjar"
+},
+"7d23d069": {
+"file": "7d23d069.mp3",
+"dur": 3.58,
+"s": "nightjar"
+},
+"07233905": {
+"file": "07233905.mp3",
+"dur": 2.54,
+"s": "pike"
+},
+"bcf7f020": {
+"file": "bcf7f020.mp3",
+"dur": 3.91,
+"s": "grinner"
+},
+"f56f2dc2": {
+"file": "f56f2dc2.mp3",
+"dur": 1.88,
+"s": "nightjar"
+},
+"261f5fe3": {
+"file": "261f5fe3.mp3",
+"dur": 3.38,
+"s": "pike"
+},
+"9bb9fd6a": {
+"file": "9bb9fd6a.mp3",
+"dur": 1.58,
+"s": "nightjar"
+},
+"2fdcdeec": {
+"file": "2fdcdeec.mp3",
+"dur": 4.97,
+"s": "narrator"
+},
+"a71ecd7d": {
+"file": "a71ecd7d.mp3",
+"dur": 5.43,
+"s": "ibarra_radio"
+},
+"07331f1d": {
+"file": "07331f1d.mp3",
+"dur": 2.25,
+"s": "nightjar"
+},
+"1d55c0f2": {
+"file": "1d55c0f2.mp3",
+"dur": 4.96,
+"s": "nightjar"
+},
+"ca56359a": {
+"file": "ca56359a.mp3",
+"dur": 5.08,
+"s": "nightjar"
+},
+"2fe71fa2": {
+"file": "2fe71fa2.mp3",
+"dur": 4.31,
+"s": "nightjar"
+},
+"49907cd4": {
+"file": "49907cd4.mp3",
+"dur": 4.21,
+"s": "nightjar"
+},
+"6a8fe220": {
+"file": "6a8fe220.mp3",
+"dur": 5.17,
+"s": "nightjar"
+},
+"1bfb5d60": {
+"file": "1bfb5d60.mp3",
+"dur": 3.23,
+"s": "nightjar"
+},
+"fdef6b78": {
+"file": "fdef6b78.mp3",
+"dur": 4.35,
+"s": "nightjar"
+},
+"452aa556": {
+"file": "452aa556.mp3",
+"dur": 4.45,
+"s": "nightjar"
+},
+"df0d7ac8": {
+"file": "df0d7ac8.mp3",
+"dur": 4.86,
+"s": "vale_pa"
+},
+"d7ae5794": {
+"file": "d7ae5794.mp3",
+"dur": 4.48,
+"s": "vale_pa"
+},
+"11c4f2b7": {
+"file": "11c4f2b7.mp3",
+"dur": 4.77,
+"s": "nightjar"
+},
+"587f9230": {
+"file": "587f9230.mp3",
+"dur": 2.03,
+"s": "nightjar"
+},
+"59a6cdde": {
+"file": "59a6cdde.mp3",
+"dur": 5.1,
+"s": "nightjar"
+},
+"d7f69162": {
+"file": "d7f69162.mp3",
+"dur": 4.27,
+"s": "vale_pa"
+},
+"f2d8dd01": {
+"file": "f2d8dd01.mp3",
+"dur": 1.5,
+"s": "nightjar"
+},
+"27dbd561": {
+"file": "27dbd561.mp3",
+"dur": 5.34,
+"s": "nightjar"
+},
+"f8fb6408": {
+"file": "f8fb6408.mp3",
+"dur": 4.08,
+"s": "ibarra_radio"
+},
+"c1928eae": {
+"file": "c1928eae.mp3",
+"dur": 3.12,
+"s": "nightjar"
+},
+"9120bf32": {
+"file": "9120bf32.mp3",
+"dur": 5.5,
+"s": "vale"
+},
+"407279cb": {
+"file": "407279cb.mp3",
+"dur": 1.19,
+"s": "nightjar"
+},
+"ff7c3998": {
+"file": "ff7c3998.mp3",
+"dur": 6.95,
+"s": "vale"
+},
+"9ae6d2f3": {
+"file": "9ae6d2f3.mp3",
+"dur": 5.93,
+"s": "vale"
+},
+"627a80c1": {
+"file": "627a80c1.mp3",
+"dur": 2.41,
+"s": "nightjar"
+},
+"65c8deb9": {
+"file": "65c8deb9.mp3",
+"dur": 0.22,
+"s": "vale"
+},
+"890fb93b": {
+"file": "890fb93b.mp3",
+"dur": 6.67,
+"s": "vale"
+},
+"a32d27cc": {
+"file": "a32d27cc.mp3",
+"dur": 4.84,
+"s": "vale"
+},
+"ff17c823": {
+"file": "ff17c823.mp3",
+"dur": 4.01,
+"s": "vale"
+},
+"ea23c59a": {
+"file": "ea23c59a.mp3",
+"dur": 1.47,
+"s": "nightjar"
+},
+"75eb34fa": {
+"file": "75eb34fa.mp3",
+"dur": 6.1,
+"s": "vale"
+},
+"29275cdf": {
+"file": "29275cdf.mp3",
+"dur": 1.92,
+"s": "nightjar"
+},
+"a8aa9fc3": {
+"file": "a8aa9fc3.mp3",
+"dur": 5.38,
+"s": "vale"
+},
+"e4cd8239": {
+"file": "e4cd8239.mp3",
+"dur": 2.82,
+"s": "vale"
+},
+"343d3906": {
+"file": "343d3906.mp3",
+"dur": 0.99,
+"s": "nightjar"
+},
+"4e783c5e": {
+"file": "4e783c5e.mp3",
+"dur": 1.35,
+"s": "nightjar"
+},
+"d5686ca8": {
+"file": "d5686ca8.mp3",
+"dur": 3.79,
+"s": "vale"
+},
+"8f0003c5": {
+"file": "8f0003c5.mp3",
+"dur": 2.25,
+"s": "vale"
+},
+"6690f063": {
+"file": "6690f063.mp3",
+"dur": 3.09,
+"s": "nightjar"
+},
+"e5a72e17": {
+"file": "e5a72e17.mp3",
+"dur": 5.03,
+"s": "ibarra_radio"
+},
+"e6bdd726": {
+"file": "e6bdd726.mp3",
+"dur": 4.06,
+"s": "nightjar"
+},
+"5e9ed3a8": {
+"file": "5e9ed3a8.mp3",
+"dur": 3.38,
+"s": "nightjar"
+},
+"8a7226aa": {
+"file": "8a7226aa.mp3",
+"dur": 1.06,
+"s": "ibarra_radio"
+},
+"a87abb39": {
+"file": "a87abb39.mp3",
+"dur": 4.31,
+"s": "vale_pa"
+},
+"d3e4d34c": {
+"file": "d3e4d34c.mp3",
+"dur": 4.69,
+"s": "harlan"
+},
+"893e9a0b": {
+"file": "893e9a0b.mp3",
+"dur": 3.22,
+"s": "mira"
+},
+"26532341": {
+"file": "26532341.mp3",
+"dur": 4.88,
+"s": "mira"
+},
+"c69a838e": {
+"file": "c69a838e.mp3",
+"dur": 3.31,
+"s": "harlan"
+},
+"b830bd20": {
+"file": "b830bd20.mp3",
+"dur": 3.41,
+"s": "mira"
+},
+"9a2d505d": {
+"file": "9a2d505d.mp3",
+"dur": 5.22,
+"s": "harlan"
+},
+"96d7e6af": {
+"file": "96d7e6af.mp3",
+"dur": 2.19,
+"s": "mira"
+},
+"00d06d83": {
+"file": "00d06d83.mp3",
+"dur": 2.51,
+"s": "mira"
+},
+"660da86f": {
+"file": "660da86f.mp3",
+"dur": 3.4,
+"s": "harlan"
+},
+"dba3538f": {
+"file": "dba3538f.mp3",
+"dur": 1.77,
+"s": "mira"
+},
+"a591cb6b": {
+"file": "a591cb6b.mp3",
+"dur": 1.44,
+"s": "harlan"
+},
+"2833b420": {
+"file": "2833b420.mp3",
+"dur": 4.34,
+"s": "mira"
+},
+"bd27737e": {
+"file": "bd27737e.mp3",
+"dur": 4.1,
+"s": "harlan"
+},
+"4fa79c95": {
+"file": "4fa79c95.mp3",
+"dur": 2.83,
+"s": "crowe"
+},
+"bdda7f29": {
+"file": "bdda7f29.mp3",
+"dur": 4.45,
+"s": "harlan"
+},
+"2e12b770": {
+"file": "2e12b770.mp3",
+"dur": 5.27,
+"s": "crowe"
+},
+"6f4612c4": {
+"file": "6f4612c4.mp3",
+"dur": 5.52,
+"s": "crowe"
+},
+"4471c6cb": {
+"file": "4471c6cb.mp3",
+"dur": 2.89,
+"s": "harlan"
+},
+"3408f087": {
+"file": "3408f087.mp3",
+"dur": 4.08,
+"s": "crowe"
+},
+"a9a26c65": {
+"file": "a9a26c65.mp3",
+"dur": 4.34,
+"s": "harlan"
+},
+"3d86711a": {
+"file": "3d86711a.mp3",
+"dur": 4.8,
+"s": "crowe"
+},
+"c0640055": {
+"file": "c0640055.mp3",
+"dur": 1.8,
+"s": "harlan"
+},
+"4460e9ef": {
+"file": "4460e9ef.mp3",
+"dur": 3.54,
+"s": "crowe"
+},
+"044fc88e": {
+"file": "044fc88e.mp3",
+"dur": 3.41,
+"s": "mira"
+},
+"6378abe3": {
+"file": "6378abe3.mp3",
+"dur": 4.13,
+"s": "mira"
+},
+"bf255115": {
+"file": "bf255115.mp3",
+"dur": 1.61,
+"s": "harlan"
+},
+"0fa4e248": {
+"file": "0fa4e248.mp3",
+"dur": 4.13,
+"s": "narrator"
+},
+"367972a5": {
+"file": "367972a5.mp3",
+"dur": 6.72,
+"s": "narrator"
+},
+"41ef856d": {
+"file": "41ef856d.mp3",
+"dur": 5.36,
+"s": "narrator"
+},
+"42f1bff6": {
+"file": "42f1bff6.mp3",
+"dur": 0.59,
+"s": "nightjar",
+"effort": "nightjar:attack"
+},
+"6e694654": {
+"file": "6e694654.mp3",
+"dur": 1.07,
+"s": "nightjar",
+"effort": "nightjar:attack"
+},
+"657d4de7": {
+"file": "657d4de7.mp3",
+"dur": 0.63,
+"s": "nightjar",
+"effort": "nightjar:attack"
+},
+"4328f336": {
+"file": "4328f336.mp3",
+"dur": 0.55,
+"s": "nightjar",
+"effort": "nightjar:hurt"
+},
+"1dc14078": {
+"file": "1dc14078.mp3",
+"dur": 0.65,
+"s": "nightjar",
+"effort": "nightjar:hurt"
+},
+"f105b057": {
+"file": "f105b057.mp3",
+"dur": 1.48,
+"s": "vale",
+"effort": "vale:laugh"
+},
+"934d38ac": {
+"file": "934d38ac.mp3",
+"dur": 1.02,
+"s": "vale",
+"effort": "vale:laugh"
+},
+"39f91390": {
+"file": "39f91390.mp3",
+"dur": 0.47,
+"s": "grinner",
+"effort": "grinner:hurt"
+},
+"664b1c94": {
+"file": "664b1c94.mp3",
+"dur": 0.53,
+"s": "grinner",
+"effort": "grinner:hurt"
+},
+"bd2cd777": {
+"file": "bd2cd777.mp3",
+"dur": 0.73,
+"s": "grinner",
+"effort": "grinner:hurt"
+},
+"ff055fe9": {
+"file": "ff055fe9.mp3",
+"dur": 0.5,
+"s": "grinner",
+"effort": "grinner:attack"
+},
+"f59ddbea": {
+"file": "f59ddbea.mp3",
+"dur": 1.79,
+"s": "brute",
+"effort": "brute:hurt"
+},
+"3b423ac7": {
+"file": "3b423ac7.mp3",
+"dur": 0.77,
+"s": "brute",
+"effort": "brute:hurt"
+},
+"6395e282": {
+"file": "6395e282.mp3",
+"dur": 0.86,
+"s": "brute",
+"effort": "brute:attack"
+}
+}

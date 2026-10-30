@@ -1,0 +1,1115 @@
+{
+  "title": "The Grinning Hour",
+  "subtitle": "Chapter One: Rain on Blackmere",
+  "start": "blackmere",
+  "player": "nightjar",
+  "playerHp": 10,
+  "totalClues": 6,
+  "characters": {
+    "nightjar": {
+      "name": "Nightjar",
+      "look": {
+        "cowl": "#1c1b24",
+        "skin": "#c99a78",
+        "top": "#2a2a36",
+        "pants": "#1f1e27",
+        "gloves": "#2a2830",
+        "shoes": "#141218",
+        "cape": "#16141e",
+        "emblem": "#c9a24a",
+        "belt": "#3a2e22",
+        "leather": true,
+        "wet": true,
+        "height": 1.04,
+        "build": 1.12,
+        "eyes": "#3a2a20"
+      },
+      "voice": {"kokoro": "am_fenrir*0.6+am_onyx*0.4", "speed": 0.9},
+      "efforts": {"attack": ["Hah!", "Hmph!", "Yah!"], "hurt": ["Ugh!", "Argh!"]}
+    },
+    "ibarra": {
+      "name": "Commissioner Ibarra",
+      "look": {
+        "skin": "#b98563",
+        "top": "#9a7b55",
+        "coat": "#9a7b55",
+        "pants": "#3a3440",
+        "hair": "#1a1210",
+        "hairStyle": "bun",
+        "badge": "#f0b429",
+        "accent": "#5b3b2a",
+        "figure": "slim",
+        "coatLength": 0.62,
+        "eyes": "#2a1a10",
+        "lips": "#8a4a44"
+      },
+      "voice": {"kokoro": "af_kore*0.5+af_sarah*0.5", "speed": 1.0}
+    },
+    "ibarra_radio": {"name": "Ibarra (radio)", "look": {}, "voice": {"kokoro": "af_kore*0.5+af_sarah*0.5", "speed": 1.05, "style": "radio"}},
+    "dunn": {
+      "name": "Officer Dunn",
+      "look": {
+        "skin": "#e2b693",
+        "top": "#26324d",
+        "pants": "#26324d",
+        "hat": "cap",
+        "hatColor": "#1b2438",
+        "badge": "#f0b429",
+        "build": 1.1,
+        "mustache": true,
+        "hair": "#5a3a24",
+        "eyes": "#4a6a8a"
+      },
+      "voice": {"kokoro": "am_eric", "speed": 1.05}
+    },
+    "pike": {
+      "name": "Orderly Pike",
+      "look": {
+        "skin": "#e2b693",
+        "top": "#e6e1d3",
+        "pants": "#d6d0c0",
+        "shoes": "#cfcac0",
+        "hairStyle": "bald",
+        "build": 1.15,
+        "hair": "#6a4a30",
+        "mustache": true,
+        "eyes": "#5a7a5a"
+      },
+      "voice": {"kokoro": "am_adam*0.6+am_echo*0.4", "speed": 1.12}
+    },
+    "tobias": {
+      "name": "Inmate 4471",
+      "look": {"skin": "#d9a98a", "top": "#d8823c", "pants": "#d8823c", "hair": "#9a9a9a", "hairStyle": "long", "build": 0.9, "eyes": "#8a9aa0"},
+      "voice": {"kokoro": "am_puck*0.5+bm_daniel*0.5", "speed": 1.05}
+    },
+    "vale": {
+      "name": "Harlan Vale",
+      "look": {
+        "skin": "#f1ece4",
+        "facePaint": "#f3efe8",
+        "lips": "#b01828",
+        "grinWide": true,
+        "eyeShadow": "#2a0a20",
+        "browAngle": -0.35,
+        "top": "#7a1022",
+        "coat": "#7a1022",
+        "coatLength": 0.7,
+        "tails": true,
+        "buttons": true,
+        "accent": "#c9a24a",
+        "cuffs": "#e8e2d4",
+        "pants": "#1a1220",
+        "gloves": "#f4ecd6",
+        "hat": "top",
+        "hatColor": "#151218",
+        "hatBand": "#c9a24a",
+        "hair": "#c8c8d4",
+        "hairStyle": "slick",
+        "eyes": "#5a8a3a",
+        "height": 1.06,
+        "build": 0.9
+      },
+      "voice": {"kokoro": "bm_fable*0.6+bm_george*0.4", "speed": 1.0},
+      "efforts": {"laugh": ["Ha ha ha ha ha ha!", "Ahahahaha!"]}
+    },
+    "vale_pa": {"name": "Vale (loudspeaker)", "look": {}, "voice": {"kokoro": "bm_fable*0.6+bm_george*0.4", "speed": 1.0, "style": "pa"}},
+    "harlan": {
+      "name": "Harlan Vale",
+      "look": {
+        "skin": "#e0b892",
+        "top": "#1d1a2e",
+        "coat": "#1d1a2e",
+        "accent": "#c0283a",
+        "pants": "#1d1a2e",
+        "gloves": "#f4ecd6",
+        "hair": "#2a1d14",
+        "hairStyle": "slick",
+        "height": 1.04,
+        "build": 0.92,
+        "tails": true,
+        "buttons": true,
+        "cuffs": "#e8e2d4",
+        "coatLength": 0.62,
+        "eyes": "#5a8a3a"
+      },
+      "voice": {"kokoro": "bm_fable", "speed": 1.05}
+    },
+    "mira": {
+      "name": "Mira Vale",
+      "look": {
+        "skin": "#e8bf9a",
+        "top": "#9a1830",
+        "sleeve": "#e8bf9a",
+        "coat": "#9a1830",
+        "coatLength": 0.78,
+        "flare": 0.08,
+        "collar": false,
+        "pants": "#e8bf9a",
+        "shoes": "#7a1020",
+        "hair": "#3a1d14",
+        "hairStyle": "long",
+        "figure": "slim",
+        "lips": "#b02838",
+        "eyes": "#3a2a1a",
+        "build": 0.9,
+        "height": 0.97
+      },
+      "voice": {"kokoro": "bf_isabella*0.6+bf_emma*0.4", "speed": 1.02}
+    },
+    "crowe": {
+      "name": "Silas Crowe",
+      "look": {
+        "skin": "#e0b48f",
+        "top": "#3b3f46",
+        "accent": "#7a1a22",
+        "pants": "#3b3f46",
+        "hair": "#9a9a9a",
+        "hat": "fedora",
+        "hatColor": "#2a2d33",
+        "build": 1.25,
+        "coat": "#2f3238",
+        "coatLength": 0.66,
+        "eyes": "#6a7a8a",
+        "browAngle": 0.2
+      },
+      "voice": {"kokoro": "am_michael*0.5+am_onyx*0.5", "speed": 0.9}
+    },
+    "grinner": {
+      "name": "Grinner",
+      "look": {
+        "skin": "#f1ece4",
+        "grin": "#b01828",
+        "top": "#3a2d4a",
+        "hat": "hood",
+        "pants": "#1e1c24",
+        "mask": "#f1ece4",
+        "hairStyle": "bald",
+        "gloves": "#1a1a1a"
+      },
+      "combat": {"hp": 3, "damage": 1, "speed": 1, "windup": 0.6, "reach": 1.5},
+      "voice": {"kokoro": "am_puck", "speed": 1.05},
+      "efforts": {"hurt": ["Oof!", "Agh!", "Ngh!"], "attack": ["Hyah!"]}
+    },
+    "brute": {
+      "name": "Big Grin",
+      "look": {
+        "skin": "#f1ece4",
+        "grin": "#b01828",
+        "top": "#5b2a86",
+        "pants": "#2a1d36",
+        "hat": "cap",
+        "hatColor": "#7bd34f",
+        "build": 1.5,
+        "height": 1.15,
+        "mask": "#f1ece4",
+        "hairStyle": "bald",
+        "gloves": "#1a1a1a"
+      },
+      "combat": {"hp": 7, "damage": 2, "speed": 0.8, "windup": 0.95, "reach": 1.8, "unblockable": true},
+      "voice": {"kokoro": "am_santa*0.5+am_onyx*0.5", "speed": 0.85},
+      "efforts": {"hurt": ["Hrrgh!", "Oof!"], "attack": ["Raah!"]}
+    }
+  },
+  "scenes": {
+    "blackmere": {
+      "title": "Blackmere Asylum",
+      "mood": "rain",
+      "card": {"kicker": "CHAPTER ONE", "title": "RAIN ON BLACKMERE", "sub": "Gravenport. 2:13 a.m."},
+      "environment": {
+        "sky": "#07060e",
+        "fog": "#1d1a2a",
+        "fogNear": 14,
+        "fogFar": 60,
+        "ground": "#3a3844",
+        "rain": true,
+        "lightning": true,
+        "ambient": 0.65,
+        "moonIntensity": 1.1,
+        "paths": [
+          {"x": 0, "z": 3, "w": 4, "d": 32, "color": "#5a5662", "tex": "cobble"},
+          {"x": -8, "z": -7, "w": 22, "d": 5, "color": "#5a5662", "tex": "cobble"}
+        ],
+        "skyHorizon": "#2a2338",
+        "cityGlow": "#4a2e38",
+        "fogDensity": 0.024,
+        "groundTex": "asphalt",
+        "skyLight": "#7a80c0",
+        "exposure": 1.15
+      },
+      "bounds": [-21, 21, -16.6, 18.6],
+      "spawn": {"x": 0, "z": 15.5, "rot": 180},
+      "spawns": {"gate": {"x": 0, "z": 15.5, "rot": 180}},
+      "props": [
+        {
+          "type": "building",
+          "x": 0,
+          "z": -21,
+          "w": 30,
+          "h": 12,
+          "d": 8,
+          "color": "#5a4a4a",
+          "sign": "BLACKMERE ASYLUM",
+          "door": true,
+          "seed": 3,
+          "style": "gothic",
+          "trim": "#8a8478",
+          "litRatio": 0.25
+        },
+        {"type": "cell", "x": -15, "z": -12, "w": 4, "d": 4},
+        {"type": "cell", "x": -11, "z": -12, "w": 4, "d": 4, "open": true},
+        {"type": "cell", "x": -7, "z": -12, "w": 4, "d": 4},
+        {"type": "wall", "x": -11, "z": -14.6, "w": 13, "h": 3.4, "d": 0.6, "color": "#6a6a6a", "mat": "concrete"},
+        {"type": "chalk", "x": 9, "z": -16.9, "w": 4, "y": 2.2, "text": "THE SHOW STARTS AT THE GRINNING HOUR", "size": 58},
+        {"type": "gate", "x": 0, "z": 19.2, "w": 6, "sign": "BLACKMERE"},
+        {"type": "fence", "x": -12.5, "z": 19.2, "w": 18},
+        {"type": "fence", "x": 12.5, "z": 19.2, "w": 18},
+        {"type": "wall", "x": -21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90, "wire": true, "color": "#5a4440"},
+        {"type": "wall", "x": 21.5, "z": 1, "w": 36, "h": 4, "d": 0.6, "rot": 90, "wire": true, "color": "#5a4440"},
+        {"type": "car", "x": 7, "z": 13, "rot": 20},
+        {"type": "car", "x": -8, "z": 14, "rot": -30},
+        {"type": "lamp", "x": 3.2, "z": 3, "rot": -90},
+        {"type": "lamp", "x": -3.5, "z": -5, "rot": 90, "flicker": true},
+        {"type": "lamp", "x": 10, "z": -10, "rot": 180},
+        {"type": "lamp", "x": -15, "z": 6, "rot": 90},
+        {"type": "lamp", "x": 13, "z": 12, "rot": -90, "light": false},
+        {"type": "tree", "x": 14, "z": -3, "h": 6},
+        {"type": "tree", "x": -18, "z": 3, "h": 5},
+        {"type": "tree", "x": 17, "z": 7, "h": 5.5},
+        {"type": "tree", "x": -17, "z": 12, "h": 4.5},
+        {"type": "bench", "x": 12, "z": 1, "rot": -90},
+        {"type": "bench", "x": -17.5, "z": -2, "rot": 90},
+        {"type": "rubble", "x": -4, "z": -10},
+        {"type": "rubble", "x": 15, "z": -12, "n": 4},
+        {"type": "crate", "x": 16, "z": -14},
+        {"type": "crate", "x": 17.2, "z": -14.2, "s": 0.8, "spin": 20},
+        {"type": "barrel", "x": 18, "z": -12.5},
+        {"type": "beam", "x": -12, "z": -20, "y": 12.5, "solid": false},
+        {"type": "beam", "x": 12, "z": -20, "y": 12.5, "solid": false}
+      ],
+      "npcs": [
+        {
+          "id": "ibarra",
+          "x": 3,
+          "z": 8.5,
+          "rot": 0,
+          "label": "Talk to Commissioner Ibarra",
+          "talk": [
+            {
+              "if": "deduced",
+              "then": [
+                {"s": "ibarra", "t": "Units are moving on Merriment Park. They'll hold the perimeter, nothing more."},
+                {"s": "nightjar", "t": "Keep it that way. He wants an audience. Don't give him one."}
+              ],
+              "else": [
+                {
+                  "if": ["clue_ticket", "clue_chalk", "clue_pike"],
+                  "then": [
+                    {"s": "nightjar", "t": "He didn't break out. He walked out. A coin trick for the orderly, a hand in his pocket for the keys."},
+                    {"s": "ibarra", "t": "Misdirection. Twelve years and he's still doing a stage act."},
+                    {"s": "nightjar", "t": "And he left us a program. A ticket for Merriment Park. Closing night. Three a.m."},
+                    {"s": "nightjar", "t": "'The show starts at the Grinning Hour.' It's an invitation."},
+                    {
+                      "s": "ibarra",
+                      "t": "Merriment Park's been rotting since the fire. Crowe's company bought the land for a casino. Demolition starts Monday."
+                    },
+                    {
+                      "if": "clue_mirror",
+                      "then": [
+                        {
+                          "s": "nightjar",
+                          "t": "There's a shard of a carnival mirror in his cell. He kept it twelve years. Whatever happened in that park, he never left it."
+                        }
+                      ]
+                    },
+                    {"s": "ibarra", "t": "It's 2:40. That gives you twenty minutes."},
+                    {"s": "nightjar", "t": "It gives him twenty minutes. Get your people moving, Commissioner.", "set": "deduced"},
+                    {"do": "toast", "text": "CASE CRACKED!"}
+                  ],
+                  "else": [
+                    {
+                      "if": "talked_ibarra",
+                      "then": [
+                        {"s": "ibarra", "t": "Anything? The press will be here before the coroner is."},
+                        {"if": "!clue_ticket", "then": [{"s": "ibarra", "t": "His cell's the middle one, door hanging open. My people haven't touched it."}]},
+                        {
+                          "if": "!clue_pike",
+                          "then": [{"s": "ibarra", "t": "The orderly on duty is Pike. He was the last one to see Vale. He's out by the cell block."}]
+                        },
+                        {"if": "!clue_chalk", "then": [{"s": "ibarra", "t": "And somebody drew on the east wall of the main building. Chalk. Fresh."}]}
+                      ],
+                      "else": [
+                        {"s": "ibarra", "t": "You're late, Nightjar."},
+                        {"s": "nightjar", "t": "You called me eleven minutes ago."},
+                        {
+                          "s": "ibarra",
+                          "t": "Then I'm early, and so is he. Harlan Vale walked out of maximum security at eight o'clock tonight. Nobody noticed until midnight."
+                        },
+                        {
+                          "choices": [
+                            {
+                              "t": "How does a man walk out of Blackmere?",
+                              "then": [{"s": "ibarra", "t": "That's the part I'd like you to tell me. No alarms. No broken locks. One open door."}]
+                            },
+                            {
+                              "t": "Who knows he's out?",
+                              "then": [{"s": "ibarra", "t": "Us. The night staff. And by sunrise, every paper in Gravenport. 'Grinning Man Escapes' sells well."}]
+                            },
+                            {
+                              "t": "Tell me about Vale.",
+                              "then": [
+                                {"s": "ibarra", "t": "Stage magician, once. The Great Vale. Packed houses at Merriment Park, back when people went there."},
+                                {
+                                  "s": "ibarra",
+                                  "t": "Then twelve years ago something in him broke. Six people hurt at the Crowe Tower gala. He laughed through the whole trial."
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {"s": "ibarra", "t": "Look around. His cell, the orderly, anything that's wrong. You see things my people don't."},
+                        {"s": "nightjar", "t": "Your people see fine. They just don't look where he doesn't want them to.", "set": "talked_ibarra"},
+                        {"do": "toast", "text": "INVESTIGATE!"},
+                        {"caption": "Press Q / 👁 for DETECTIVE SCAN: it reveals clues through walls. Follow the gold beacon to your objective.", "voice": false}
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "dunn",
+          "x": -5,
+          "z": 12.5,
+          "rot": 100,
+          "label": "Talk to Officer Dunn",
+          "talk": [
+            {
+              "if": "deduced",
+              "then": [{"s": "dunn", "t": "Car's warm. Gate's open. Go get him."}],
+              "else": [
+                {"s": "dunn", "t": "Evening, uh... Nightjar. Sir."},
+                {"s": "dunn", "t": "My granddad saw the Great Vale once. Said he pulled a dove out of a man's wallet and gave the man back an empty wallet."},
+                {"s": "dunn", "t": "Everybody laughed. Except the man."}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "tobias",
+          "x": -15,
+          "z": -11,
+          "rot": 0,
+          "label": "Talk to the inmate",
+          "talk": [
+            {"s": "tobias", "t": "Psst. Bird-man. You're looking for the Magician."},
+            {
+              "choices": [
+                {
+                  "t": "Did you see him leave?",
+                  "then": [
+                    {"s": "tobias", "t": "Saw? Nobody sees. That's the trick. You watch the right hand, he works with the left."},
+                    {"s": "tobias", "t": "He'd hum every night. Same little tune. Like a music box winding down."}
+                  ]
+                },
+                {
+                  "t": "Did he say where he was going?",
+                  "then": [{"s": "tobias", "t": "Home, he said. Back to the big top. 'Can't close a show without the star.'"}]
+                },
+                {"t": "Go back to sleep.", "then": [{"s": "tobias", "t": "Nobody sleeps tonight. Nobody laughs, either. Not yet."}]}
+              ]
+            }
+          ]
+        },
+        {
+          "id": "pike",
+          "x": -10,
+          "z": -7.5,
+          "rot": 0,
+          "if": "wave_yard",
+          "label": "Talk to Orderly Pike",
+          "talk": [
+            {
+              "if": "clue_pike",
+              "then": [{"s": "pike", "t": "I'm going home. I'm going to sleep with every light on."}],
+              "else": [
+                {"s": "pike", "t": "Every night at lights-out he did the same trick. A coin over the knuckles, back and forth. Made me guess which hand."},
+                {
+                  "choices": [
+                    {
+                      "t": "[Calm] Take your time. What happened tonight?",
+                      "then": [
+                        {
+                          "s": "pike",
+                          "t": "Tonight he said, 'Last show, Mister Pike. Watch closely.' So I did. I watched that coin like my life depended on it."
+                        },
+                        {"s": "pike", "t": "When I looked up, the coin was in my pocket. And my keys weren't."}
+                      ]
+                    },
+                    {
+                      "t": "[Press] You handed him the keys, didn't you?",
+                      "then": [
+                        {
+                          "s": "pike",
+                          "t": "No! I didn't hand him anything. He took them while I was watching the coin. Twelve years of the same trick, and tonight it worked."
+                        },
+                        {"s": "pike", "t": "He left me the coin. It's not even silver. It's a token from Merriment Park."},
+                        {"set": "pike_token"}
+                      ]
+                    }
+                  ]
+                },
+                {"s": "nightjar", "t": "He spent twelve years teaching you where to look. Tonight he cashed it in."},
+                {"do": "clue", "flag": "clue_pike", "text": "CLUE: THE COIN TRICK"}
+              ]
+            }
+          ]
+        }
+      ],
+      "interactables": [
+        {
+          "id": "ticket",
+          "x": -12,
+          "z": -13,
+          "y": 0.9,
+          "label": "Examine the floor",
+          "if": "talked_ibarra",
+          "script": [
+            {"cam": {"pos": [-11, 2.4, -10.2], "look": [-12, 0.2, -13]}},
+            {"s": "nightjar", "t": "A ticket stub, tucked under the bed frame where the guards wouldn't sweep."},
+            {"caption": "MERRIMENT PARK - CLOSING NIGHT - ADMIT ONE - 3:00 A.M."},
+            {"s": "nightjar", "t": "Merriment Park closed twelve years ago. This was printed yesterday."},
+            {"do": "clue", "flag": "clue_ticket", "text": "CLUE: THE TICKET"}
+          ]
+        },
+        {
+          "id": "mirror",
+          "x": -9.7,
+          "z": -12.6,
+          "y": 0.9,
+          "label": "Search the bed",
+          "if": "talked_ibarra",
+          "script": [
+            {"cam": {"pos": [-10.5, 2.2, -10.4], "look": [-9.7, 0.4, -12.8]}},
+            {"s": "nightjar", "t": "Under the mattress. A shard of mirror, edges wrapped in tape so it wouldn't cut."},
+            {"s": "nightjar", "t": "Gold leaf on the back. Carnival glass. He's been looking at himself in this for twelve years."},
+            {"do": "clue", "flag": "clue_mirror", "text": "CLUE: THE MIRROR SHARD"}
+          ]
+        },
+        {
+          "id": "chalk",
+          "x": 9,
+          "z": -15.4,
+          "y": 1.6,
+          "label": "Examine the drawing",
+          "if": "talked_ibarra",
+          "script": [
+            {"cam": {"pos": [9, 2.6, -11.5], "look": [9, 2.2, -16.9]}},
+            {"s": "nightjar", "t": "Chalk, still wet from the rain, but the rain hasn't washed it out. He drew it under the overhang, so it'd last."},
+            {"s": "nightjar", "t": "A grin. And a promise."},
+            {"s": "nightjar", "t": "The Grinning Hour. Every stage magician has a call time."},
+            {"do": "clue", "flag": "clue_chalk", "text": "CLUE: THE CHALK"}
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "x": -8,
+          "z": -5,
+          "r": 6.5,
+          "if": ["talked_ibarra", "!wave_yard"],
+          "cinematic": true,
+          "script": [
+            {
+              "do": "npcAdd",
+              "id": "pike",
+              "x": -10,
+              "z": -7.5,
+              "rot": 0,
+              "label": "Talk to Orderly Pike",
+              "talk": [
+                {
+                  "if": "clue_pike",
+                  "then": [{"s": "pike", "t": "I'm going home. I'm going to sleep with every light on."}],
+                  "else": [
+                    {"s": "pike", "t": "Every night at lights-out he did the same trick. A coin over the knuckles, back and forth. Made me guess which hand."},
+                    {
+                      "choices": [
+                        {
+                          "t": "[Calm] Take your time. What happened tonight?",
+                          "then": [
+                            {
+                              "s": "pike",
+                              "t": "Tonight he said, 'Last show, Mister Pike. Watch closely.' So I did. I watched that coin like my life depended on it."
+                            },
+                            {"s": "pike", "t": "When I looked up, the coin was in my pocket. And my keys weren't."}
+                          ]
+                        },
+                        {
+                          "t": "[Press] You handed him the keys, didn't you?",
+                          "then": [
+                            {
+                              "s": "pike",
+                              "t": "No! I didn't hand him anything. He took them while I was watching the coin. Twelve years of the same trick, and tonight it worked."
+                            },
+                            {"s": "pike", "t": "He left me the coin. It's not even silver. It's a token from Merriment Park."},
+                            {"set": "pike_token"}
+                          ]
+                        }
+                      ]
+                    },
+                    {"s": "nightjar", "t": "He spent twelve years teaching you where to look. Tonight he cashed it in."},
+                    {"do": "clue", "flag": "clue_pike", "text": "CLUE: THE COIN TRICK"}
+                  ]
+                }
+              ],
+              "talkIf": "wave_yard"
+            },
+            {"cam": {"pos": [-3, 3.2, -1], "look": [-9.5, 1.2, -7.5]}},
+            {"s": "pike", "t": "Get off me! I told the cops everything, I swear!"},
+            {"do": "wave", "id": "yard"},
+            {"s": "grinner", "t": "The Magician says you watched the wrong hand, Pikey. Says you owe him a laugh."},
+            {"s": "nightjar", "t": "He'll have to collect it himself."},
+            {"do": "toast", "text": "FIGHT!"},
+            {
+              "if": "!tutorial",
+              "then": [
+                {"set": "tutorial"},
+                {
+                  "caption": "ATTACK with ✊ / J / click and chain hits for a COMBO. A gold ! means a punch is coming: press ⤴ / SPACE to COUNTER. A red !! can't be countered: the same button DODGES it.",
+                  "voice": false
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "waves": {
+        "yard": {
+          "enemies": [{"character": "grinner", "x": -12.5, "z": -6, "rot": 90}, {"character": "grinner", "x": -7.5, "z": -6.5, "rot": -90}],
+          "onClear": [
+            {"s": "pike", "t": "They came back for me. Said I'd ruined the trick by remembering it."},
+            {"s": "nightjar", "t": "Then remember it for me."},
+            {"set": "pike_saved"}
+          ],
+          "ambientClear": true
+        }
+      },
+      "objectives": [
+        {"text": "Speak with Commissioner Ibarra", "until": "talked_ibarra", "target": "ibarra"},
+        {"text": "Help the orderly!", "if": "talked_ibarra", "until": "wave_yard", "target": [-9, -6]},
+        {
+          "text": "Search Blackmere for clues",
+          "if": "talked_ibarra",
+          "until": ["clue_ticket", "clue_chalk", "clue_pike"],
+          "count": ["clue_ticket", "clue_chalk", "clue_pike"],
+          "target": ["ticket", "chalk", {"id": "talk_pike", "until": "clue_pike"}]
+        },
+        {"text": "Report back to Commissioner Ibarra", "until": "deduced", "target": "ibarra"},
+        {"text": "Head to the car at the gate", "if": "deduced", "target": "exit"}
+      ],
+      "exits": [{"x": 0, "z": 17.4, "r": 1.6, "if": "deduced", "to": "merriment", "spawn": "gate"}],
+      "intro": [
+        {"cam": {"pos": [0, 16, 26], "look": [0, 6, -20], "cut": true}},
+        {"caption": "Gravenport. The rain hasn't stopped in three days."},
+        {"cam": {"pos": [-6, 4, 6], "look": [-11, 1.5, -12]}},
+        {"caption": "Blackmere Asylum held Harlan Vale for twelve years. Tonight it held him for six hours."},
+        {"cam": {"pos": [1, 2.4, 13.2], "look": [3, 1.6, 8.5]}},
+        {"s": "ibarra", "t": "Nightjar. Over here."}
+      ]
+    },
+    "merriment": {
+      "title": "Merriment Park",
+      "mood": "carnival",
+      "card": {"kicker": "PART TWO", "title": "MERRIMENT PARK", "sub": "2:58 a.m. The lights came on by themselves."},
+      "environment": {
+        "sky": "#0a0612",
+        "fog": "#24142e",
+        "fogNear": 16,
+        "fogFar": 70,
+        "ground": "#5a5058",
+        "rain": true,
+        "lightning": false,
+        "ambient": 0.75,
+        "skyLight": "#9a7ac8",
+        "moon": "#c9a8ff",
+        "moonIntensity": 0.9,
+        "paths": [
+          {"x": 0, "z": 0, "w": 5, "d": 40, "color": "#7a6a6a", "tex": "cobble"},
+          {"x": -6, "z": -9, "w": 10, "d": 4, "color": "#7a6a6a", "tex": "cobble"}
+        ],
+        "skyHorizon": "#3a1a3a",
+        "cityGlow": "#6a2a40",
+        "fogDensity": 0.02,
+        "groundTex": "asphalt",
+        "exposure": 1.3
+      },
+      "bounds": [-23, 23, -22.5, 22],
+      "spawn": {"x": 0, "z": 20.5, "rot": 180},
+      "spawns": {"gate": {"x": 0, "z": 20.5, "rot": 180}, "booth": {"x": 1.6, "z": 6, "rot": 90}},
+      "props": [
+        {
+          "type": "gate",
+          "x": 0,
+          "z": 18,
+          "w": 6,
+          "sign": "MERRIMENT PARK",
+          "signBg": "#5b2a86",
+          "signFg": "#f0b429",
+          "color": "#c0283a",
+          "carnival": true
+        },
+        {"type": "fence", "x": -13.5, "z": 18, "w": 21},
+        {"type": "fence", "x": 13.5, "z": 18, "w": 21},
+        {"type": "fence", "x": -23.3, "z": -2, "w": 41, "rot": 90},
+        {"type": "fence", "x": 23.3, "z": -2, "w": 41, "rot": 90},
+        {"type": "fence", "x": 0, "z": -22.6, "w": 47},
+        {"type": "tent", "x": -9, "z": 10, "r": 2.6},
+        {"type": "tent", "x": 10, "z": 11, "r": 2.4, "color": "#5b2a86", "color2": "#f0b429"},
+        {"type": "tent", "x": -16, "z": -1, "r": 3, "color": "#2a6b4f", "color2": "#f4ecd6"},
+        {"type": "tent", "x": 15, "z": 1, "r": 3.2, "color": "#c0283a", "color2": "#f0b429"},
+        {"type": "booth", "x": 4.6, "z": 6, "rot": -90, "sign": "TICKETS"},
+        {
+          "type": "poster",
+          "x": 3.75,
+          "z": 6,
+          "rot": -90,
+          "y": 1.35,
+          "w": 1.0,
+          "text": ["THE GREAT VALE", "CLOSING NIGHT", "ONE SHOW ONLY"],
+          "size": 54,
+          "face": true,
+          "solid": false
+        },
+        {"type": "carousel", "x": -10, "z": -9.5, "r": 4},
+        {"type": "ferris", "x": 12, "z": -15, "r": 7, "rot": 15},
+        {"type": "stage", "x": 0, "z": -18.5, "w": 10, "d": 4},
+        {
+          "type": "building",
+          "x": -16,
+          "z": -17.5,
+          "w": 8,
+          "h": 6,
+          "d": 6,
+          "color": "#2b1d3a",
+          "trim": "#5b2a86",
+          "sign": "HALL OF MIRRORS",
+          "signBg": "#120c16",
+          "signFg": "#7bd34f",
+          "door": true,
+          "windows": false
+        },
+        {"type": "sign", "x": 2.8, "z": 15, "rot": -20, "text": "THIS WAY TO FUN!"},
+        {"type": "sign", "x": -3.2, "z": -12.5, "rot": 25, "text": "MAIN STAGE", "bg": "#f0b429"},
+        {"type": "lamp", "x": 3, "z": 13, "rot": -90},
+        {"type": "lamp", "x": -3.2, "z": 2, "rot": 90},
+        {"type": "lamp", "x": 3.2, "z": -7, "rot": -90},
+        {"type": "lamp", "x": 6, "z": -14, "rot": -90, "flicker": true},
+        {"type": "lamp", "x": -7, "z": 3, "light": false},
+        {"type": "stringLights", "x": -3, "z": 12, "x2": 3, "z2": 12, "h": 4.2},
+        {"type": "stringLights", "x": -3, "z": 4, "x2": 3, "z2": 4, "h": 4.2},
+        {"type": "stringLights", "x": -3, "z": -4, "x2": 3, "z2": -4, "h": 4.2},
+        {"type": "stringLights", "x": -5, "z": -15.5, "x2": 5, "z2": -15.5, "h": 5.6},
+        {"type": "crate", "x": 7, "z": 3},
+        {"type": "crate", "x": 7.6, "z": 4.1, "s": 0.7, "spin": 30},
+        {"type": "barrel", "x": -6, "z": 6, "color": "#5b2a86"},
+        {"type": "barrel", "x": 6.5, "z": -3, "color": "#c0283a"},
+        {"type": "tree", "x": -20, "z": 12, "h": 5},
+        {"type": "tree", "x": 20, "z": 14, "h": 4.5},
+        {"type": "tree", "x": 20, "z": -8, "h": 6},
+        {"type": "rubble", "x": -12, "z": -14.5, "color": "#3a2a40"},
+        {"type": "beam", "x": -20, "z": -20, "solid": false, "color": "#d9c2ff"},
+        {"type": "beam", "x": 20, "z": -20, "solid": false, "color": "#ffe2a8"}
+      ],
+      "interactables": [
+        {
+          "id": "poster",
+          "x": 3.2,
+          "z": 6,
+          "y": 2.4,
+          "label": "Look at the poster",
+          "if": "wave_midway",
+          "script": [
+            {"cam": {"pos": [0.6, 1.7, 6], "look": [3.75, 1.4, 6]}},
+            {"s": "nightjar", "t": "The Great Vale. Closing night. The paper's new, but the picture is twelve years old."},
+            {"s": "nightjar", "t": "No grin, back then. Just a man in a top hat who looks like he can't believe his luck."},
+            {"do": "clue", "flag": "clue_poster", "text": "CLUE: THE POSTER"},
+            {"do": "goto", "scene": "flashback"}
+          ]
+        },
+        {
+          "id": "musicbox",
+          "x": -10,
+          "z": -4.9,
+          "y": 1.0,
+          "label": "Something is playing on the carousel",
+          "script": [
+            {"cam": {"pos": [-8.2, 2.2, -2.2], "look": [-10, 1, -5.5]}},
+            {"s": "nightjar", "t": "A music box, wedged on the carousel platform. Still winding down."},
+            {
+              "if": "met_mira",
+              "then": [
+                {"s": "nightjar", "t": "The engraving's worn, but I can read it. 'For Mira. The show goes on.'"},
+                {"s": "nightjar", "t": "He gave this to his sister that night. And tonight he put it out where the rain could get at it."}
+              ],
+              "else": [{"s": "nightjar", "t": "There's an engraving. 'For M-' the rest is worn smooth."}]
+            },
+            {"do": "clue", "flag": "clue_musicbox", "text": "CLUE: THE MUSIC BOX"}
+          ]
+        },
+        {
+          "id": "mirrors",
+          "x": -16,
+          "z": -13.8,
+          "y": 1.6,
+          "label": "Try the Hall of Mirrors",
+          "repeat": true,
+          "script": [
+            {"s": "nightjar", "t": "Chained. The chain is new, the door is old, and the scorch marks are older."},
+            {
+              "if": "saw_flashback",
+              "then": [{"s": "nightjar", "t": "This is where it happened. Not tonight, Vale. You don't get to drag me in there yet."}]
+            }
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "x": 0,
+          "z": 9,
+          "r": 4,
+          "if": "!wave_midway",
+          "cinematic": false,
+          "script": [
+            {"do": "wave", "id": "midway"},
+            {"do": "toast", "text": "FIGHT!"},
+            {"s": "vale_pa", "t": "Ladies and gentlemen, boys and girls, birds of the night! Please find your seats!", "sfx": "laugh"},
+            {"s": "vale_pa", "t": "Our first act: three gentlemen with nothing to lose, and they've already lost it!"}
+          ],
+          "ambient": true
+        },
+        {
+          "x": 1.6,
+          "z": 6,
+          "r": 3,
+          "if": ["saw_flashback", "!back_note"],
+          "script": [
+            {"set": "back_note"},
+            {"s": "nightjar", "t": "The fire was never an accident. And Vale was never trying to escape Blackmere."},
+            {"s": "nightjar", "t": "He was trying to get back to his stage."},
+            {
+              "if": "!clue_musicbox",
+              "then": [{"s": "nightjar", "t": "That tune from the music box... I've heard it twice tonight. It's coming from the carousel."}]
+            }
+          ],
+          "ambient": true
+        },
+        {
+          "x": 0,
+          "z": -10.5,
+          "r": 4,
+          "if": ["saw_flashback", "!wave_stage"],
+          "cinematic": true,
+          "script": [
+            {"cam": {"pos": [3, 2.6, -8], "look": [0, 2.5, -18]}},
+            {"s": "vale_pa", "t": "And now, the moment you've all been waiting for! Please welcome... the Big Grin!"},
+            {"do": "wave", "id": "stage"},
+            {"s": "nightjar", "t": "More of them. He's stalling."},
+            {"caption": "The Big Grin hits too hard to counter. When you see a red !!, DODGE.", "voice": false},
+            {"do": "toast", "text": "FINAL ACT!"}
+          ]
+        }
+      ],
+      "waves": {
+        "midway": {
+          "enemies": [
+            {"character": "grinner", "x": -3, "z": -1, "rot": 0},
+            {"character": "grinner", "x": 3, "z": 0, "rot": 0},
+            {"character": "grinner", "x": 0, "z": -4, "rot": 0}
+          ],
+          "onClear": [
+            {"s": "nightjar", "t": "Hired help, painted to look like him. He's not here yet. Or he wants me to think he isn't."},
+            {"s": "ibarra_radio", "t": "Nightjar, we're at the perimeter. Thermal shows nothing moving inside but you."},
+            {"s": "nightjar", "t": "Then thermal is watching the wrong hand. Stay put."}
+          ],
+          "ambientClear": true
+        },
+        "stage": {
+          "enemies": [
+            {"character": "brute", "x": 0, "z": -14.5, "rot": 0},
+            {"character": "grinner", "x": -4, "z": -13, "rot": 0},
+            {"character": "grinner", "x": 4, "z": -13, "rot": 0}
+          ],
+          "onClear": [
+            {"cam": {"pos": [4.2, 2.6, -11.0], "look": [0, 2.0, -17.5]}},
+            {"do": "smoke", "x": 0, "z": -17.5},
+            {"do": "npcAdd", "id": "vale", "x": 0, "z": -17.5, "y": 0.8, "rot": 0},
+            {"s": "vale", "t": "Bravo. Bravo! Oh, they never stood a chance, but you made it look like a fight. That's showmanship.", "anim": "laugh"},
+            {"s": "nightjar", "t": "It's over, Vale."},
+            {"s": "vale", "t": "Over? The house lights haven't even dimmed. Look at this place, bird. This was the happiest square mile in Gravenport."},
+            {"s": "vale", "t": "Then a man in a good suit pointed one way, and while everybody looked, he took everything with the other hand."},
+            {
+              "choices": [
+                {
+                  "t": "I saw what happened to Mira. I'm sorry.",
+                  "once": "c_mira",
+                  "set": "vale_empathy",
+                  "then": [
+                    {"s": "vale", "t": "..."},
+                    {
+                      "if": "clue_musicbox",
+                      "then": [
+                        {
+                          "s": "vale",
+                          "t": "You found her music box. Do you know nobody has said her name to me in twelve years? Not the doctors. Not the judge."
+                        },
+                        {"s": "vale", "t": "They said 'the incident.' Funny. She'd have hated being an incident. She was a headliner."}
+                      ],
+                      "else": [{"s": "vale", "t": "Sorry. Everybody's sorry, afterwards. It's the cheapest trick there is."}]
+                    }
+                  ]
+                },
+                {
+                  "t": "Where is Silas Crowe?",
+                  "once": "c_crowe",
+                  "then": [
+                    {"s": "vale", "t": "Crowe? Mr. Urban Renewal? Oh, he has the best seat in the house. Front row. He just doesn't know it yet."},
+                    {"set": "asked_crowe"}
+                  ]
+                },
+                {
+                  "t": "Hurting people won't bring her back.",
+                  "once": "c_lecture",
+                  "then": [
+                    {"s": "vale", "t": "Bring her back? Bird, I'm a magician, not a priest. I don't do resurrections. I do reveals."},
+                    {"s": "vale", "t": "And tonight, I reveal what this city really is."}
+                  ]
+                },
+                {"t": "Enough talk. [Grab him]", "exit": true}
+              ],
+              "loop": true
+            },
+            {"s": "nightjar", "t": "You're coming with me."},
+            {"s": "vale", "t": "Ah ah ah. Every good magician knows when to leave the stage..."},
+            {"s": "vale", "t": "...and the trick is, you never see the door.", "anim": "laugh"},
+            {"do": "npcRemove", "id": "vale", "smoke": true},
+            {"do": "shake", "amount": 0.4},
+            {"s": "nightjar", "t": "Smoke and a trapdoor. Old as the stage itself."},
+            {"s": "ibarra_radio", "t": "Nightjar! Crowe's penthouse... his private security just went dark. All of it, at once."},
+            {
+              "if": "asked_crowe",
+              "then": [{"s": "nightjar", "t": "Front row. This park was the misdirection. Crowe was always the act."}],
+              "else": [{"s": "nightjar", "t": "The park was the misdirection. Crowe was always the act."}]
+            },
+            {"s": "ibarra_radio", "t": "I'm heading there n- *krrsh*"},
+            {"s": "vale_pa", "t": "Commissioner! So glad you could make it! There's a ticket with your name on it, too...", "sfx": "laugh"},
+            {"do": "fade", "out": true},
+            {
+              "do": "end",
+              "kicker": "END OF CHAPTER ONE",
+              "title": "TO BE CONTINUED",
+              "text": "Next: Chapter Two, 'The Hall of Mirrors'",
+              "stats": [
+                {"if": "vale_empathy", "label": "Harlan Vale", "value": "remembers that you said her name"},
+                {"if": "!vale_empathy", "label": "Harlan Vale", "value": "thinks you're no different from Crowe"},
+                {"if": "pike_saved", "label": "Orderly Pike", "value": "safe"}
+              ]
+            }
+          ]
+        }
+      },
+      "objectives": [
+        {"text": "Find Harlan Vale in Merriment Park", "until": "wave_midway", "target": [0, 9]},
+        {"text": "Look around. What is this place to Vale?", "if": "wave_midway", "until": "saw_flashback", "target": "poster"},
+        {"text": "Confront Vale at the main stage", "if": "saw_flashback", "until": "wave_stage", "target": [0, -10.5]}
+      ],
+      "intro": [
+        {"cam": {"pos": [-14, 9, 24], "look": [10, 7, -15], "cut": true}},
+        {"caption": "Merriment Park. Closed twelve years. Somebody paid the electric bill tonight."},
+        {"cam": {"pos": [3, 2.4, 23], "look": [0, 4, 18]}},
+        {"s": "ibarra_radio", "t": "Nightjar, you're on your own in there until I say otherwise. Crowe's lawyers already called. Twice."},
+        {"s": "nightjar", "t": "Then the night's going well for somebody."}
+      ]
+    },
+    "flashback": {
+      "title": "Twelve Years Ago",
+      "mood": "flashback",
+      "playAs": "harlan",
+      "card": {"kicker": "TWELVE YEARS AGO", "title": "CLOSING NIGHT", "sub": "Backstage at the Merriment Park Theatre."},
+      "environment": {
+        "flashback": true,
+        "sky": "#1a120c",
+        "fog": "#2a1d14",
+        "fogNear": 20,
+        "fogFar": 50,
+        "ground": "#7a5236",
+        "rain": false,
+        "ambient": 0.9,
+        "skyLight": "#ffd9a8",
+        "groundLight": "#3a2414",
+        "moon": "#ffe2b8",
+        "moonIntensity": 0.6,
+        "groundSize": 40,
+        "skyHorizon": "#3a2a1a",
+        "fogDensity": 0.01,
+        "groundTex": "wood",
+        "skyline": false,
+        "clouds": 0,
+        "exposure": 1.15,
+        "envLights": "#ffc080"
+      },
+      "bounds": [-7.6, 7.6, -5.6, 5.6],
+      "spawn": {"x": -3, "z": 3, "rot": 90},
+      "props": [
+        {"type": "wall", "x": 0, "z": -6.2, "w": 17, "h": 4.5, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": 0, "z": 6.2, "w": 17, "h": 4.5, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": -8.2, "z": 0, "w": 13, "h": 4.5, "rot": 90, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "wall", "x": 8.2, "z": 0, "w": 13, "h": 4.5, "rot": 90, "color": "#6a2a2a", "mat": "plaster"},
+        {"type": "stage", "x": 0, "z": -4.6, "w": 9, "d": 2.4, "spot": true},
+        {"type": "table", "x": 5, "z": -1.5, "items": true},
+        {"type": "table", "x": -5.5, "z": 4, "w": 2},
+        {"type": "mirror", "x": -7.8, "z": 0, "rot": 90},
+        {"type": "mirror", "x": -7.8, "z": -2.2, "rot": 90},
+        {"type": "crate", "x": 6.6, "z": 4.4, "color": "#3a2a1e"},
+        {"type": "crate", "x": 6.9, "z": 3.2, "s": 0.8, "color": "#c0283a", "spin": 15},
+        {"type": "barrel", "x": -7, "z": -4.5, "color": "#3a2a1e"},
+        {
+          "type": "poster",
+          "x": 3,
+          "z": -6.0,
+          "y": 2.2,
+          "w": 1.2,
+          "text": ["THE GREAT VALE", "& THE LOVELY MIRA", "TONIGHT ONLY"],
+          "size": 50,
+          "bg": "#f4ecd6",
+          "solid": false
+        },
+        {
+          "type": "poster",
+          "x": -3,
+          "z": -6.0,
+          "y": 2.2,
+          "w": 1.2,
+          "text": ["MERRIMENT", "PARK", "SINCE 1931"],
+          "size": 70,
+          "bg": "#c0283a",
+          "fg": "#f4ecd6",
+          "solid": false
+        },
+        {"type": "lamp", "x": 7.4, "z": -4.5, "rot": -90, "intensity": 10},
+        {"type": "lamp", "x": -7.4, "z": 5, "rot": 90, "intensity": 10, "flicker": true}
+      ],
+      "npcs": [
+        {
+          "id": "mira",
+          "x": 2.5,
+          "z": 2,
+          "rot": -90,
+          "label": "Talk to Mira",
+          "talk": [
+            {
+              "if": "met_mira",
+              "then": [{"s": "mira", "t": "Go find your hat, Great One. The rabbit's getting nervous."}],
+              "else": [
+                {"s": "mira", "t": "There he is. The Great Vale. Two minutes to curtain and you're wandering around without your hat."},
+                {"s": "harlan", "t": "The hat is a prop, Mira. The magic is in the man."},
+                {"s": "mira", "t": "The magic is in the assistant who hides the rabbit. Say it."},
+                {
+                  "choices": [
+                    {
+                      "t": "[Give her the music box]",
+                      "then": [
+                        {"s": "harlan", "t": "Closing night gift. Don't open it until the curtain falls. Fine, open it now."},
+                        {"s": "mira", "t": "'For Mira. The show goes on.' Harlan..."},
+                        {"s": "mira", "t": "You're a sentimental old fraud, you know that?", "set": "gave_box"}
+                      ]
+                    },
+                    {
+                      "t": "The magic is in the assistant who hides the rabbit.",
+                      "then": [{"s": "mira", "t": "Thank you. Was that so hard?"}, {"s": "harlan", "t": "Excruciating."}]
+                    }
+                  ]
+                },
+                {"s": "mira", "t": "Last show, Harlan. Let's make them laugh so hard they forget the place is closing.", "set": "met_mira"}
+              ]
+            }
+          ]
+        }
+      ],
+      "interactables": [
+        {
+          "id": "hat",
+          "x": 5,
+          "z": -0.5,
+          "y": 1.4,
+          "label": "Pick up your top hat",
+          "script": [
+            {"s": "harlan", "t": "There you are. Can't make a dove disappear without a place to keep it."},
+            {"set": "got_hat"},
+            {"do": "toast", "text": "TOP HAT!"}
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "x": 0,
+          "z": 0,
+          "r": 20,
+          "if": ["got_hat", "met_mira", "!crowe_scene"],
+          "cinematic": true,
+          "script": [
+            {"set": "crowe_scene"},
+            {"do": "npcAdd", "id": "crowe", "x": 0, "z": 5.5, "rot": 180},
+            {"do": "face", "id": "mira", "target": "crowe"},
+            {"cam": {"pos": [-3, 2.2, -1.5], "look": [0, 1.6, 4]}},
+            {"s": "crowe", "t": "Mister Vale. Miss Vale. Don't let me interrupt."},
+            {"do": "npcMove", "id": "crowe", "x": 0, "z": 2.6, "speed": 1.8, "wait": true},
+            {"s": "harlan", "t": "Mister Crowe. Come to buy a ticket? I'm told we're the last show in town."},
+            {"s": "crowe", "t": "I've bought the town, Harlan. The papers clear on Monday. The bulldozers come Tuesday."},
+            {"s": "crowe", "t": "Your little hall of mirrors goes first. Very expensive glass. Very poorly insured."},
+            {
+              "choices": [
+                {
+                  "t": "Please. These people have nowhere else to go.",
+                  "then": [{"s": "crowe", "t": "They'll go to my casino. It'll have a magician. Younger. Cheaper."}]
+                },
+                {
+                  "t": "[Joke] Careful, Silas. Stand too close to the mirrors and you'll see what you look like.",
+                  "then": [{"s": "crowe", "t": "Funny. Be funny tonight, Harlan. It's the last time anybody's paying for it."}]
+                },
+                {"t": "Get out of my theatre.", "then": [{"s": "crowe", "t": "My theatre. As of midnight. But please, finish the show."}]}
+              ]
+            },
+            {"do": "npcMove", "id": "crowe", "x": 0, "z": 5.6, "speed": 2},
+            {"s": "mira", "t": "Don't. Harlan, look at me. Don't let him take the last show too."},
+            {"s": "mira", "t": "I'll set up the mirrors for the finale. Two minutes. Then we give them everything."},
+            {"do": "npcMove", "id": "mira", "x": -7, "z": -1, "speed": 2.4, "wait": true},
+            {"do": "npcRemove", "id": "mira"},
+            {"do": "npcRemove", "id": "crowe"},
+            {"do": "shake", "amount": 0.8},
+            {"do": "sfx", "name": "thunder"},
+            {"do": "smoke", "x": -6, "z": -1},
+            {"s": "harlan", "t": "...smoke? MIRA!"},
+            {"do": "smoke", "x": -5, "z": 1},
+            {"do": "fade", "out": true},
+            {"caption": "That night, the Hall of Mirrors burned. Mira Vale was inside."},
+            {"caption": "The fire marshal called it faulty wiring. Silas Crowe called it a tragedy, and then he called his bank."},
+            {"caption": "And Harlan Vale laughed. He laughed until the doctors came. He hasn't really stopped since."},
+            {"set": "saw_flashback"},
+            {"do": "goto", "scene": "merriment", "spawn": "booth"}
+          ]
+        }
+      ],
+      "objectives": [
+        {"text": "Two minutes to curtain. Talk to Mira", "until": "met_mira", "target": "talk_mira"},
+        {"text": "Find your top hat", "if": "met_mira", "until": "got_hat", "target": "hat"}
+      ],
+      "intro": [
+        {"cam": {"pos": [6, 3, 5], "look": [0, 1.2, 0], "cut": true}},
+        {"s": "harlan", "t": "Full house. Full house on closing night. Mira's going to be insufferable."}
+      ]
+    }
+  },
+  "narrator": {"voice": {"kokoro": "am_onyx*0.5+bm_lewis*0.5", "speed": 0.9}}
+}
