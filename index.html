@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0812">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>The Grinning Hour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/ui/style.css">
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="objective"><span class="label">OBJECTIVE</span><span id="objective-text"></span></div>
+      <div id="health"><div id="health-fill"></div></div>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause">II</button>
+      <div id="prompt" class="hidden"></div>
+      <div id="toast" class="hidden"></div>
+      <div id="sticks">
+        <div id="joy"><div id="joy-knob"></div></div>
+        <div id="actions">
+          <button id="btn-interact" class="act hidden" aria-label="Interact">✋</button>
+          <button id="btn-dodge" class="act" aria-label="Dodge">⤴</button>
+          <button id="btn-attack" class="act big" aria-label="Attack">✊</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="dialogue" class="hidden">
+      <div id="dlg-panel">
+        <div id="dlg-name"></div>
+        <div id="dlg-text"></div>
+        <div id="dlg-choices"></div>
+        <div id="dlg-next">▼</div>
+      </div>
+    </div>
+    <div id="caption" class="hidden"></div>
+    <div id="letterbox" class="hidden"><div></div><div></div></div>
+
+    <!-- Title card / menus -->
+    <div id="card" class="hidden"><div class="card-inner"><div id="card-kicker"></div><h2 id="card-title"></h2><div id="card-sub"></div></div></div>
+    <div id="fade"></div>
+
+    <div id="menu" class="screen">
+      <div class="menu-inner">
+        <div class="kicker">A low-poly noir story</div>
+        <h1 id="game-title">THE GRINNING HOUR</h1>
+        <div id="game-subtitle" class="sub"></div>
+        <div class="menu-buttons">
+          <button id="btn-continue" class="menu-btn hidden">Continue</button>
+          <button id="btn-new" class="menu-btn primary">New Game</button>
+          <button id="btn-howto" class="menu-btn">Controls</button>
+        </div>
+        <div id="howto" class="hidden">
+          <p><b>Desktop:</b> WASD / arrows to move · drag mouse to look · <b>E</b> interact · <b>J</b> / click attack · <b>Space</b> dodge · <b>Enter</b> advance dialogue · <b>Esc</b> pause</p>
+          <p><b>Mobile:</b> left thumb to move · drag right side to look · buttons to act · tap to advance dialogue</p>
+        </div>
+        <div class="loading" id="loading">Loading…</div>
+      </div>
+    </div>
+
+    <div id="pause" class="screen hidden">
+      <div class="menu-inner">
+        <h1 class="small">PAUSED</h1>
+        <div class="menu-buttons">
+          <button id="btn-resume" class="menu-btn primary">Resume</button>
+          <button id="btn-restart" class="menu-btn">Restart scene</button>
+          <button id="btn-mute" class="menu-btn">Sound: On</button>
+          <button id="btn-quality" class="menu-btn">Quality: High</button>
+          <button id="btn-quit" class="menu-btn">Main menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameover" class="screen hidden">
+      <div class="menu-inner">
+        <h1 class="small">KNOCKED OUT</h1>
+        <div class="sub">The city doesn't get a second chance. You do.</div>
+        <div class="menu-buttons"><button id="btn-retry" class="menu-btn primary">Try again</button></div>
+      </div>
+    </div>
+
+    <div id="ending" class="screen hidden">
+      <div class="menu-inner">
+        <div class="kicker" id="end-kicker"></div>
+        <h1 class="small" id="end-title"></h1>
+        <div class="sub" id="end-text"></div>
+        <ul id="end-stats"></ul>
+        <div class="menu-buttons"><button id="btn-end-menu" class="menu-btn primary">Main menu</button></div>
+      </div>
+    </div>
+
+    <div id="rotate-hint">Rotate your phone to landscape for the best experience ↻</div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
