@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { RoundedBoxGeometry } from '../../vendor/jsm/geometries/RoundedBoxGeometry.js';
-import { mergeGeometries } from '../../vendor/jsm/utils/BufferGeometryUtils.js';
+import { RoundedBoxGeometry } from '../../../../vendor/jsm/geometries/RoundedBoxGeometry.js';
+import { mergeGeometries } from '../../../../vendor/jsm/utils/BufferGeometryUtils.js';
 import { std, glow, mesh } from './Materials.js';
 
 // Procedurally sculpted humanoid built from a story "look" description.

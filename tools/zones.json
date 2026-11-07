@@ -1,0 +1,12 @@
+{
+  "central":      { "name": "MG Road & Cubbon Park", "bbox": [12.9660, 77.5880, 12.9860, 77.6140] },
+  "indiranagar":  { "name": "Indiranagar",            "bbox": [12.9640, 77.6320, 12.9840, 77.6500] },
+  "koramangala":  { "name": "Koramangala",            "bbox": [12.9250, 77.6100, 12.9430, 77.6350] },
+  "silkboard":    { "name": "Silk Board & HSR",       "bbox": [12.9080, 77.6120, 12.9260, 77.6400] },
+  "basavanagudi": { "name": "Basavanagudi & Lalbagh", "bbox": [12.9380, 77.5640, 12.9560, 77.5900] },
+  "bellandur":    { "name": "Bellandur & ORR",        "bbox": [12.9180, 77.6550, 12.9420, 77.6850] },
+  "ecity":        { "name": "Electronic City",        "bbox": [12.8380, 77.6500, 12.8560, 77.6720] },
+  "majestic":     { "name": "Majestic",               "bbox": [12.9600, 77.5620, 12.9840, 77.5840] },
+  "malleshwaram": { "name": "Malleshwaram",           "bbox": [12.9920, 77.5600, 13.0100, 77.5800] },
+  "whitefield":   { "name": "Whitefield",             "bbox": [12.9780, 77.7250, 12.9960, 77.7480] }
+}

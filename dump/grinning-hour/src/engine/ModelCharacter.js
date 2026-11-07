@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { clone as cloneSkinned } from '../../vendor/jsm/utils/SkeletonUtils.js';
+import { clone as cloneSkinned } from '../../../../vendor/jsm/utils/SkeletonUtils.js';
 import { getModel, fitToHeight } from './Models.js';
 
 // A character backed by a glTF/GLB model. Same interface as the procedural Character

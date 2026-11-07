@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import { mergeGeometries } from '../../vendor/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from '../../../../vendor/jsm/utils/BufferGeometryUtils.js';
 import { std, glow, mesh, textTexture, lightCone } from './Materials.js';
 import { worldUV } from './Textures.js';
 import { Sky } from './Sky.js';
 import { getModel, fitToHeight } from './Models.js';
-import { clone as cloneSkinned } from '../../vendor/jsm/utils/SkeletonUtils.js';
+import { clone as cloneSkinned } from '../../../../vendor/jsm/utils/SkeletonUtils.js';
 
 // Builds a playable environment from scene data:
 //   environment: { sky, fog, ambient, moon, ground, groundTex, rain, lightning, flashback, exposure }

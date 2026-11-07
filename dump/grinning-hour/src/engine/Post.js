@@ -1,9 +1,9 @@
 import * as THREE from 'three';
-import { EffectComposer } from '../../vendor/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from '../../vendor/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from '../../vendor/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from '../../vendor/jsm/postprocessing/OutputPass.js';
-import { ShaderPass } from '../../vendor/jsm/postprocessing/ShaderPass.js';
+import { EffectComposer } from '../../../../vendor/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from '../../../../vendor/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '../../../../vendor/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from '../../../../vendor/jsm/postprocessing/OutputPass.js';
+import { ShaderPass } from '../../../../vendor/jsm/postprocessing/ShaderPass.js';
 
 // HDR render → bloom → tone mapping → cinematic grade (vignette, grain, fringing, sepia, damage flash).
 

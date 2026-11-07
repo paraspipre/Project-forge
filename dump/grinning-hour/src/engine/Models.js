@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import { GLTFLoader } from '../../vendor/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from '../../vendor/jsm/loaders/DRACOLoader.js';
-import { MeshoptDecoder } from '../../vendor/jsm/libs/meshopt_decoder.module.js';
+import { GLTFLoader } from '../../../../vendor/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from '../../../../vendor/jsm/loaders/DRACOLoader.js';
+import { MeshoptDecoder } from '../../../../vendor/jsm/libs/meshopt_decoder.module.js';
 
 // glTF/GLB loading with a shared cache. Supports Draco and Meshopt compression, which
 // optimisers like gltf-transform and most AI 3D generators can output.
 // Loads are kicked off per scene (preload) so building actors and props stays synchronous.
 
-const vendor = new URL('../../vendor/jsm/', import.meta.url).href;
+const vendor = new URL('../../../../vendor/jsm/', import.meta.url).href;
 const draco = new DRACOLoader().setDecoderPath(`${vendor}libs/draco/gltf/`);
 const loader = new GLTFLoader().setDRACOLoader(draco).setMeshoptDecoder(MeshoptDecoder);
 

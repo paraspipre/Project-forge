@@ -3,111 +3,151 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#0b0812">
+  <meta name="theme-color" content="#f07b5a">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <title>The Grinning Hour</title>
+  <meta name="description" content="Peak Bengaluru — a comic-book sci-fi Bangalore built from the real city map. Explore MG Road, Koramangala, Silk Board and more, alone or with friends, right in your browser.">
+  <meta property="og:title" content="Peak Bengaluru">
+  <meta property="og:description" content="The real Bengaluru map, comic style, year 2099. Traffic still jammed. Swalpa adjust maadi.">
+  <title>Peak Bengaluru</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Baloo+Tamma+2:wght@600;800&family=Bangers&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="src/ui/style.css">
-  <script type="importmap">
-    { "imports": { "three": "./vendor/three.module.js" } }
-  </script>
+  <script type="importmap">{ "imports": { "three": "./vendor/three.module.js" } }</script>
 </head>
 <body>
   <div id="app">
     <canvas id="view"></canvas>
+    <div id="labels"></div>
 
-    <!-- HUD -->
+    <!-- ===================== HUD ===================== -->
     <div id="hud" class="hidden">
-      <div id="objective"><span class="label">OBJECTIVE</span><span id="objective-text"></span></div>
-      <div id="health"><div id="health-fill"></div></div>
-      <button id="btn-pause" class="icon-btn" aria-label="Pause">II</button>
+      <div id="loc" class="panel">
+        <div id="loc-zone">MG Road</div>
+        <div id="loc-street"></div>
+        <div id="loc-time"><span id="loc-clock">10:00 AM</span> <span id="loc-weather">☀️</span></div>
+      </div>
+      <div id="topright">
+        <div id="coins" class="chip" title="Namma Coins">🪙 <span id="coin-n">0</span></div>
+        <div id="online" class="chip" title="Players here"><span class="dot"></span> <span id="online-n">1</span></div>
+        <button id="btn-map" class="chip btn" title="City map (M)">🗺️</button>
+        <button id="btn-pause" class="chip btn" title="Menu (Esc)">☰</button>
+      </div>
+      <div id="objective" class="hidden"><div class="obj-kicker" id="obj-kicker">MISSION</div><div id="obj-text"></div><div id="obj-dist"></div></div>
+      <canvas id="minimap" width="200" height="200"></canvas>
       <div id="prompt" class="hidden"></div>
-      <div id="combo" class="hidden"><span id="combo-n">x0</span><span class="label">COMBO</span><div id="combo-bar"><div id="combo-fill"></div></div><span id="takedown" class="hidden">TAKEDOWN READY</span></div>
-      <div id="waypoint" class="hidden"><div id="wp-arrow">➤</div><span id="wp-dist"></span></div>
-      <div id="counter-cue" class="hidden">COUNTER!</div>
       <div id="toast" class="hidden"></div>
-      <div id="sticks">
+      <div id="bigtext" class="hidden"></div>
+      <div id="timer" class="hidden"></div>
+      <div id="waypoint" class="hidden"><div id="wp-arrow">▲</div><span id="wp-dist"></span></div>
+
+      <div id="chatlog"></div>
+      <div id="chatbar" class="hidden">
+        <input id="chat-input" maxlength="80" placeholder="Say something nice… (Enter to send)" autocomplete="off">
+        <button id="chat-send">Send</button>
+      </div>
+      <div id="wheel" class="hidden">
+        <div class="wheel-title">Emotes &amp; phrases</div>
+        <div id="wheel-emotes"></div>
+        <div id="wheel-phrases"></div>
+      </div>
+
+      <!-- touch controls -->
+      <div id="touch">
         <div id="joy"><div id="joy-knob"></div></div>
-        <div id="actions">
-          <button id="btn-interact" class="act hidden" aria-label="Interact">✋</button>
-          <button id="btn-scan" class="act small" aria-label="Detective scan">👁</button>
-          <button id="btn-dodge" class="act" aria-label="Dodge">⤴</button>
-          <button id="btn-attack" class="act big" aria-label="Attack">✊</button>
+        <div id="tbtns">
+          <button id="t-jump" class="tb big">⤒</button>
+          <button id="t-act" class="tb hidden">✋</button>
+          <button id="t-ride" class="tb">🛵</button>
+          <button id="t-emote" class="tb small">😄</button>
+          <button id="t-chat" class="tb small">💬</button>
         </div>
+      </div>
+      <div id="keyhints">
+        <span><b>WASD</b> move</span><span><b>Shift</b> run</span><span><b>Space</b> jump</span><span><b>E</b> interact</span><span><b>R</b> hover scooter</span><span><b>Q</b> emotes</span><span><b>T</b> chat</span><span><b>M</b> map</span>
       </div>
     </div>
 
-    <!-- Dialogue -->
+    <!-- ===================== dialogue ===================== -->
     <div id="dialogue" class="hidden">
-      <div id="dlg-panel">
+      <div id="dlg-bubble">
         <div id="dlg-name"></div>
         <div id="dlg-text"></div>
+        <div id="dlg-kn"></div>
         <div id="dlg-choices"></div>
-        <div id="dlg-next" class="hidden">tap ▶</div>
+        <div id="dlg-next">▶</div>
       </div>
     </div>
-    <div id="caption" class="hidden"></div>
-    <div id="letterbox" class="hidden"><div></div><div></div></div>
 
-    <!-- Title card / menus -->
-    <div id="card" class="hidden"><div class="card-inner"><div id="card-kicker"></div><h2 id="card-title"></h2><div id="card-sub"></div></div></div>
-    <div id="fade"></div>
-
+    <!-- ===================== title screen ===================== -->
     <div id="menu" class="screen">
-      <div class="menu-inner">
-        <div class="kicker">A noir story in three acts</div>
-        <h1 id="game-title">THE GRINNING HOUR</h1>
-        <div id="game-subtitle" class="sub"></div>
+      <div class="menu-card">
+        <div class="kicker">ನಮ್ಮ ಬೆಂಗಳೂರು · YEAR 2099</div>
+        <h1 class="logo"><span>PEAK</span><span>BENGALURU</span></h1>
+        <div class="tagline">The real city map. Hover autos. Same old traffic.</div>
+        <label class="field">Your name
+          <input id="in-name" maxlength="16" autocomplete="off">
+        </label>
         <div class="menu-buttons">
-          <button id="btn-continue" class="menu-btn hidden">Continue</button>
-          <button id="btn-new" class="menu-btn primary">New Game</button>
-          <button id="btn-howto" class="menu-btn">Controls</button>
+          <button id="btn-play" class="menu-btn primary">Play</button>
+          <button id="btn-districts" class="menu-btn">Choose district</button>
+          <button id="btn-look" class="menu-btn">Change look</button>
+          <button id="btn-settings" class="menu-btn">Settings</button>
         </div>
-        <div id="howto" class="hidden">
-          <p>🎧 Best with headphones. Fully voiced.</p>
-          <p><b>Desktop:</b> WASD / arrows move · drag mouse to look · <b>E</b> interact · <b>J</b> / click attack · <b>Space</b> evade / counter · <b>Q</b> detective scan · <b>Enter</b> skip a line · <b>Esc</b> pause</p>
-          <p><b>Mobile:</b> left thumb moves · drag the right side to look · ✊ attack · ⤴ evade / counter · 👁 scan · tap to skip a line</p>
-          <p><b>Gamepad:</b> sticks move / look · X attack · B evade / counter · A interact · Y scan · Start pause</p>
-          <p><b>Combat:</b> chain hits to build a combo — attacks leap to enemies nearby. A <span style="color:#f0b429">gold !</span> means a punch is coming: press evade to <b>counter</b>. A <span style="color:#ff5a5a">red !!</span> can't be countered — the same button dodges it. A full combo meter unlocks an instant <b>takedown</b>.</p>
-        </div>
-        <div class="loading" id="loading">Loading…</div>
+        <label class="toggle"><input type="checkbox" id="in-online" checked> Play online with others (players nearby show up)</label>
+        <div class="room-row"><span>Room</span><input id="in-room" maxlength="12" placeholder="public"><button id="btn-room-new" class="mini">New private room</button></div>
+        <div class="loading" id="loading"></div>
+        <div class="credits">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>. A loving parody — every stereotype here is said with affection.</div>
       </div>
     </div>
 
+    <!-- district picker / city map -->
+    <div id="map" class="screen hidden">
+      <div class="map-wrap">
+        <div class="map-head"><h2>Namma Metro · Choose a district</h2><button id="map-close" class="mini">✕</button></div>
+        <canvas id="map-canvas"></canvas>
+        <div id="map-info"></div>
+      </div>
+    </div>
+
+    <!-- character look -->
+    <div id="lookscreen" class="screen hidden">
+      <div class="menu-card wide">
+        <h2>Your look</h2>
+        <div id="look-rows"></div>
+        <div class="menu-buttons"><button id="look-done" class="menu-btn primary">Done</button><button id="look-random" class="menu-btn">Surprise me</button></div>
+      </div>
+    </div>
+
+    <!-- settings / pause -->
     <div id="pause" class="screen hidden">
-      <div class="menu-inner">
-        <h1 class="small">PAUSED</h1>
+      <div class="menu-card">
+        <h2 id="pause-title">Paused</h2>
         <div class="menu-buttons">
           <button id="btn-resume" class="menu-btn primary">Resume</button>
-          <button id="btn-restart" class="menu-btn">Restart scene</button>
+          <button id="btn-quests" class="menu-btn">Missions</button>
           <button id="btn-mute" class="menu-btn">Sound: On</button>
-          <button id="btn-auto" class="menu-btn">Dialogue: Auto</button>
+          <button id="btn-music" class="menu-btn">Music: On</button>
           <button id="btn-quality" class="menu-btn">Quality: High</button>
-          <button id="btn-quit" class="menu-btn">Main menu</button>
+          <button id="btn-invite" class="menu-btn">Invite friends (copy link)</button>
+          <button id="btn-quit" class="menu-btn">Title screen</button>
         </div>
+        <div id="quest-list" class="hidden"></div>
       </div>
     </div>
 
-    <div id="gameover" class="screen hidden">
-      <div class="menu-inner">
-        <h1 class="small">KNOCKED OUT</h1>
-        <div class="sub">The city doesn't get a second chance. You do.</div>
-        <div class="menu-buttons"><button id="btn-retry" class="menu-btn primary">Try again</button></div>
+    <!-- loading / travel card -->
+    <div id="travel" class="screen hidden">
+      <div class="travel-card">
+        <div class="travel-train"><div class="car"></div><div class="car"></div><div class="car"></div></div>
+        <div id="travel-title">Namma Metro</div>
+        <div id="travel-sub">Next station…</div>
+        <div id="travel-tip"></div>
       </div>
     </div>
 
-    <div id="ending" class="screen hidden">
-      <div class="menu-inner">
-        <div class="kicker" id="end-kicker"></div>
-        <h1 class="small" id="end-title"></h1>
-        <div class="sub" id="end-text"></div>
-        <ul id="end-stats"></ul>
-        <div class="menu-buttons"><button id="btn-end-menu" class="menu-btn primary">Main menu</button></div>
-      </div>
-    </div>
-
-    <div id="rotate-hint">Rotate your phone to landscape for the best experience ↻</div>
+    <div id="fade"></div>
+    <div id="rotate-hint">Turn your phone sideways for the best view ↻</div>
   </div>
   <script type="module" src="src/main.js"></script>
 </body>

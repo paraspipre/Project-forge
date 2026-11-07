@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0812">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>The Grinning Hour</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="src/ui/style.css">
+  <script type="importmap">
+    { "imports": { "three": "../../vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="view"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div id="objective"><span class="label">OBJECTIVE</span><span id="objective-text"></span></div>
+      <div id="health"><div id="health-fill"></div></div>
+      <button id="btn-pause" class="icon-btn" aria-label="Pause">II</button>
+      <div id="prompt" class="hidden"></div>
+      <div id="combo" class="hidden"><span id="combo-n">x0</span><span class="label">COMBO</span><div id="combo-bar"><div id="combo-fill"></div></div><span id="takedown" class="hidden">TAKEDOWN READY</span></div>
+      <div id="waypoint" class="hidden"><div id="wp-arrow">➤</div><span id="wp-dist"></span></div>
+      <div id="counter-cue" class="hidden">COUNTER!</div>
+      <div id="toast" class="hidden"></div>
+      <div id="sticks">
+        <div id="joy"><div id="joy-knob"></div></div>
+        <div id="actions">
+          <button id="btn-interact" class="act hidden" aria-label="Interact">✋</button>
+          <button id="btn-scan" class="act small" aria-label="Detective scan">👁</button>
+          <button id="btn-dodge" class="act" aria-label="Dodge">⤴</button>
+          <button id="btn-attack" class="act big" aria-label="Attack">✊</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialogue -->
+    <div id="dialogue" class="hidden">
+      <div id="dlg-panel">
+        <div id="dlg-name"></div>
+        <div id="dlg-text"></div>
+        <div id="dlg-choices"></div>
+        <div id="dlg-next" class="hidden">tap ▶</div>
+      </div>
+    </div>
+    <div id="caption" class="hidden"></div>
+    <div id="letterbox" class="hidden"><div></div><div></div></div>
+
+    <!-- Title card / menus -->
+    <div id="card" class="hidden"><div class="card-inner"><div id="card-kicker"></div><h2 id="card-title"></h2><div id="card-sub"></div></div></div>
+    <div id="fade"></div>
+
+    <div id="menu" class="screen">
+      <div class="menu-inner">
+        <div class="kicker">A noir story in three acts</div>
+        <h1 id="game-title">THE GRINNING HOUR</h1>
+        <div id="game-subtitle" class="sub"></div>
+        <div class="menu-buttons">
+          <button id="btn-continue" class="menu-btn hidden">Continue</button>
+          <button id="btn-new" class="menu-btn primary">New Game</button>
+          <button id="btn-howto" class="menu-btn">Controls</button>
+        </div>
+        <div id="howto" class="hidden">
+          <p>🎧 Best with headphones. Fully voiced.</p>
+          <p><b>Desktop:</b> WASD / arrows move · drag mouse to look · <b>E</b> interact · <b>J</b> / click attack · <b>Space</b> evade / counter · <b>Q</b> detective scan · <b>Enter</b> skip a line · <b>Esc</b> pause</p>
+          <p><b>Mobile:</b> left thumb moves · drag the right side to look · ✊ attack · ⤴ evade / counter · 👁 scan · tap to skip a line</p>
+          <p><b>Gamepad:</b> sticks move / look · X attack · B evade / counter · A interact · Y scan · Start pause</p>
+          <p><b>Combat:</b> chain hits to build a combo — attacks leap to enemies nearby. A <span style="color:#f0b429">gold !</span> means a punch is coming: press evade to <b>counter</b>. A <span style="color:#ff5a5a">red !!</span> can't be countered — the same button dodges it. A full combo meter unlocks an instant <b>takedown</b>.</p>
+        </div>
+        <div class="loading" id="loading">Loading…</div>
+      </div>
+    </div>
+
+    <div id="pause" class="screen hidden">
+      <div class="menu-inner">
+        <h1 class="small">PAUSED</h1>
+        <div class="menu-buttons">
+          <button id="btn-resume" class="menu-btn primary">Resume</button>
+          <button id="btn-restart" class="menu-btn">Restart scene</button>
+          <button id="btn-mute" class="menu-btn">Sound: On</button>
+          <button id="btn-auto" class="menu-btn">Dialogue: Auto</button>
+          <button id="btn-quality" class="menu-btn">Quality: High</button>
+          <button id="btn-quit" class="menu-btn">Main menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="gameover" class="screen hidden">
+      <div class="menu-inner">
+        <h1 class="small">KNOCKED OUT</h1>
+        <div class="sub">The city doesn't get a second chance. You do.</div>
+        <div class="menu-buttons"><button id="btn-retry" class="menu-btn primary">Try again</button></div>
+      </div>
+    </div>
+
+    <div id="ending" class="screen hidden">
+      <div class="menu-inner">
+        <div class="kicker" id="end-kicker"></div>
+        <h1 class="small" id="end-title"></h1>
+        <div class="sub" id="end-text"></div>
+        <ul id="end-stats"></ul>
+        <div class="menu-buttons"><button id="btn-end-menu" class="menu-btn primary">Main menu</button></div>
+      </div>
+    </div>
+
+    <div id="rotate-hint">Rotate your phone to landscape for the best experience ↻</div>
+  </div>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

@@ -5,3 +5,6 @@ models/_test/
 story/_test*.json
 __pycache__/
 dist/
+
+# raw OpenStreetMap downloads (regenerate with tools/fetch_osm.py)
+tools/osm_raw/
