@@ -35,8 +35,8 @@ export class Player {
     this.object.add(this.avatar.object);
   }
 
-  place(x, z, yaw = 0) {
-    this.pos.set(x, this.game.city.heightAt(x, z, 200), z);
+  place(x, z, yaw = 0, y = 0.5) {
+    this.pos.set(x, this.game.city.groundAt(x, z, y), z);
     this.vel.set(0, 0, 0);
     this.yaw = yaw;
     this.speed = 0;
@@ -86,6 +86,12 @@ export class Player {
       mode: this.mode === 'ride' ? 'ride' : 'walk', lean: this.lean,
     });
     if (this.mode === 'climb') this._climbPose();
+    if (this.carry) {
+      // a waiter's tray arm: both hands up in front, holding the plates
+      const bn = this.avatar.bones;
+      bn.uaR.rotation.set(-1.1, 0, -0.25); bn.faR.rotation.set(-0.9, 0, 0);
+      bn.uaL.rotation.set(-0.9, 0, 0.35); bn.faL.rotation.set(-1.2, 0.4, 0);
+    }
     if (this.mode === 'ride') {
       const bob = Math.sin(performance.now() / 260) * 0.05;
       this.scooter.object.position.y = 0.05 + bob;

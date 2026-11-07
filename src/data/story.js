@@ -1,3 +1,5 @@
+import { MORE } from './story_zones.js';
+
 // Characters, missions and street chatter for each district. Missions are async scripts that use
 // the context helpers in game/Quests.js. All characters are fictional; the jokes are the ones
 // every Bengalurean has made (or suffered) at least once.
@@ -323,7 +325,9 @@ export const STORY = {
   },
 };
 
-// Zones without a written chapter yet still get friendly locals and word cards.
+Object.assign(STORY, MORE);
+
+// Every district also gets a few generic locals; zones without a chapter get word cards too.
 const GENERIC_LOCALS = [
   { name: 'Uncle with Opinions', look: { ...AUTO, shirt: '#f7f3e8', shirtStyle: 'shirt', extras: ['glasses', 'veshti'] }, lines: [
     ['In my time all this was lakes and fields. Now it is lakes in the roads.'],
@@ -345,16 +349,12 @@ const GENERIC_LOCALS = [
   ] },
 ];
 
-for (const zone of ['indiranagar', 'koramangala', 'silkboard', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']) {
-  if (STORY[zone]) continue;
-  STORY[zone] = {
-    npcs: GENERIC_LOCALS.map((l, i) => ({
-      id: 'local' + i, name: l.name, look: l.look, idle: l.idle, color: ['#8e5bb5', '#5aa9e6', '#b5651d', '#f07b20'][i],
-      at: [Math.cos(i * 1.7) * 40, Math.sin(i * 1.7) * 40], chatter: l.lines,
-    })),
-    quests: [],
-    cards: [{ phrase: 'guru' }, { phrase: 'super' }, { phrase: 'bega' }],
-  };
+for (const zone of ['central', 'indiranagar', 'koramangala', 'silkboard', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']) {
+  const st = STORY[zone] || (STORY[zone] = { npcs: [], quests: [], cards: [{ phrase: 'guru' }, { phrase: 'super' }, { phrase: 'bega' }] });
+  GENERIC_LOCALS.forEach((l, i) => st.npcs.push({
+    id: 'local' + i, name: l.name, look: l.look, idle: l.idle, color: ['#8e5bb5', '#5aa9e6', '#b5651d', '#f07b20'][i],
+    at: 'near-spawn', ring: i, chatter: l.lines,
+  }));
 }
 
 export { pick };

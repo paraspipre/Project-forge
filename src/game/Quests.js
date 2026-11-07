@@ -205,6 +205,7 @@ export class Quests {
     }
     this._placeCards(st.cards || []);
     this.refreshMarkers();
+    this.nextHint();
   }
 
   unloadZone() {
@@ -221,7 +222,11 @@ export class Quests {
   _resolve(at, d = {}) {
     if (!at) return null;
     let p = null;
-    if (Array.isArray(at)) p = at;
+    if (at === 'near-spawn') {
+      const sp = this.game.player?.pos || { x: 0, z: 0 };
+      const a = (d.ring || 0) * 1.57 + 0.8, r = 45 + (d.ring || 0) * 25;
+      p = [sp.x + Math.cos(a) * r, sp.z + Math.sin(a) * r];
+    } else if (Array.isArray(at)) p = at;
     else if (at.startsWith('spot:')) p = this.game.city.spots?.[at.slice(5)];
     else if (at.startsWith('poi:')) {
       const re = new RegExp(at.slice(4), 'i');
@@ -367,6 +372,7 @@ export class Quests {
       this.game.hud.objectiveDist(null);
       this.game.camRig.override = null;
       this.freeze = false;
+      this.busy = false;
       this.target = null;
       this.active = null;
       this.game.dlg.close();
@@ -428,7 +434,8 @@ export class Quests {
     // pickups bob
     for (const it of this.pickups) if (!it.taken) { it.mesh.rotation.y += dt * 2; it.mesh.position.y = it.y + Math.sin(g.time * 3 + it.x) * 0.15; }
     this.pickups = this.pickups.filter((i) => !i.taken);
-    // interaction prompt
+    // interaction prompt (minigames that own the action button set `busy`)
+    if (this.busy) return;
     if (g.dlg.open || this.freeze) { g.hud.prompt(null); return; }
     let best = null, bd = 3.2 * 3.2;
     for (const n of this.npcs.values()) {

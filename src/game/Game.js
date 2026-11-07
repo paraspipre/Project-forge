@@ -104,7 +104,7 @@ export class Game {
     this.zoneData = data;
     const landmarks = buildLandmarks(this.zoneId, city);
     this.ren.scene.add(city.build());
-    finishLandmarks(city, landmarks);
+    finishLandmarks(city, landmarks, this.zoneId);
     this.landmarks = landmarks;
     for (const lm of landmarks) this.ren.scene.add(lm.object);
     this.signs = new Signs(city, data);
@@ -133,17 +133,27 @@ export class Game {
     return city;
   }
 
-  // Move a spawn point out of buildings onto the nearest road.
+  // Snap a spawn point onto the footpath of the nearest real road (never in a building, lake or wood).
   _safeSpawn([x, z, yaw]) {
     const c = this.city;
-    if (!c.buildingAt(x, z, [], 0.6) && !c.isWater(x, z)) return [x, z, yaw];
-    for (let r = 4; r < 300; r += 4) {
-      for (let a = 0; a < 16; a++) {
-        const px = x + Math.cos((a / 16) * Math.PI * 2) * r, pz = z + Math.sin((a / 16) * Math.PI * 2) * r;
-        if (c.onRoad(px, pz) && !c.buildingAt(px, pz, [], 0.6)) return [px, pz, yaw];
+    let best = null, bd = 260 * 260;
+    for (const rd of c.roads) {
+      if (rd.bridge || rd.code > 7) continue;
+      for (let i = 0; i < rd.pts.length - 1; i++) {
+        const [ax, az] = rd.pts[i], [bx, bz] = rd.pts[i + 1];
+        const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz || 1;
+        const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2));
+        const px = ax + dx * t, pz = az + dz * t, d = (px - x) ** 2 + (pz - z) ** 2;
+        if (d < bd) {
+          const L = Math.sqrt(L2), off = rd.w / 2 + 1.6;
+          for (const sgn of [1, -1]) {
+            const sx = px - (dz / L) * off * sgn, sz = pz + (dx / L) * off * sgn;
+            if (!c.buildingAt(sx, sz, [], 0.6) && !c.isWater(sx, sz)) { bd = d; best = [sx, sz, Math.atan2(dx, dz)]; break; }
+          }
+        }
       }
     }
-    return [x, z, yaw];
+    return best ? [best[0], best[1], yaw ?? best[2]] : [x, z, yaw];
   }
 
   _unloadZone() {

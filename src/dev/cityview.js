@@ -17,7 +17,7 @@ const data = await (await fetch(`../data/zones/${zone}.json`)).json();
 const city = new City(data, ren.quality);
 const lms = buildLandmarks(zone, city);
 ren.scene.add(city.build());
-finishLandmarks(city, lms);
+finishLandmarks(city, lms, zone);
 for (const l of lms) ren.scene.add(l.object);
 const signs = new Signs(city, data);
 ren.scene.add(signs.group);

@@ -4,7 +4,29 @@
 import sys, asyncio, os
 from playwright.async_api import async_playwright
 
+ZONES = ['silkboard', 'koramangala', 'indiranagar', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']
 SCENARIOS = {
+    'jump1': [('js', "game.travel('bellandur')"), ('wait', 4000), ('shot', 'b')],
+    'jump2': [('js', "game.atmo.override = 0.45"), ('js', "game.travel('bellandur')"), ('wait', 4000), ('shot', 'b')],
+    'foam': [
+        ('js', "game.atmo.override = 0.45"), ('js', "game.travel('bellandur')"), ('wait', 5000),
+        ('js', "const n = game.quests.npcs.get('dr_lake'); game.player.place(n.pos.x + 1, n.pos.z + 1); void game.quests.start(game.quests.story.quests.find(q => q.id === 'be_foam'))"), ('wait', 1500),
+        ('key', 'Enter', 40), ('wait', 400), ('key', 'Enter', 40), ('wait', 2400), ('key', 'Enter', 40), ('wait', 400), ('key', 'Enter', 40), ('wait', 2200),
+        ('key', '1', 40), ('wait', 5000), ('shot', 'rise'),
+    ] + [s for i in range(28) for s in [('click', 640, 300), ('wait', 260)]] + [('shot', 'fight'), ('js', "console.error('BOSS ' + JSON.stringify({ boss: game.quests.mini._boss && game.quests.mini._boss.position.toArray().map(Math.round), player: game.player.pos.toArray().map(Math.round), spots: game.city.spots, camYaw: game.camRig.yaw }))"), ('wait', 3500), ('shot', 'end'),
+        ('js', "console.error('FOAM ' + JSON.stringify({ done: game.profile.done, active: game.quests.active && game.quests.active.q.id }))")],
+    'dosa': [
+        ('js', "game.atmo.override = 0.45"), ('js', "game.travel('basavanagudi')"), ('wait', 5000),
+        ('js', "const s = game.quests.npcs.get('seenappa'); game.player.place(s.pos.x + 2, s.pos.z + 2); void game.quests.start(game.quests.story.quests.find(q => q.id === 'ba_dose'))"), ('wait', 1500),
+        ('key', 'Enter', 40), ('wait', 400), ('key', 'Enter', 40), ('wait', 2400), ('key', 'Enter', 40), ('wait', 400), ('key', 'Enter', 40), ('wait', 1500),
+        ('js', "game.camRig.dist = 4; game.camRig.yaw = game.player.yaw + 2.5; game.camRig.pitch = 0.2"), ('key', 'w', 1500), ('shot', 'carry'),
+        ('key', 'Shift', 10), ('key', 'd', 1200), ('shot', 'wobble'),
+    ],
+    'zones': [('js', "game.atmo.override = 0.4")] + [s for z in ZONES for s in [
+        ('js', f"game.travel('{z}')"), ('wait', 6000),
+        ('js', "game.camRig.dist = 12; game.camRig.pitch = 0.35"), ('wait', 800), ('shot', z),
+        ('js', "window.__zinfo = (window.__zinfo || []).concat([[game.zoneId, game.quests.npcs.size, game.city.buildings.length, game.signs.count, Object.keys(game.city.spots).length, game.landmarks.length]])"),
+    ]] + [('js', "console.error('ZINFO ' + JSON.stringify(window.__zinfo))")],
     # each step: ('js', code) | ('key', key, ms_hold) | ('wait', ms) | ('shot', name) | ('type', text)
     'basic': [
         ('wait', 2500),
@@ -59,6 +81,7 @@ async def main():
                 await pg.wait_for_timeout(st[2])
                 await pg.keyboard.up(st[1])
             elif kind == 'type': await pg.keyboard.type(st[1])
+            elif kind == 'click': await pg.mouse.click(st[1], st[2])
             elif kind == 'shot': await pg.screenshot(path=os.path.join(out, f"{sc}_{st[1]}.png"))
         state = await pg.evaluate("({ q: game.quests.active && game.quests.active.q.id, coins: game.profile.coins, mode: game.player.mode, pos: [game.player.pos.x|0, game.player.pos.y|0, game.player.pos.z|0], fps: game.perf, dpr: game.ren.dprScale })")
         print(state)

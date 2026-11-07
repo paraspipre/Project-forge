@@ -138,8 +138,14 @@ export class Signs {
       this.placed.push({ x: spot.x, y, z: spot.z, yaw: spot.yaw, w, name: p.name, cat: p.cat });
       count++;
     }
-    // landmark signs: bigger slots with a second (Kannada) line
-    const custom = city.customSigns || [];
+    // landmark signs: bigger slots with a second (Kannada) line. Signs with `near` find a wall themselves.
+    const custom = [];
+    for (const s of city.customSigns || []) {
+      if (!s.near) { custom.push(s); continue; }
+      const spot = this._wallSpot(city, s.near[0], s.near[1], tmp);
+      if (!spot) continue;
+      custom.push({ ...s, pos: [spot.x + Math.sin(spot.yaw) * 0.05, spot.z + Math.cos(spot.yaw) * 0.05], yaw: spot.yaw, y: Math.min(s.y ?? 4.5, spot.bh - (s.h || 1.5) / 2 - 0.3) });
+    }
     if (custom.length) {
       const ca = new Atlas(512, 128);
       const cb = new QuadBatch();

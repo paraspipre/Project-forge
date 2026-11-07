@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Kit, namedRings, ringBox, rectRing, circleRing } from './kit.js';
 import { closestOnSeg } from '../geo.js';
 import { Avatar } from '../../actors/Avatar.js';
+import { ZONE_LANDMARKS, ZONE_LATE } from './zones.js';
 
 // Hand-built landmarks placed on their real footprints, plus generic pieces every zone gets
 // (Namma Metro stations on the elevated lines, with their real names).
@@ -253,7 +254,7 @@ function central(city) {
   return out;
 }
 
-const ZONE_BUILDERS = { central };
+const ZONE_BUILDERS = { central, ...ZONE_LANDMARKS };
 
 // Zone landmarks: call before city.build() so footprints can be excluded / restyled.
 export function buildLandmarks(zone, city) {
@@ -264,8 +265,9 @@ export function buildLandmarks(zone, city) {
 
 // Things that need the built city (metro lines): call after city.build(). Also gathers mission
 // spots and custom signs from every landmark.
-export function finishLandmarks(city, list) {
+export function finishLandmarks(city, list, zone) {
   try { list.push(...metroStations(city)); } catch (e) { console.error('stations', e); }
+  try { if (ZONE_LATE[zone]) list.push(...ZONE_LATE[zone](city)); } catch (e) { console.error('late landmarks', zone, e); }
   city.spots = {};
   for (const l of list) Object.assign(city.spots, l.spots || {});
   city.customSigns = list.flatMap((l) => l.signs || []);

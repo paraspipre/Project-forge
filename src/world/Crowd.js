@@ -27,7 +27,7 @@ function pickRole(r) {
   return ROLES[0];
 }
 
-function cowGeo(color = '#f1ece2') {
+export function cowGeo(color = '#f1ece2') {
   const parts = [];
   const add = (g, col, pos, scale, rot) => {
     if (scale) g.scale(...scale);

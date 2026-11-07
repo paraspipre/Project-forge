@@ -134,7 +134,7 @@ export class City {
         holes: b.length > 5 ? b[5].map(ring) : [],
         minx, minz, maxx, maxz, area: Math.abs(polyArea(r)),
       };
-      const rs = rec.name && this.restyle.get(rec.name);
+      const rs = (rec.name && this.restyle.get(rec.name)) || (this.restyleFn && this.restyleFn(rec));
       if (rs) { rec.rs = rs; if (rs.h) rec.h = rs.h; }
       this.buildings.push(rec);
       this.bGrid.insert(rec, minx, minz, maxx, maxz);
