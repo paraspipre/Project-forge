@@ -30,7 +30,7 @@ const ROAD_COL = [
 const GREEN_COL = ['#a9cc7f', '#7fae6e', '#9fd17f', '#b6d68a', '#e3cfa0', '#b9c7a0'].map(hex);
 const AREA_COL = ['#ddcfb6', '#ddcfb8', '#d6cfc0', '#cfd3b0', '#ddd0b8', '#d4bf9c', '#d0c7b9'].map(hex);
 
-export const TILE = 400;
+export const TILE = 260;
 
 // Offset a counter-clockwise ring inwards by d metres (mitred, clamped); null if it collapses.
 function insetRing(r, d) {
@@ -652,7 +652,7 @@ export class City {
       }
     }
     this.treeCount = items.length;
-    this.trees = new Scatter(treeGeometries(), items, this.quality.treeRadius, this.quality.treeCap);
+    this.trees = new Scatter(treeGeometries(), items, this.quality.treeRadius, this.quality.treeCap, null, treeGeometries(true));
     this.group.add(this.trees.group);
   }
 

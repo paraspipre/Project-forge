@@ -6,6 +6,14 @@ from playwright.async_api import async_playwright
 
 ZONES = ['silkboard', 'koramangala', 'indiranagar', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']
 SCENARIOS = {
+    'street': [
+        ('js', "game.atmo.override = 0.38"),
+        ('js', "const rd = game.city.roads.filter(r => r.code === 6 && r.pts.length > 3 && Math.hypot(r.pts[0][0] - 400, r.pts[0][1] - 600) < 400)[0]; const p = rd.pts[1], q = rd.pts[2]; window.__rd = rd.name; game.player.place(p[0], p[1], Math.atan2(q[0]-p[0], q[1]-p[1])); game.camRig.yaw = Math.atan2(q[0]-p[0], q[1]-p[1]); game.camRig.pitch = 0.12; game.camRig.dist = 7;"),
+        ('wait', 2500), ('shot', 'lane'),
+        ('js', "game.camRig.pitch = -0.3; game.camRig.dist = 4;"), ('wait', 1500), ('shot', 'sky'),
+        ('js', "game.player.place(game.player.pos.x, game.player.pos.z); game.camRig.pitch = 0.9; game.camRig.dist = 60;"), ('wait', 1500), ('shot', 'above'),
+        ('js', "console.error('ROAD ' + window.__rd + ' props ' + game.props.count)"),
+    ],
     'jump1': [('js', "game.travel('bellandur')"), ('wait', 4000), ('shot', 'b')],
     'jump2': [('js', "game.atmo.override = 0.45"), ('js', "game.travel('bellandur')"), ('wait', 4000), ('shot', 'b')],
     'foam': [

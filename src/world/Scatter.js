@@ -7,23 +7,27 @@ import { mergeGeometries } from '../../vendor/jsm/utils/BufferGeometryUtils.js';
 // the instance buffers are refilled whenever the camera has moved far enough.
 
 export class Scatter {
-  constructor(geos, items, radius = 450, cap = 5000) {
+  constructor(geos, items, radius = 450, cap = 5000, mat = null, farGeos = null) {
     this.items = items;
     this.radius = radius;
     this.grid = new Grid(64);
     for (const it of items) this.grid.insert(it, it.x, it.z, it.x, it.z);
     this.group = new THREE.Group();
-    this.mat = toon({ vertexColors: true, sway: 1, hatch: 0.9, side: THREE.DoubleSide });
-    this.meshes = geos.map((g) => {
+    this.mat = mat || toon({ vertexColors: true, sway: 1, hatch: 0.9, side: THREE.DoubleSide });
+    // per type: a near set that casts shadows and a far set that doesn't (the shadow pass is costly)
+    const make = (g, shadow) => {
       const m = new THREE.InstancedMesh(g, this.mat, cap);
       m.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3);
       m.count = 0;
-      m.castShadow = true;
+      m.castShadow = shadow;
       m.receiveShadow = true;
       m.frustumCulled = false;
       this.group.add(m);
       return m;
-    });
+    };
+    this.meshes = (farGeos || geos).map((g) => make(g, false));
+    this.near = geos.map((g) => make(g, true));
+    this.shadowR = 85;
     this.cap = cap;
     this.last = new THREE.Vector3(1e9, 0, 1e9);
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._p = new THREE.Vector3();
@@ -32,18 +36,21 @@ export class Scatter {
   }
 
   update(cam) {
-    if (Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < this.radius * 0.12) return;
+    if (Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < Math.min(this.radius * 0.12, 18)) return;
     this.last.set(cam.x, 0, cam.z);
-    const R = this.radius;
+    const R = this.radius, SR2 = this.shadowR * this.shadowR;
     const near = this.grid.query(cam.x - R, cam.z - R, cam.x + R, cam.z + R, this._tmp);
     // nearest first so the cap drops the far ones
     near.sort((a, b) => ((a.x - cam.x) ** 2 + (a.z - cam.z) ** 2) - ((b.x - cam.x) ** 2 + (b.z - cam.z) ** 2));
-    const counts = this.meshes.map(() => 0);
+    const counts = this.meshes.map(() => 0), ncounts = this.meshes.map(() => 0);
     const up = new THREE.Vector3(0, 1, 0);
     for (const it of near) {
-      if ((it.x - cam.x) ** 2 + (it.z - cam.z) ** 2 > R * R) break;
-      const m = this.meshes[it.type];
-      const i = counts[it.type];
+      const d2 = (it.x - cam.x) ** 2 + (it.z - cam.z) ** 2;
+      if (d2 > R * R) break;
+      const inShadow = d2 < SR2;
+      const m = (inShadow ? this.near : this.meshes)[it.type];
+      const cnt = inShadow ? ncounts : counts;
+      const i = cnt[it.type];
       if (i >= this.cap) continue;
       this._q.setFromAxisAngle(up, it.yaw);
       this._s.setScalar(it.s);
@@ -53,13 +60,15 @@ export class Scatter {
       const t = 0.86 + it.tint * 0.22;
       this._c.setRGB(t * (0.96 + it.tint * 0.06), t, t * (0.98 - it.tint * 0.05));
       m.setColorAt(i, this._c);
-      counts[it.type]++;
+      cnt[it.type]++;
     }
-    this.meshes.forEach((m, k) => {
-      m.count = counts[k];
+    const apply = (list, cnt) => list.forEach((m, k) => {
+      m.count = cnt[k];
       m.instanceMatrix.needsUpdate = true;
       m.instanceColor.needsUpdate = true;
     });
+    apply(this.meshes, counts);
+    apply(this.near, ncounts);
   }
 }
 
@@ -99,20 +108,21 @@ function trunk(h, r0, r1, lean = 0) {
   return g;
 }
 
-export function treeGeometries() {
+export function treeGeometries(low = false) {
+  const D = low ? 0 : 1;
   const bark = '#7a5a48', leaf = '#6fae5c', leaf2 = '#89c26a', dark = '#5c9a55';
   // 0: rain tree — broad umbrella canopy (the Hiraeth "mushroom" silhouette)
   const rain = mergeGeometries([
     colorize(trunk(5.2, 0.42, 0.3), bark),
     colorize(trunk(2.4, 0.22, 0.14).rotateZ(0.7).translate(0.6, 3.6, 0), bark),
     colorize(trunk(2.4, 0.22, 0.14).rotateZ(-0.8).translate(-0.6, 3.4, 0.2), bark),
-    colorize(blob(5.4, 0.36, 1, 7).translate(0, 6.2, 0), leaf),
+    colorize(blob(5.4, 0.36, D, 7).translate(0, 6.2, 0), leaf),
     colorize(blob(3.2, 0.45, 0, 11).translate(1.8, 7.0, 1.2), leaf2),
   ]);
   // 1: round neem / honge
   const round = mergeGeometries([
     colorize(trunk(3.4, 0.3, 0.22), bark),
-    colorize(blob(2.9, 0.85, 1, 3).translate(0, 5.2, 0), dark),
+    colorize(blob(2.9, 0.85, D, 3).translate(0, 5.2, 0), dark),
     colorize(blob(1.9, 0.8, 0, 5).translate(1.2, 6.4, -0.6), leaf),
   ]);
   // 2: coconut palm — slender curved trunk and drooping fronds
@@ -143,7 +153,7 @@ export function treeGeometries() {
   // 3: flowering tabebuia / gulmohar (pink and orange canopies of February)
   const bloom = mergeGeometries([
     colorize(trunk(4.2, 0.32, 0.22), bark),
-    colorize(blob(4.0, 0.5, 1, 13).translate(0, 5.6, 0), '#f2a0bf'),
+    colorize(blob(4.0, 0.5, D, 13).translate(0, 5.6, 0), '#f2a0bf'),
     colorize(blob(2.4, 0.6, 0, 17).translate(-1.4, 6.4, 0.8), '#f7b9cf'),
   ]);
   return [rain, round, palm, bloom];
