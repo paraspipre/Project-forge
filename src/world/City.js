@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { toon } from '../core/Toon.js';
+import { toon, Look } from '../core/Toon.js';
 import { GeoBuilder, Grid, ring, polyArea, centroid, pointInRing, closestOnSeg, hash, rng } from './geo.js';
 import { Scatter, treeGeometries } from './Scatter.js';
 
@@ -31,6 +31,19 @@ const GREEN_COL = ['#a9cc7f', '#7fae6e', '#9fd17f', '#b6d68a', '#e3cfa0', '#b9c7
 const AREA_COL = ['#ddcfb6', '#ddcfb8', '#d6cfc0', '#cfd3b0', '#ddd0b8', '#d4bf9c', '#d0c7b9'].map(hex);
 
 export const TILE = 260;
+
+// Kannada road name: OpenStreetMap's name:kn when present, otherwise an exact rendering of
+// Bengaluru's numbered grid ("5th Cross Road" -> "೫ನೇ ಅಡ್ಡ ರಸ್ತೆ"). Other names are left alone.
+const KN_DIGITS = '೦೧೨೩೪೫೬೭೮೯';
+export function knName(en, kn) {
+  if (kn) return kn;
+  if (!en) return '';
+  const m = /^(\d+)(?:st|nd|rd|th)\s+(?:([AB])\s+)?(Main|Cross)(?:\s+Road)?$/i.exec(en.trim());
+  if (!m) return '';
+  const num = m[1].replace(/\d/g, (d) => KN_DIGITS[+d]);
+  const sub = m[2] ? (m[2].toUpperCase() === 'A' ? 'ಎ ' : 'ಬಿ ') : '';
+  return `${num}ನೇ ${sub}${m[3].toLowerCase() === 'main' ? 'ಮುಖ್ಯ ರಸ್ತೆ' : 'ಅಡ್ಡ ರಸ್ತೆ'}`;
+}
 
 // Offset a counter-clockwise ring inwards by d metres (mitred, clamped); null if it collapses.
 function insetRing(r, d) {
@@ -158,6 +171,7 @@ export class City {
       const rec = {
         code, w: w / 10, oneway: !!(flags & 1), bridge: !!(flags & 2), layer: (flags >> 2) & 3,
         name: nameIx >= 0 ? this.names[nameIx] : null, pts, id: rd[5],
+        kn: nameIx >= 0 ? knName(this.names[nameIx], this.data.namesKn?.[nameIx]) : '',
       };
       this.roads.push(rec);
       for (const p of [pts[0], pts[pts.length - 1]]) {
@@ -505,6 +519,7 @@ export class City {
 
   // Street lamps along main roads: poles with heads that glow at night (style 10 in the shader).
   _lamps() {
+    this.lampPos = [];
     const g = new GeoBuilder({ bld: true });
     const pole = hex('#5d6670'), head = hex('#fff1c9');
     const tmp = [];
@@ -524,6 +539,7 @@ export class City {
             g.box(x, 3.6, z, 0.18, 7.2, 0.18, 0, pole, [0, 0, 0, 70]);
             g.box(x + dz * side * 0.9, 7.15, z - dx * side * 0.9, 0.5, 0.18, 1.9, Math.atan2(dx, dz), pole, [0, 0, 0, 70]);
             g.box(x + dz * side * 1.5, 7.0, z - dx * side * 1.5, 0.42, 0.14, 0.7, Math.atan2(dx, dz), head, [0, 0, 0, 100]);
+            this.lampPos.push([x + dz * side * 1.5, z - dx * side * 1.5]);
           }
           carry = s + 34 - L;
         }
@@ -535,6 +551,30 @@ export class City {
       m.castShadow = true;
       this.group.add(m);
     }
+    this._lightPools();
+  }
+
+  // Warm pools of lamplight on the ground that fade in after dusk (additive, alpha left alone).
+  _lightPools() {
+    const n = this.lampPos.length;
+    if (!n) return;
+    const geo = new THREE.PlaneGeometry(13, 13).rotateX(-Math.PI / 2);
+    const mat = new THREE.ShaderMaterial({
+      uniforms: { uNight: Look.uNight },
+      vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform float uNight; varying vec2 vUv; void main() { float r = length(vUv - 0.5) * 2.0; float k = (1.0 - smoothstep(0.0, 1.0, r)); gl_FragColor = vec4(vec3(1.0, 0.78, 0.45) * k * k * 0.42 * uNight, 1.0); }',
+      transparent: true, depthWrite: false,
+      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneFactor,
+      blendSrcAlpha: THREE.ZeroFactor, blendDstAlpha: THREE.OneFactor,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -8,
+    });
+    const m = new THREE.InstancedMesh(geo, mat, n);
+    const d = new THREE.Object3D();
+    this.lampPos.forEach(([x, z], i) => { d.position.set(x, 0.02, z); d.updateMatrix(); m.setMatrixAt(i, d.matrix); });
+    m.renderOrder = -11;
+    m.frustumCulled = false;
+    this.pools = m;
+    this.group.add(m);
   }
 
   // ---------------------------------------------------------------- metro
@@ -817,5 +857,6 @@ export class City {
     const far = this.quality.drawDistance + TILE * 0.7;
     for (const c of this.chunks) c.mesh.visible = Math.hypot(c.cx - camPos.x, c.cz - camPos.z) < far;
     this.trees?.update(camPos);
+    if (this.pools) this.pools.visible = Look.uNight.value > 0.05;
   }
 }

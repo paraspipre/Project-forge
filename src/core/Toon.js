@@ -16,6 +16,7 @@ export const Look = {
   uWet: { value: 0 },            // rain darkens and glosses the ground
   uTime: { value: 0 },
   uHatchFreq: { value: 4.0 },    // lines per metre
+  uFocus: { value: new THREE.Vector3(0, -1000, 0) },   // the player's head, for see-through cutouts
 };
 
 const common = /* glsl */ `
@@ -26,6 +27,7 @@ const common = /* glsl */ `
   uniform float uWet;
   uniform float uTime;
   uniform float uHatchFreq;
+  uniform vec3 uFocus;
   varying vec3 vWorldPos;
   varying vec3 vWorldNormal;
 `;
@@ -126,6 +128,17 @@ const fragment = /* glsl */ `
   }
 
   void main() {
+    #ifdef USE_CUTOUT
+    {
+      // cut a hole through anything between the camera and the player (and right at the camera)
+      vec3 ab = uFocus - cameraPosition;
+      float L2 = max(dot(ab, ab), 1e-4);
+      float t = clamp(dot(vWorldPos - cameraPosition, ab) / L2, 0.0, 1.0);
+      float d = length(vWorldPos - (cameraPosition + ab * t));
+      float r = mix(1.6, 2.6, t);
+      if ((t < 0.92 && d < r) || length(vWorldPos - cameraPosition) < 2.5) discard;
+    }
+    #endif
     vec3 albedo = diffuse;
     #if defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )
       albedo *= vColor;
@@ -311,6 +324,7 @@ export function toon(opts = {}) {
   if (opts.unlit) defines.UNLIT = '';
   if (opts.noInk) defines.NO_INK = '';
   if (opts.glowAttr) defines.USE_GLOWATTR = '';
+  if (opts.cutout) defines.USE_CUTOUT = '';
   const uniforms = {
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog),

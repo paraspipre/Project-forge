@@ -230,7 +230,7 @@ function bellandurLate(city) {
   out.push({
     object: new THREE.Group(),
     signs: [{ near: shore, text: 'BELLANDUR LAKE', sub: 'Please do not feed the foam · ಬೆಳ್ಳಂದೂರು ಕೆರೆ', w: 10, h: 2.2, y: 4, bg: '#2f6fd1', fg: '#ffffff' }],
-    spots: { lakeShore: shore, lakeBoss: boss, ecospace: [1215, 687], ecoworld: [1761, 599], flyover: [742, 418] },
+    spots: { lakeShore: shore, lakeBoss: boss, ecospace: [1180, 560], ecoworld: [1520, 640], flyover: [742, 418] },
   });
   city.foam = { blobs, mesh, refresh: () => upd(t) };
   return out;

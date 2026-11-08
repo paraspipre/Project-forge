@@ -40,6 +40,7 @@ function metroStations(city) {
   const lines = city.metroLines || [];
   for (const st of data.stations || []) {
     const name = data.names[st[2]] || '';
+    const kn = data.namesKn?.[st[2]] || '';
     const x = st[0] / 10, z = st[1] / 10;
     // nearest elevated metro segment
     let best = null, bd = 45 * 45;
@@ -86,8 +87,8 @@ function metroStations(city) {
     out.push({
       object: kit.mesh(),
       signs: [
-        { text: name.toUpperCase(), sub: 'ನಮ್ಮ ಮೆಟ್ರೋ · NAMMA METRO', pos: kit.w(0, W / 2 + 0.2), y: H + 4.6, yaw: kit.yaw, w: 22, h: 3, bg: '#8e5bb5', fg: '#ffffff' },
-        { text: name.toUpperCase(), sub: 'ನಮ್ಮ ಮೆಟ್ರೋ · NAMMA METRO', pos: kit.w(0, -W / 2 - 0.2), y: H + 4.6, yaw: kit.yaw + Math.PI, w: 22, h: 3, bg: '#8e5bb5', fg: '#ffffff' },
+        { text: name.toUpperCase(), sub: `${kn ? kn + ' · ' : ''}ನಮ್ಮ ಮೆಟ್ರೋ · NAMMA METRO`, pos: kit.w(0, W / 2 + 0.2), y: H + 4.6, yaw: kit.yaw, w: 22, h: 3, bg: '#8e5bb5', fg: '#ffffff' },
+        { text: name.toUpperCase(), sub: `${kn ? kn + ' · ' : ''}ನಮ್ಮ ಮೆಟ್ರೋ · NAMMA METRO`, pos: kit.w(0, -W / 2 - 0.2), y: H + 4.6, yaw: kit.yaw + Math.PI, w: 22, h: 3, bg: '#8e5bb5', fg: '#ffffff' },
       ],
       spots: { [`metro:${name}`]: [cx, cz] },
     });

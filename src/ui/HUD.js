@@ -149,7 +149,13 @@ export class HUD {
   // ------------------------------------------------------------ text bits
 
   setZone(name) { $('loc-zone').textContent = name; }
-  setStreet(name) { $('loc-street').textContent = name ? '📍 ' + name : ''; }
+  setStreet(name, kn = '') {
+    const el = $('loc-street');
+    if (el.dataset.v === name + kn) return;
+    el.dataset.v = name + kn;
+    el.textContent = name ? '📍 ' + name : '';
+    if (kn) { const k = document.createElement('span'); k.className = 'kn'; k.textContent = ' · ' + kn; el.appendChild(k); }
+  }
   setClock(t, rain, night) {
     $('loc-clock').textContent = t;
     $('loc-weather').textContent = rain > 0.3 ? '🌧️' : night > 0.5 ? '🌙' : '☀️';

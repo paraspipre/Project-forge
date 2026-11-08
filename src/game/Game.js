@@ -291,6 +291,7 @@ export class Game {
   }
 
   _menuCam(dt) {
+    Look.uFocus.value.set(0, -1000, 0);
     if (!this.city) return;
     this.menuT += dt * 0.03;
     const [sx, sz] = ZONES[this.zoneId]?.spawn || [0, 0];
@@ -347,6 +348,7 @@ export class Game {
     if (this.myEmote) { this.myEmoteT -= dt; if (this.myEmoteT < 0) this.myEmote = null; }
 
     p.update(dt, inp, this.camRig.yaw);
+    Look.uFocus.value.set(p.pos.x, p.pos.y + 1.4, p.pos.z);
     this._vehicleHits(dt);
     this.crowd.collidePlayer(p);
     this.quests.update(dt);
@@ -372,7 +374,7 @@ export class Game {
     if (this.streetT <= 0) {
       this.streetT = 0.5;
       const rd = this.city.streetAt(p.pos.x, p.pos.z, 45);
-      hud.setStreet(rd?.name || (this.city.isWater(p.pos.x, p.pos.z)?.name) || '');
+      hud.setStreet(rd?.name || (this.city.isWater(p.pos.x, p.pos.z)?.name) || '', rd?.kn || '');
       hud.setClock(this.atmo.timeString(), this.atmo.rain, Look.uNight.value);
     }
     this.mmT -= dt;

@@ -13,7 +13,7 @@ export class Scatter {
     this.grid = new Grid(64);
     for (const it of items) this.grid.insert(it, it.x, it.z, it.x, it.z);
     this.group = new THREE.Group();
-    this.mat = mat || toon({ vertexColors: true, sway: 1, hatch: 0.9, side: THREE.DoubleSide });
+    this.mat = mat || toon({ vertexColors: true, sway: 1, hatch: 0.9, side: THREE.DoubleSide, cutout: true });
     // per type: a near set that casts shadows and a far set that doesn't (the shadow pass is costly)
     const make = (g, shadow) => {
       const m = new THREE.InstancedMesh(g, this.mat, cap);

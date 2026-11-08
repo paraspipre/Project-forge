@@ -43,6 +43,21 @@ The city is built from the **real map**. Every street, building footprint, park,
   - *Ee Sala Cup Namde* at Chinnaswamy
   - *Government Work is God's Work* at the Vidhana Soudha
   - *Pitch Perfect* with a stealth-mode founder
+- **Bilingual streets:**
+  - blue BBMP-style boards at junctions, with Kannada on top and English below
+  - the HUD shows the street you're on in both languages
+  - names come from OpenStreetMap's `name:kn`, plus an exact rendering of the numbered Cross/Main grid
+- **Street texture:**
+  - electric poles with cable tangles
+  - compound walls and gates
+  - potholes
+  - parked scooters, bunk shops and coconut carts
+  - lamp light pools at night
+- **Sky life:**
+  - birds
+  - rooftop delivery drones
+  - ad airships
+  - a jammed sky-lane of hover cars (even the sky has traffic)
 - **Kannada word cards** hidden on rooftops (climb!) and around landmarks. Each one unlocks a chat phrase: *Oota aayta?*, *Ond nimsha*, *Hogi banni*…
 - **Multiplayer:** everyone in the same district and room sees each other. Chat, emotes (yes, including the head wobble), and shared games:
   - **Hover Race**: a checkpoint race through real streets
@@ -120,6 +135,9 @@ python -m http.server 8000
 
 **Testing.**
 - `tools/play_test.py` drives the game headlessly with Playwright and takes screenshots.
+- `tools/quest_smoke.py` autopilots every mission in every district and reports pass or fail.
+- `tools/mp_test.py` opens two players in separate sessions and checks they see and hear each other.
+- `tools/perf_probe.py` measures draw calls, triangles and frame rate.
 - `dev/city.html?zone=central&cam=x,y,z&look=x,y,z&t=0.4` is a free-camera city viewer.
 
 ## Credits

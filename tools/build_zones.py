@@ -49,6 +49,16 @@ def dp_simplify(pts, tol):
     return [p for p, k in zip(pts, keep) if k]
 
 
+def dp_keep(pts, tol, locked):
+    """Douglas-Peucker that never removes vertices whose index is in `locked` (road junctions)."""
+    cuts = sorted({0, len(pts) - 1} | {i for i in locked if 0 < i < len(pts) - 1})
+    out = []
+    for a, b in zip(cuts, cuts[1:]):
+        seg = dp_simplify(pts[a:b + 1], tol)
+        out += seg if not out else seg[1:]
+    return out
+
+
 def simplify_ring(ring, tol):
     """Douglas-Peucker for a closed ring (no repeated end point): split at the vertex farthest from the first."""
     if len(ring) < 4:
@@ -280,15 +290,25 @@ def build_zone(zid, meta):
     M = 2.0
     inside = lambda x, z: x0 - M <= x <= x1 + M and z0 - M <= z <= z1 + M
 
-    names, name_ix = [], {}
-    def nid(name):
+    names, name_ix, names_kn = [], {}, []
+    def nid(name, kn=None):
         if not name: return -1
         if name not in name_ix:
-            name_ix[name] = len(names); names.append(name)
-        return name_ix[name]
+            name_ix[name] = len(names); names.append(name); names_kn.append('')
+        i = name_ix[name]
+        if kn and not names_kn[i]: names_kn[i] = kn
+        return i
 
     buildings, roads, water, waterways, greens, areas, rail, stations, pois, trees = [], [], [], [], [], [], [], [], [], []
     seen_parts = set()
+    # junctions: coordinates used by more than one road way (or as a way end) must survive simplification
+    use = {}
+    for el in raw:
+        if el["type"] == "way" and "highway" in el.get("tags", {}):
+            g = [p for p in el.get("geometry") or [] if p]
+            for k, p in enumerate(g):
+                key = (round(p["lat"], 7), round(p["lon"], 7))
+                use[key] = use.get(key, 0) + (2 if k in (0, len(g) - 1) else 1)
 
     for el in raw:
         t = el.get("tags", {})
@@ -357,12 +377,14 @@ def build_zone(zid, meta):
             layer = int(num(t.get("layer") or "") or 0)
             bridge = t.get("bridge") not in (None, "no")
             flags = (1 if t.get("oneway") in ("yes", "-1") else 0) | (2 if bridge else 0) | ((max(0, min(layer, 3))) << 2)
-            pts = [proj(p["lat"], p["lon"]) for p in el.get("geometry", []) if p]
+            geo = [p for p in el.get("geometry", []) if p]
+            pts = [proj(p["lat"], p["lon"]) for p in geo]
+            lockpts = {proj(p["lat"], p["lon"]) for p in geo if use.get((round(p["lat"], 7), round(p["lon"], 7)), 0) >= 2}
             if t.get("oneway") == "-1": pts = pts[::-1]
             for piece in clip_line(pts, x0 - M, z0 - M, x1 + M, z1 + M):
-                piece = dp_simplify(piece, 0.4)
+                piece = dp_keep(piece, 0.4, {i for i, pt in enumerate(piece) if pt in lockpts})
                 if len(piece) >= 2:
-                    roads.append([code, q(w_), flags, nid(t.get("name") or t.get("ref")), flat(piece), el["id"] % 100000])
+                    roads.append([code, q(w_), flags, nid(t.get("name") or t.get("ref"), t.get("name:kn")), flat(piece), el["id"] % 100000])
             continue
 
         # ---- rail: metro viaducts, tracks, construction
@@ -390,7 +412,7 @@ def build_zone(zid, meta):
             x, z = proj(el["lat"], el["lon"])
             if inside(x, z) and t.get("name"):
                 metro = t.get("station") == "subway" or "metro" in t.get("network", "").lower() or t.get("subway") == "yes" or "Namma" in t.get("network", "")
-                stations.append([q(x), q(z), nid(t["name"].split(",")[0]), 1 if metro else 0])
+                stations.append([q(x), q(z), nid(t["name"].split(",")[0], (t.get("name:kn") or "").split(",")[0]), 1 if metro else 0])
             continue
 
         # ---- waterways (drains / canals) as lines
@@ -462,7 +484,7 @@ def build_zone(zid, meta):
     out = {
         "id": zid, "name": meta["name"], "origin": [round(lat0, 6), round(lon0, 6)],
         "bounds": [q(x0), q(z0), q(x1), q(z1)],
-        "names": names, "poiCats": POI_CODES,
+        "names": names, "namesKn": names_kn, "poiCats": POI_CODES,
         "buildings": buildings, "roads": roads, "rail": rail, "stations": stations,
         "water": water, "waterways": waterways, "greens": greens, "areas": areas,
         "pois": pois, "trees": trees,

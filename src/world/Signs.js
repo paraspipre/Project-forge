@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { closestOnSeg } from './geo.js';
+import { closestOnSeg, GeoBuilder } from './geo.js';
 
 // Shop and restaurant boards with their real names (from OpenStreetMap), mounted on the nearest
 // building wall above the shopfronts, plus big landmark signs. Text is painted into atlas
@@ -33,7 +33,7 @@ class Atlas {
   }
   get full() { return this.n >= this.cols * this.rows; }
   // Paint a board; returns uv rect [u0, v0, u1, v1].
-  paint(text, sub, bg, fg) {
+  paint(text, sub, bg, fg, knMain = false) {
     const i = this.n++;
     const x = (i % this.cols) * this.sw, y = Math.floor(i / this.cols) * this.sh;
     const g = this.g, w = this.sw, h = this.sh;
@@ -42,8 +42,9 @@ class Atlas {
     g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
     const main = sub ? h * 0.38 : h * 0.5;
     let fs = sub ? h * 0.36 : h * 0.56;
-    g.font = `800 ${fs}px "${this.font}", sans-serif`;
-    while (g.measureText(text).width > w - 24 && fs > 12) { fs -= 2; g.font = `800 ${fs}px "${this.font}", sans-serif`; }
+    const fam = knMain ? '"Baloo Tamma 2", "Baloo 2"' : `"${this.font}"`;
+    g.font = `800 ${fs}px ${fam}, sans-serif`;
+    while (g.measureText(text).width > w - 24 && fs > 12) { fs -= 2; g.font = `800 ${fs}px ${fam}, sans-serif`; }
     g.fillText(text, x + w / 2, y + main + 2);
     if (sub) {
       let s2 = h * 0.24;
@@ -146,15 +147,46 @@ export class Signs {
       if (!spot) continue;
       custom.push({ ...s, pos: [spot.x + Math.sin(spot.yaw) * 0.05, spot.z + Math.cos(spot.yaw) * 0.05], yaw: spot.yaw, y: Math.min(s.y ?? 4.5, spot.bh - (s.h || 1.5) / 2 - 0.3) });
     }
+    // BBMP-style street boards on poles: Kannada on top, English below, near the ends of named roads
+    const poles = new GeoBuilder({ bld: true });
+    const poleCol = [0.29, 0.33, 0.38];
+    const named = city.roads.filter((r) => r.name && !r.bridge && r.code <= 6 && r.pts.length >= 2)
+      .sort((a, b) => a.code - b.code || b.pts.length - a.pts.length);
+    const used = new Map();
+    let boards = 0;
+    for (const rd of named) {
+      if (boards >= 130) break;
+      if ((used.get(rd.name) || 0) >= 2) continue;
+      for (const end of [0, 1]) {
+        const pts = end ? [...rd.pts].reverse() : rd.pts;
+        const [ax, az] = pts[0], [bx, bz] = pts[1];
+        const L = Math.hypot(bx - ax, bz - az);
+        if (L < 14) continue;
+        const dx = (bx - ax) / L, dz = (bz - az) / L;
+        const off = rd.w / 2 + 1.3;
+        const x = ax + dx * 9 + dz * off, z = az + dz * 9 - dx * off;   // left side (keep left)
+        if (city.buildingAt(x, z, tmp, 0.4) || this.placed.some((o) => (o.x - x) ** 2 + (o.z - z) ** 2 < 36)) continue;
+        poles.box(x, 1.35, z, 0.12, 2.7, 0.12, 0, poleCol, [0, 0, 0, 70]);
+        const yaw = Math.atan2(-dx, -dz);
+        custom.push({ text: rd.kn || rd.name, sub: rd.kn ? rd.name : '', pos: [x - dx * 0.08, z - dz * 0.08], y: 3.05, yaw, w: 2.4, h: 0.62, bg: '#1f4e8c', fg: '#ffffff', street: true });
+        custom.push({ text: rd.kn || rd.name, sub: rd.kn ? rd.name : '', pos: [x + dx * 0.08, z + dz * 0.08], y: 3.05, yaw: yaw + Math.PI, w: 2.4, h: 0.62, bg: '#1f4e8c', fg: '#ffffff', street: true });
+        this.placed.push({ x, z, y: 3, yaw, w: 2.4, name: rd.name, cat: 'street' });
+        used.set(rd.name, (used.get(rd.name) || 0) + 1);
+        boards++;
+      }
+    }
+    if (poles.count) {
+      const pm = new THREE.Mesh(poles.geometry(), city.mats.props);
+      pm.castShadow = true;
+      this.group.add(pm);
+    }
     if (custom.length) {
-      const ca = new Atlas(512, 128);
-      const cb = new QuadBatch();
+      let ca = null, cb = null;
       for (const s of custom) {
-        if (ca.full) break;
-        const uv = ca.paint(s.text, s.sub || '', s.bg || '#2b2b30', s.fg || '#ffffff');
+        if (!ca || ca.full) { ca = new Atlas(512, 128); cb = new QuadBatch(); atlases.push(ca); batches.push(cb); }
+        const uv = ca.paint(s.text, s.sub || '', s.bg || '#2b2b30', s.fg || '#ffffff', s.street);
         cb.add(s.pos[0], s.y, s.pos[1], s.yaw, s.w, s.h, uv);
       }
-      atlases.push(ca); batches.push(cb);
     }
     atlases.forEach((a, i) => {
       if (!batches[i].idx.length) return;

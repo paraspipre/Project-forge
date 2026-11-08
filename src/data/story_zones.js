@@ -290,7 +290,7 @@ export const MORE = {
           await q.say('orr_techie', 'Ride there for me and show my badge at the gate. The security guard trusts badges more than faces.');
           q.done();
           const a = sp(q, 'ecospace', [1215, 687]), b = sp(q, 'ecoworld', [1761, 599]);
-          const pa = q.near(a[0] - 60, a[1] - 300, 30), pb = q.near(b[0] - 100, b[1] - 300, 30);
+          const pa = q.near(a[0], a[1], 30), pb = q.near(b[0], b[1], 30);
           await q.goto(pa[0], pa[1], { r: 10, text: 'Collect the badge at the Ecospace gate', icon: '🪪' });
           await q.goto(pb[0], pb[1], { r: 10, text: 'Ride to the Ecoworld gate', time: 90, failText: 'Meeting started without her. They made her the "action item owner".', icon: '🏢' });
           q.big('MEETING SAVED', 'It could have been an email.', 2600);
@@ -321,7 +321,17 @@ export const MORE = {
           target.no = '500-D';
           const tags = routes.map((r) => q.game.labels.add(r.no, () => ({ x: r.x, y: 4.2, z: r.z, clone() { return this; } }), { cls: 'tag', maxDist: 45 }));
           q.cleanup.push(() => tags.forEach((t) => t.remove()));
-          await q.until(() => Math.hypot(q.pos().x - target.x, q.pos().z - target.z) < 7, { time: 240, failText: '500-D left. Next one in 40 minutes. Or 4.' });
+          const t0 = performance.now();
+          let hinted = false;
+          await q.until(() => {
+            if (!hinted && performance.now() - t0 > 45000) {
+              hinted = true;
+              q.toast('Lakshmi aunty: "Wait, the conductor waved from that side!" (marker added)', 4000);
+              q.qs.target = { x: target.x, z: target.z, icon: '🚌' };
+            }
+            return Math.hypot(q.pos().x - target.x, q.pos().z - target.z) < 7;
+          }, { time: 240, failText: '500-D left. Next one in 40 minutes. Or 4.' });
+          q.qs.target = null;
           q.big('500-D FOUND!', 'Kempegowda Bus Station, bay 23', 2600);
           const t = q.npc('tourist');
           await q.goto(t.pos.x, t.pos.z, { r: 5, text: 'Bring Lakshmi aunty the good news' });
