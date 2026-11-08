@@ -11,7 +11,7 @@ export class Npc {
     this.def = def;
     this.id = def.id;
     this.name = def.name;
-    this.speaker = { name: def.name, color: def.color || '#f07b5a', pitch: def.pitch || 1 };
+    this.speaker = { name: def.name, color: def.color || '#f07b5a', pitch: def.pitch || 1, voiceId: def.voice || def.id };
     this.avatar = new Avatar(def.look || {});
     this.object = new THREE.Group();
     this.object.add(this.avatar.object);
@@ -32,7 +32,7 @@ export class Npc {
     if (this.markerKind === kind) return;
     this.markerKind = kind;
     this.marker?.remove();
-    this.marker = kind ? this.game.labels.add(kind === 'quest' ? '!' : kind === 'turnin' ? '?' : '…', () => this.object.visible ? this.pos.clone().add(new THREE.Vector3(0, 2.75, 0)) : null, { cls: 'marker', maxDist: 160 }) : null;
+    this.marker = kind ? this.game.labels.add(kind === 'quest' ? '!' : kind === 'activity' ? '★' : kind === 'turnin' ? '?' : '…', () => this.object.visible ? this.pos.clone().add(new THREE.Vector3(0, 2.75, 0)) : null, { cls: 'marker', maxDist: 160 }) : null;
   }
 
   // Walk along a list of points; resolves on arrival.
@@ -43,6 +43,17 @@ export class Npc {
   face(x, z) { this.yaw = Math.atan2(x - this.pos.x, z - this.pos.z); }
 
   emote(name, dur = 2.5) { this.avatar.play(name, dur); }
+
+  // Say something out loud in a speech bubble (no dialogue box), voiced by distance.
+  bark(text, volume = 1) {
+    this.bubble?.remove();
+    const b = this.game.labels.add(text, () => (this.object.visible ? this.pos.clone().add(new THREE.Vector3(0, 2.6, 0)) : null), { cls: 'bubble', maxDist: 40 });
+    this.bubble = b;
+    setTimeout(() => { if (this.bubble === b) { b.remove(); this.bubble = null; } }, 4200 + text.length * 40);
+    if (window.__recordLines) window.__recordLines.push({ id: this.speaker.voiceId, text, name: this.name });
+    this.game.audio?.speak(this.speaker.voiceId, text, { pitch: this.speaker.pitch, volume, fallback: false });
+    if (Math.random() < 0.6) this.emote(['wobble', 'point', 'shrug'][Math.floor(Math.random() * 3)], 2);
+  }
 
   update(dt, player) {
     let speed = 0;
@@ -76,5 +87,6 @@ export class Npc {
     this.avatar.dispose();
     this.tag.remove();
     this.marker?.remove();
+    this.bubble?.remove();
   }
 }

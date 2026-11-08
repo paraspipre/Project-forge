@@ -65,6 +65,11 @@ The city is built from the **real map**. Every street, building footprint, park,
 
   Use the menu's **Invite friends** for a private room link.
 - **Day and night, Bengaluru weather:** a shared 24-minute day with afternoon showers, the same for everyone online.
+- **Fully voiced, hands-free conversations:**
+  - every character has their own voice
+  - lines play and move on by themselves, and replies pick a default after a short countdown (tap to skip or choose)
+  - quest givers start talking when you stop next to them, and locals chat in voiced speech bubbles as you walk past
+  - the pause menu switches **Voices** and **Dialogue: Auto / Tap to continue**
 - **Music and sound:** synthesised lo-fi Carnatic tunes in raga Mohanam, the morning koel, and the horn concerto.
 
 The stereotypes are the city's own jokes, told with affection. It's a game.
@@ -126,6 +131,18 @@ python tools/build_zones.py --city         # -> data/city.json
 - Presence is retained and cleared by a last-will message.
 - State is a 32-byte packet about 10 times a second. Chat goes through a small profanity filter.
 - The player with the lowest id coordinates the shared games.
+
+**Voice-over.**
+- Clips in `voice/` are rendered offline with [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0). Each character's voice blends Kokoro's Hindi voices (for the accent) with its English ones.
+- `tools/voice_lines.mjs` collects every line, including every dialogue branch, by running the mission scripts against a mock.
+- `tools/gen_voices.py` renders only the lines that are new. Clips are keyed by a hash of `speaker|text`, so editing a line just needs a re-run.
+- Lines without a clip (the few built from live numbers) use the browser's own en-IN voice.
+
+```bash
+pip install kokoro-onnx soundfile imageio-ffmpeg     # plus kokoro-v1.0.onnx and voices-v1.0.bin
+node tools/voice_lines.mjs > tools/voice_lines.json
+python tools/gen_voices.py --models <dir with the model files>
+```
 
 **Local run.** Serve the folder with any static server, then open http://localhost:8000:
 

@@ -6,6 +6,12 @@ from playwright.async_api import async_playwright
 
 ZONES = ['silkboard', 'koramangala', 'indiranagar', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']
 SCENARIOS = {
+    'handsfree': [
+        ('wait', 2000),
+        ('js', "const m = game.quests.npcs.get('manju'); game.player.place(m.pos.x + 1.6, m.pos.z + 1.2, Math.PI); window.__t0 = performance.now(); window.__log = []; setInterval(() => window.__log.push([Math.round((performance.now() - window.__t0) / 1000), document.getElementById('dlg-name').textContent, document.getElementById('dlg-text').textContent.slice(0, 40), !document.getElementById('dialogue').classList.contains('hidden'), document.getElementById('obj-text').textContent.slice(0, 50)]), 2000);"),
+        ('wait', 3000), ('shot', 'auto1'), ('wait', 12000), ('shot', 'choice'), ('wait', 30000), ('shot', 'later'),
+        ('js', "console.error('LOG ' + JSON.stringify(window.__log.filter((x, i, a) => i === 0 || x[2] !== a[i - 1][2] || x[4] !== a[i - 1][4])))"),
+    ],
     'night': [('js', "game.atmo.override = 0.93; const s = game._safeSpawn([700, 330, null]); game.player.place(s[0], s[1], s[2]); game.camRig.yaw = s[2]; game.camRig.pitch = 0.3; game.camRig.dist = 11"), ('wait', 3500), ('shot', 'brigade'),
               ('js', "game.atmo.override = 0.79"), ('wait', 2500), ('shot', 'dusk')],
     'street': [
@@ -80,7 +86,7 @@ async def main():
         pg.on("console", lambda m: logs.append(f"[{m.type}] {m.text}") if m.type in ('error', 'warning') else None)
         pg.on("pageerror", lambda e: logs.append(f"[pageerror] {e}"))
         await pg.goto(base + ("&" if "?" in base else "?") + "autoplay")
-        await pg.wait_for_function("window.__ready === true && window.game && window.game.state === 'play'", timeout=90000)
+        await pg.wait_for_function("window.__ready === true && window.game && window.game.state === 'play'", timeout=240000)
         for st in SCENARIOS[sc]:
             kind = st[0]
             if kind == 'wait': await pg.wait_for_timeout(st[1])

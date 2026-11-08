@@ -140,7 +140,7 @@ export const MORE = {
         } },
       { id: 'ko_race', title: 'Koramangala Hover Race', giver: 'dinesh', requires: ['ko_zippo'], repeat: true, summary: 'Race through Koramangala on your hover scooter',
         async run(q) {
-          const i = await q.choose('dinesh', 'Race me through the blocks? Everyone nearby can join.', ['Start the race!', 'Later']);
+          const i = await q.choose('dinesh', 'Race me through the blocks? Everyone nearby can join.', ['Start the race!', 'Later'], '', 1);
           if (i === 1) return;
           q.done();
           await q.minigame('race');
@@ -375,15 +375,15 @@ export const MORE = {
           const [qx, qz] = q.near(c[0] + 6 + 6 * 1.3 + 1, c[1] + 10, 2);
           await q.goto(qx, qz, { r: 2.5, text: 'Join the end of the queue', icon: '🧍' });
           const events = [
-            ['A man walks straight to the front.', 'Uncle, line illa?', 'Swalpa adjust maadi', 'Let it go'],
-            ['Someone asks if you are "in the queue or just standing".', 'Queue, obviously', 'Just standing (for 40 minutes)', 'Philosophically, both'],
-            ['A techie asks you to "hold his spot for 2 minutes".', 'Sure!', 'No way', '2 Bengaluru minutes or real minutes?'],
+            ['A man walks straight to the front.', 'Uncle, line illa?', 'Swalpa adjust maadi', 'Let it go', 1],
+            ['Someone asks if you are "in the queue or just standing".', 'Queue, obviously', 'Just standing (for 40 minutes)', 'Philosophically, both', 2],
+            ['A techie asks you to "hold his spot for 2 minutes".', 'Sure!', 'No way', '2 Bengaluru minutes or real minutes?', 2],
           ];
           let patience = 3;
-          for (const [ev, a, b, c2] of events) {
+          for (const [ev, a, b, c2, best] of events) {
             await q.wait(3);
             q.toast(ev, 3000);
-            const i = await q.choose({ name: 'The Queue', color: '#2f6f4e' }, ev, [a, b, c2]);
+            const i = await q.choose({ name: 'The Queue', color: '#2f6f4e' }, ev, [a, b, c2], '', best);
             if (i === 1 && ev.startsWith('A man')) { await q.say({ name: 'Line-cutter', color: '#7d8a83' }, '*adjusts to the back of the line* …Sorry, sorry.'); }
             else if (i === 2) { await q.say({ name: 'The Queue', color: '#2f6f4e' }, '*everyone nods wisely*'); }
             else patience--;
@@ -424,7 +424,7 @@ export const MORE = {
         } },
       { id: 'ec_race', title: 'Campus Shuttle Race', giver: 'security', repeat: true, summary: 'Race the campus shuttle on your hover scooter',
         async run(q) {
-          const i = await q.choose('security', 'Shuttle race? Unofficial. Very unofficial. Everyone nearby can join.', ['Race!', 'No, I have a badge to protect']);
+          const i = await q.choose('security', 'Shuttle race? Unofficial. Very unofficial. Everyone nearby can join.', ['Race!', 'No, I have a badge to protect'], '', 1);
           if (i === 1) return;
           q.done();
           await q.minigame('race');

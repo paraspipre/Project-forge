@@ -1,0 +1,982 @@
+[
+ {
+  "id": "manju",
+  "text": "Meter? Meter is decoration, saar. Like the Ejipura flyover.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Koramangala? Barolla. Indiranagar? Barolla. Where do I go? Home, saar.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "In 2099 they gave us hover autos. Still no parking. Still Silk Board.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "You want to go somewhere? Press M, take Namma Metro. Faster than me. Do not tell anyone I said.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "ajji",
+  "text": "Coffee kudi, magu. Strong, with froth. Not that ₹400 cold brew nonsense.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "Oota aayta? You look thin. These startup people never eat on time.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "Idli, vada, kesari bath. Menu has not changed since 1962. Why change perfection?",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "prateek",
+  "text": "Bro, we're pre-revenue but post-vibes.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "I'm not unemployed, I'm in stealth mode.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "My co-founder? He is in Koramangala. Every co-founder is in Koramangala.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "sita",
+  "text": "Shhh.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "sita",
+  "text": "…(turns a page very loudly)",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "sita",
+  "text": "Shhh. This is a silent reading event. You may wave.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "eshwar",
+  "text": "EE SALA CUP NAMDE! …What do you mean we already won? Say it louder anyway!",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "I have been chanting since 2008. My throat has its own fan club.",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "Bring a friend and play Catch the Six with me. More hands, more catches.",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "gowramma",
+  "text": "Vidhana Soudha: 1956, granite, neo-Dravidian. Bigger than your rent agreement.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "gowramma",
+  "text": "The inscription says \"Government work is God's work\". Both move in mysterious ways.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "gowramma",
+  "text": "Cubbon Park is 300 acres. In my time we called it \"the lungs of the city\". Now we call it \"parking for walkers\".",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "rakesh",
+  "text": "Weekdays I am a Senior Product Manager. Weekends I drive Rapido. For the stories.",
+  "name": "Rapido Rakesh"
+ },
+ {
+  "id": "placard",
+  "text": "My placard says \"LOOKING FOR 2BHK IN INDIRANAGAR\". The camera found me before a landlord did.",
+  "name": "Placard Pradeep"
+ },
+ {
+  "id": "placard",
+  "text": "Ten months deposit. TEN. I could buy a hover-auto with that. A used one. From Manju.",
+  "name": "Placard Pradeep"
+ },
+ {
+  "id": "local0",
+  "text": "In my time all this was lakes and fields. Now it is lakes in the roads.",
+  "name": "Uncle with Opinions"
+ },
+ {
+  "id": "local0",
+  "text": "You know what this city needs? One more flyover. Then everything will be fine. Trust me.",
+  "name": "Uncle with Opinions"
+ },
+ {
+  "id": "local0",
+  "text": "Weather is still the best in India. Do not argue with me.",
+  "name": "Uncle with Opinions"
+ },
+ {
+  "id": "local1",
+  "text": "Can you hear me? … You're on mute. … No, YOU are on mute.",
+  "name": "Techie on a Call"
+ },
+ {
+  "id": "local1",
+  "text": "Sorry, I'm in traffic. I am always in traffic. My manager thinks traffic is my location.",
+  "name": "Techie on a Call"
+ },
+ {
+  "id": "local1",
+  "text": "Let's take this offline. I am offline. I am literally on the footpath.",
+  "name": "Techie on a Call"
+ },
+ {
+  "id": "local2",
+  "text": "Chai? Coffee? Bun-maska? Life advice? All ₹15.",
+  "name": "Chaiwala Chandru"
+ },
+ {
+  "id": "local2",
+  "text": "Oota aayta? Had your meal? … No? Then have a vada at least.",
+  "name": "Chaiwala Chandru"
+ },
+ {
+  "id": "local3",
+  "text": "10-minute delivery! Already 40 minutes. The other 30 minutes were the traffic's fault.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "local3",
+  "text": "Customer said \"leave at door\". Which door? There are 400 doors in this building.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "thimmappa",
+  "text": "I have been directing traffic here since 2071. The traffic has not noticed.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "thimmappa",
+  "text": "Signal is green. Signal is red. Nobody moves. Same same.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "thimmappa",
+  "text": "Crossing on foot is fastest. Do not tell the cars, they will feel bad.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "tejas",
+  "text": "Standup started 40 minutes ago. I am still standing up. In an auto.",
+  "name": "Tejas in the Auto"
+ },
+ {
+  "id": "tejas",
+  "text": "My manager asked for an ETA. I said \"Silk Board\". He understood.",
+  "name": "Tejas in the Auto"
+ },
+ {
+  "id": "manjula",
+  "text": "Road on the bottom, metro on top. Double-decker! Next we will add a third deck. For the traffic to wait in.",
+  "name": "Engineer Manjula"
+ },
+ {
+  "id": "snack",
+  "text": "Kadlekai! Cucumber! Phone chargers! Everything you need for the 2-hour journey of 3 kilometres.",
+  "name": "Snack Seller Sunil"
+ },
+ {
+  "id": "snack",
+  "text": "Business is good. Silk Board is the best restaurant location in India.",
+  "name": "Snack Seller Sunil"
+ },
+ {
+  "id": "dinesh",
+  "text": "10-minute delivery! The 10 minutes start when I feel like it.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "dinesh",
+  "text": "Customer wrote \"near the tree\". This is Bengaluru. There are 40 lakh trees.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "farah",
+  "text": "My startup is \"LinkedIn for cows\". The cows are not on LinkedIn yet. Huge market.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "farah",
+  "text": "I have 3 advisors, 2 interns and 0 users. Classic.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "vc2",
+  "text": "I only invest in founders who wake up at 4 AM. I wake up at 11. It is called conviction.",
+  "name": "Angel Anand"
+ },
+ {
+  "id": "vc2",
+  "text": "What is your burn rate? … No, your personal burn rate. How many cold brews per day?",
+  "name": "Angel Anand"
+ },
+ {
+  "id": "kora_uncle",
+  "text": "In 1985 this was all coconut groves. Now it is all \"cohorts\".",
+  "name": "Jayanna Uncle"
+ },
+ {
+  "id": "kora_uncle",
+  "text": "My son is a founder. I ask him \"what do you make?\" He says \"impact\". I ask \"how much?\" He says \"pre-revenue\".",
+  "name": "Jayanna Uncle"
+ },
+ {
+  "id": "broker",
+  "text": "Indiranagar flats are like Silk Board: everyone wants in, nobody moves.",
+  "name": "Broker Babu"
+ },
+ {
+  "id": "broker",
+  "text": "1BHK, 1BHK… ah! A 1RK. Room, kitchen, and the kitchen is also the room.",
+  "name": "Broker Babu"
+ },
+ {
+  "id": "drummer",
+  "text": "Tonight: indie folk-rock-fusion-lofi. Genre? Bengaluru.",
+  "name": "Gig-night Gautam"
+ },
+ {
+  "id": "drummer",
+  "text": "We have played every pub on 12th Main. Some of them even paid us.",
+  "name": "Gig-night Gautam"
+ },
+ {
+  "id": "pradeep2",
+  "text": "Day 214 of looking for a 2BHK in Indiranagar. The landlord asked for my horoscope.",
+  "name": "Placard Pradeep"
+ },
+ {
+  "id": "seenappa",
+  "text": "I carry 18 plates of dose on one arm. My physiotherapist carries 19. Competition.",
+  "name": "Seenappa"
+ },
+ {
+  "id": "seenappa",
+  "text": "Masala dose, khara bath, kesari bath, coffee. That is the whole menu. Since 1943. Perfect things do not change.",
+  "name": "Seenappa"
+ },
+ {
+  "id": "priest",
+  "text": "Our Nandi is carved from one single rock. Still growing, they say. Like rents.",
+  "name": "Archak Acharya"
+ },
+ {
+  "id": "priest",
+  "text": "Kadalekai Parishe in November: the groundnut fair. Farmers offer their first crop to Basavanna.",
+  "name": "Archak Acharya"
+ },
+ {
+  "id": "gardener",
+  "text": "Lalbagh: 240 acres, 1,800 species, and one man doing yoga loudly every morning.",
+  "name": "Gardener Gangamma"
+ },
+ {
+  "id": "gardener",
+  "text": "The rock here is 3,000 million years old. Older than the Pink Line deadline.",
+  "name": "Gardener Gangamma"
+ },
+ {
+  "id": "dr_lake",
+  "text": "The foam is a mix of detergent, sewage and bad decisions. In 2099 it became… self-aware.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Bellandur used to be the biggest lake in the city. It still is. It just has extra layers now.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "orr_techie",
+  "text": "My office is 4 km away. I leave at 8. I reach at 10. I have read 70 books in traffic this year.",
+  "name": "ORR Oviya"
+ },
+ {
+  "id": "orr_techie",
+  "text": "When it rains, the Outer Ring Road becomes the Outer Ring River. We have boats now. Hover boats.",
+  "name": "ORR Oviya"
+ },
+ {
+  "id": "tourist",
+  "text": "So many buses! How does anyone know which one? … By asking 14 people, I suppose.",
+  "name": "Lost Lakshmi"
+ },
+ {
+  "id": "tourist",
+  "text": "My son said \"take the metro\". The metro took me to Majestic. Majestic took my sanity.",
+  "name": "Lost Lakshmi"
+ },
+ {
+  "id": "coolie",
+  "text": "Everyone in Bengaluru came through Majestic once. Some of them are still looking for the exit.",
+  "name": "Coolie Krishna"
+ },
+ {
+  "id": "coolie",
+  "text": "Platform 7? Go straight, left, right, up, down, ask again.",
+  "name": "Coolie Krishna"
+ },
+ {
+  "id": "ctr",
+  "text": "The benne masala dose is crisp outside, soft inside, butter everywhere. The queue is the seasoning.",
+  "name": "CTR Chandrashekar"
+ },
+ {
+  "id": "ctr",
+  "text": "No, we do not take reservations. We take patience.",
+  "name": "CTR Chandrashekar"
+ },
+ {
+  "id": "veena",
+  "text": "Idli so soft you can sleep on it. Chutney so good you will forget your ex.",
+  "name": "Veena Stores Venkatesh"
+ },
+ {
+  "id": "veena",
+  "text": "Eat standing. Sitting is for people with time.",
+  "name": "Veena Stores Venkatesh"
+ },
+ {
+  "id": "security",
+  "text": "Badge?",
+  "name": "Security Shivanna"
+ },
+ {
+  "id": "security",
+  "text": "Laptop declaration?",
+  "name": "Security Shivanna"
+ },
+ {
+  "id": "security",
+  "text": "Badge AND laptop declaration?",
+  "name": "Security Shivanna"
+ },
+ {
+  "id": "fresher",
+  "text": "Training starts at 9. I came at 6. My bus came at 5. I live in the bus now.",
+  "name": "Fresher Fathima"
+ },
+ {
+  "id": "fresher",
+  "text": "They said \"campus\". They did not say it is bigger than my hometown.",
+  "name": "Fresher Fathima"
+ },
+ {
+  "id": "wf_commuter",
+  "text": "Since the metro reached Whitefield, my commute is 1 hour. Before it was 2. I have so much free time I started a podcast.",
+  "name": "Commuter Kiran"
+ },
+ {
+  "id": "wf_commuter",
+  "text": "Whitefield: half tech park, half forest, all traffic.",
+  "name": "Commuter Kiran"
+ },
+ {
+  "id": "manju",
+  "text": "Saar! New in Bengaluru, ah? I can tell. You are looking at the weather like it owes you money.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Where to?",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Koramangala? Barolla, saar. Traffic. … Okay okay. Meter mele fifty.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "But first, magic words. Without these you will not survive one day here.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "\"Swalpa adjust maadi.\" Please adjust a little. Bus full? Swalpa adjust maadi. Auto full? Swalpa adjust maadi. Life? Swalpa adjust maadi.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Go! Say it to three strangers on the footpath. Watch the magic.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "See? Three people adjusted. Now you are ten percent Bengalurean.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "The other ninety percent is sitting in traffic. You will get there.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Tip: press R and your hover scooter comes. Press M for Namma Metro to other areas. And talk to Ajji near Koshy's — she needs help.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Meter? *looks at meter like it is a museum piece* Meter mele fifty, saar.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "manju",
+  "text": "Exploring! Good, good. Today exploring, tomorrow paying ₹45,000 rent in Indiranagar.",
+  "name": "Manju Anna"
+ },
+ {
+  "id": "ajji",
+  "text": "Magu! Thank God. My delivery boy took the order to Silk Board in 2087. He is still in the queue.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "Three regulars are waiting for coffee. Filter coffee must be HOT. Cold filter coffee is a crime in this state.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "Can you run? Or ride your scooter, I don't care.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "Anxious Ananya",
+  "text": "Coffee! I have a standup in 2 minutes. Standups here last 2 hours.",
+  "name": "Anxious Ananya"
+ },
+ {
+  "id": "Professor Prasad",
+  "text": "Ah, decoction! Correct ratio. You may enter Basavanagudi now.",
+  "name": "Professor Prasad"
+ },
+ {
+  "id": "Gym Bro Girish",
+  "text": "Bro, is this keto? … Who cares. Filter coffee is a lifestyle.",
+  "name": "Gym Bro Girish"
+ },
+ {
+  "id": "ajji",
+  "text": "All three, still hot? You are faster than 10-minute delivery. You are 9-minute delivery.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "Learn this: \"Banni, coffee kudiyona\" — come, let's have coffee. Fixes every problem in Bengaluru.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "ajji",
+  "text": "For you? Free coffee for life. And my blessings. Blessings are worth more than ESOPs, magu.",
+  "name": "Kamalamma Ajji"
+ },
+ {
+  "id": "sita",
+  "text": "Shhh. Welcome to Cubbon Reads. Every Saturday, hundreds of us sit under the trees and read. Silently.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "sita",
+  "text": "Sit on the grass (Q → Sit) and do not move for 25 seconds. Whatever happens.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "sita",
+  "text": "…You did it. You read a book. In public. Without checking your phone. You are ready for anything.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "sita",
+  "text": "Take this phrase: \"Ond nimsha\" — one minute. In Bengaluru it can mean anything from one minute to one year.",
+  "name": "Silent Sita"
+ },
+ {
+  "id": "eshwar",
+  "text": "EE SALA— oh, hello. Crisis. My five lucky flags blew away. Without them the team cannot perform. Science.",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "They are all around the stadium. One is up on the stands, I think. You can climb, no? Jump into a wall and climb!",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "GOOSEBUMPS! I am crying. Do not look. Here, the most powerful phrase in Karnataka is now yours.",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "Come back with friends and talk to me for Catch the Six!",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "eshwar",
+  "text": "Catch the Six! I hit, you catch. Everyone nearby can join. Ready?",
+  "name": "Ee Sala Eshwar"
+ },
+ {
+  "id": "rakesh",
+  "text": "Hover race through the streets! Checkpoints, no traffic rules (as usual). Everyone nearby can join.",
+  "name": "Rapido Rakesh"
+ },
+ {
+  "id": "gowramma",
+  "text": "Tourist? Welcome to Vidhana Soudha! Want to see inside? Just get this visitor form stamped.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "gowramma",
+  "text": "Three counters only. Very fast. Very modern. Since 2099 we have even switched off the fax machine. Mostly.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "Counter 1",
+  "text": "Form? Where is the Xerox copy? Two copies. Self-attested. Go to the High Court shop for Xerox.",
+  "name": "Counter 1"
+ },
+ {
+  "id": "Xerox Uncle",
+  "text": "Xerox? Light illa. Power cut. Come after lunch. … Joking! ₹2 per page. Ninety rupees.",
+  "name": "Xerox Uncle"
+ },
+ {
+  "id": "Counter 1",
+  "text": "Copies, very good. Now stamp from Counter 2. Counter 2 is… on lunch. Wait here.",
+  "name": "Counter 1"
+ },
+ {
+  "id": "Counter 2",
+  "text": "*THUMP* Stamped. Your file will be processed in 2 to 3 business years. Next!",
+  "name": "Counter 2"
+ },
+ {
+  "id": "gowramma",
+  "text": "Only one hour?! A record! The Chief Minister himself would be jealous.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "gowramma",
+  "text": "When you leave somewhere, never say \"bye\". Say \"Hogi banni\" — go and come back.",
+  "name": "Guide Gowramma"
+ },
+ {
+  "id": "prateek",
+  "text": "Bro. BRO. A VC is here in this very cafe. I have 90 seconds. Help me craft the pitch.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "First line. What are we building?",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "Business model?",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "Moat?",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "prateek",
+  "text": "Close it. Say something visionary.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "VC Vasundhara",
+  "text": "Interesting. Let's circle back. Ping me on LinkedIn. (She will not reply.)",
+  "name": "VC Vasundhara"
+ },
+ {
+  "id": "prateek",
+  "text": "It's fine, bro. Pivoting is a lifestyle. We are now… a podcast.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "VC Vasundhara",
+  "text": "Pre-revenue. Pre-product. Pre-team. … I love it. Here's ₹100 crore at a ₹1000 crore valuation.",
+  "name": "VC Vasundhara"
+ },
+ {
+  "id": "prateek",
+  "text": "MACHA! SAKKATH! We're a unicorn! Next stop: a ₹400 cold brew to celebrate.",
+  "name": "Pitch-Deck Prateek"
+ },
+ {
+  "id": "thimmappa",
+  "text": "You want to cross Silk Board? Brave. Very brave. People have entered this junction as freshers and left as team leads.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "thimmappa",
+  "text": "Reach the other side in 70 seconds. On foot. Weave between the vehicles — they are not going anywhere anyway.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "thimmappa",
+  "text": "You made it?! *takes off cap* In 2083 a man tried. They say he is still on the median, selling kadlekai.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "thimmappa",
+  "text": "Take this phrase. You will use it every day for the rest of your life: \"Traffic, late aagutte\" — traffic, I will be late.",
+  "name": "Constable Thimmappa"
+ },
+ {
+  "id": "tejas",
+  "text": "Bro. BRO. Laptop at 3 percent. I am presenting the quarterly roadmap in 4 minutes. From this auto.",
+  "name": "Tejas in the Auto"
+ },
+ {
+  "id": "tejas",
+  "text": "I need a charger and a coffee. The snack guy has chargers. There is a darshini on the corner. Please. My career depends on you.",
+  "name": "Tejas in the Auto"
+ },
+ {
+  "id": "tejas",
+  "text": "*plugs in* *sips* \"…and that is why Q3 is a growth quarter.\" *unmutes* They loved it. They think I am in a cafe. I am in an auto. At Silk Board.",
+  "name": "Tejas in the Auto"
+ },
+ {
+  "id": "Auto driver",
+  "text": "Saar, meter is at ₹890. We moved 40 metres.",
+  "name": "Auto driver"
+ },
+ {
+  "id": "manjula",
+  "text": "Bengaluru's first double-decker: road below, metro above. Take your hover scooter up the ramp and ride it end to end.",
+  "name": "Engineer Manjula"
+ },
+ {
+  "id": "manjula",
+  "text": "Press R for your scooter. And please do not try to ride on the metro deck. We have had… incidents.",
+  "name": "Engineer Manjula"
+ },
+ {
+  "id": "manjula",
+  "text": "Smooth! Only you and the pigeons have used it without traffic. Welcome to the future.",
+  "name": "Engineer Manjula"
+ },
+ {
+  "id": "dinesh",
+  "text": "Macha! I have 3 orders and my scooter is stuck at the Sony World signal. The app says \"10 minutes\". The app lies, but customers believe it.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "dinesh",
+  "text": "Pick up at the dark store, then drop in Koramangala blocks. Use your hover scooter. In app time you have 10 minutes. In real time… 2 and a half.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "dinesh",
+  "text": "All three in time?! You are the reason the app says 10 minutes. Here, my most used Kannada phrase: \"Bega baa!\" — come fast!",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "farah",
+  "text": "I need a technical co-founder. Requirements: knows \"AI\", works for equity, and believes cows deserve LinkedIn.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "farah",
+  "text": "There are four techies in the cafes around here. Go recruit one. Warning: they are all already founders.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "Pivot Pavan",
+  "text": "Sorry, I'm building \"Tinder for flatmates\". We pivot every Tuesday.",
+  "name": "Pivot Pavan"
+ },
+ {
+  "id": "Blockchain Bhavana",
+  "text": "Is it on the blockchain? No? Then it doesn't exist.",
+  "name": "Blockchain Bhavana"
+ },
+ {
+  "id": "Burnout Bharath",
+  "text": "I founded 6 startups this year. I just want to sleep. Is sleep a startup?",
+  "name": "Burnout Bharath"
+ },
+ {
+  "id": "Debug Deepa",
+  "text": "Cows on LinkedIn… with endorsements for \"grazing\"? … I'm in. But I want my name first on the pitch deck.",
+  "name": "Debug Deepa"
+ },
+ {
+  "id": "farah",
+  "text": "Deepa said YES? We are a TEAM! Next: a WhatsApp group, a logo, and a ₹400 cold brew. Product can wait.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "farah",
+  "text": "\"Macha, sakkath!\" — that is how you say \"dude, awesome\" here. Use it liberally. Founders do.",
+  "name": "Founder Farah"
+ },
+ {
+  "id": "dinesh",
+  "text": "Race me through the blocks? Everyone nearby can join.",
+  "name": "Delivery Dinesh"
+ },
+ {
+  "id": "broker",
+  "text": "Looking for a flat in Indiranagar? Ha ha. Ha. OK. I have three. Each landlord will interview you. Be your best self. Or someone else's.",
+  "name": "Broker Babu"
+ },
+ {
+  "id": "Landlord Lakshman",
+  "text": "Veg or non-veg?",
+  "name": "Landlord Lakshman"
+ },
+ {
+  "id": "Landlord Lakshman",
+  "text": "Deposit is 10 months. Cash. Today.",
+  "name": "Landlord Lakshman"
+ },
+ {
+  "id": "Landlord Lakshman",
+  "text": "Very good. But I prefer families. You are not a family. Next.",
+  "name": "Landlord Lakshman"
+ },
+ {
+  "id": "Landlady Leela",
+  "text": "Send your LinkedIn and a 500-word essay on \"Why Indiranagar\".",
+  "name": "Landlady Leela"
+ },
+ {
+  "id": "Landlady Leela",
+  "text": "Visitors after 9 PM?",
+  "name": "Landlady Leela"
+ },
+ {
+  "id": "Landlady Leela",
+  "text": "Your essay was 498 words. Rejected.",
+  "name": "Landlady Leela"
+ },
+ {
+  "id": "Landlord Lokesh",
+  "text": "Rent ₹62,000. Maintenance ₹8,000. \"Lift charges\" ₹2,000 (no lift).",
+  "name": "Landlord Lokesh"
+ },
+ {
+  "id": "Landlord Lokesh",
+  "text": "Pets?",
+  "name": "Landlord Lokesh"
+ },
+ {
+  "id": "Landlord Lokesh",
+  "text": "Ok ok. You said \"adjust maadi\". You are one of us. Flat is yours. Rent increases 15% every year. Welcome home!",
+  "name": "Landlord Lokesh"
+ },
+ {
+  "id": "broker",
+  "text": "Congratulations! Now, my brokerage: two months rent. What? I said \"no brokerage\". The asterisk said otherwise.",
+  "name": "Broker Babu"
+ },
+ {
+  "id": "broker",
+  "text": "When the landlord asks anything you cannot answer, say \"Gottilla\" — I don't know. Works every time.",
+  "name": "Broker Babu"
+ },
+ {
+  "id": "Landlady Leela",
+  "text": "You smiled too much in your profile photo. Suspicious.",
+  "name": "Landlady Leela"
+ },
+ {
+  "id": "Landlord Lakshman",
+  "text": "Come with your parents. Grandparents also. Next.",
+  "name": "Landlord Lakshman"
+ },
+ {
+  "id": "drummer",
+  "text": "Gig in 3 minutes and my band has vanished. Drummer, guitarist, singer. Classic Indiranagar Friday.",
+  "name": "Gig-night Gautam"
+ },
+ {
+  "id": "drummer",
+  "text": "Drummer is always in a cafe. Guitarist went to \"check something\" on a rooftop. Singer is stuck in traffic somewhere close.",
+  "name": "Gig-night Gautam"
+ },
+ {
+  "id": "drummer",
+  "text": "SUPER, MAGA! The crowd loved it. Mainly because there was a free shot of filter coffee.",
+  "name": "Gig-night Gautam"
+ },
+ {
+  "id": "seenappa",
+  "text": "Rush hour! Sunday morning, the queue goes to the next street. I need help serving.",
+  "name": "Seenappa"
+ },
+ {
+  "id": "seenappa",
+  "text": "Carry this stack of dose plates to three tables. Walk smoothly. No running, no sudden turns. Respect the dose.",
+  "name": "Seenappa"
+ },
+ {
+  "id": "seenappa",
+  "text": "You served 7 plates! Customers are asking for you by name. I am a little jealous.",
+  "name": "Seenappa"
+ },
+ {
+  "id": "seenappa",
+  "text": "In Bengaluru we do not say hello. We say \"Oota aayta?\" — had your meal? Correct answer is always \"Aaytu!\"",
+  "name": "Seenappa"
+ },
+ {
+  "id": "priest",
+  "text": "Long ago a bull ate all the groundnut crops here. The farmers prayed, and the bull became stone: our Nandi. Every year we offer the first groundnuts.",
+  "name": "Archak Acharya"
+ },
+ {
+  "id": "priest",
+  "text": "The crows have scattered the offering around Bugle Rock and the temple. Gather 12 handfuls before the evening aarti.",
+  "name": "Archak Acharya"
+ },
+ {
+  "id": "priest",
+  "text": "Blessings! May your rent never increase and your auto always say yes.",
+  "name": "Archak Acharya"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Stay back! The foam has gained consciousness. It has opinions. It wants the Outer Ring Road.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Take this Clean-up Cannon. Aim at the foam and click (or tap ✋). Hit its blobs before they splat you.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Ready?",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "You did it! The foam has retreated to… a smaller foam. Science is incremental.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Look at that sky. \"Bengaluru weather, ayyo!\" — say it with a sigh of pride.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "dr_lake",
+  "text": "Insurance covers \"acts of God\". This is an act of detergent. So, no.",
+  "name": "Dr. Kere Kavitha"
+ },
+ {
+  "id": "orr_techie",
+  "text": "Meeting at Ecoworld in 90 seconds and I am at Ecospace. On the ORR that is… two business days.",
+  "name": "ORR Oviya"
+ },
+ {
+  "id": "orr_techie",
+  "text": "Ride there for me and show my badge at the gate. The security guard trusts badges more than faces.",
+  "name": "ORR Oviya"
+ },
+ {
+  "id": "tourist",
+  "text": "Excuse me! I need bus 500-D to go to my son in Whitefield. He works in \"IT\". I don't know what that means but he pays for my phone.",
+  "name": "Lost Lakshmi"
+ },
+ {
+  "id": "tourist",
+  "text": "Thank you, kanna! If the bus doesn't come, I will take an auto. How do I talk to the auto man?",
+  "name": "Lost Lakshmi"
+ },
+ {
+  "id": "tourist",
+  "text": "\"Meter haaki, anna\" — put the meter, brother. Say it firmly. Then pay meter-mele-fifty anyway.",
+  "name": "Lost Lakshmi"
+ },
+ {
+  "id": "coolie",
+  "text": "Saar! A passenger forgot his suitcase at the bus stand and his train leaves KSR in 75 seconds. I am 63 years old. You are not.",
+  "name": "Coolie Krishna"
+ },
+ {
+  "id": "ctr",
+  "text": "You want a benne masala dose? Join the queue. It moves. Slowly. Like tectonic plates.",
+  "name": "CTR Chandrashekar"
+ },
+ {
+  "id": "The Queue",
+  "text": "A man walks straight to the front.",
+  "name": "The Queue"
+ },
+ {
+  "id": "The Queue",
+  "text": "Someone asks if you are \"in the queue or just standing\".",
+  "name": "The Queue"
+ },
+ {
+  "id": "The Queue",
+  "text": "A techie asks you to \"hold his spot for 2 minutes\".",
+  "name": "The Queue"
+ },
+ {
+  "id": "Line-cutter",
+  "text": "*adjusts to the back of the line* …Sorry, sorry.",
+  "name": "Line-cutter"
+ },
+ {
+  "id": "ctr",
+  "text": "See? The queue is a test. You passed. \"Swalpa adjust maadi\" — you know this already. Now you mean it.",
+  "name": "CTR Chandrashekar"
+ },
+ {
+  "id": "The Queue",
+  "text": "*everyone nods wisely*",
+  "name": "The Queue"
+ },
+ {
+  "id": "fresher",
+  "text": "Hi! It's my first day. I need: my badge from Gate 6, a laptop declaration, and lunch. Training starts in 3 minutes!",
+  "name": "Fresher Fathima"
+ },
+ {
+  "id": "fresher",
+  "text": "Badge! Form! Curd rice! I am officially an employee. Next goal: retire.",
+  "name": "Fresher Fathima"
+ },
+ {
+  "id": "security",
+  "text": "Shuttle race? Unofficial. Very unofficial. Everyone nearby can join.",
+  "name": "Security Shivanna"
+ },
+ {
+  "id": "wf_commuter",
+  "text": "Last metro to MG Road leaves Kadugodi in 2 minutes! If I miss it I have to take an auto. Do you know what an auto costs from Whitefield? A kidney. Two kidneys after 10 PM.",
+  "name": "Commuter Kiran"
+ },
+ {
+  "id": "wf_commuter",
+  "text": "*panting* Made it! When you leave somewhere here, say \"Hogi banni\" — go and come back. We always come back. Rent is paid.",
+  "name": "Commuter Kiran"
+ }
+]

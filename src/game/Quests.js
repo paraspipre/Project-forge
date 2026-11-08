@@ -22,7 +22,7 @@ class Ctx {
   _check() { if (this.cancelled) throw new QuestFail('cancelled'); }
 
   speaker(who) {
-    if (who === 'me') return { name: this.game.profile.name, color: '#3fb3a6', pitch: 1.15 };
+    if (who === 'me') return { name: this.game.profile.name, color: '#3fb3a6', pitch: 1.15, voiceId: 'me' };
     if (typeof who === 'object') return who;
     return this.qs.npcs.get(who)?.speaker || { name: who, color: '#8e5bb5', pitch: 1 };
   }
@@ -35,9 +35,10 @@ class Ctx {
     await this.game.dlg.say(this.speaker(who), text, kn);
     this._check();
   }
-  async choose(who, text, options, kn = '') {
+  // `def` is the reply picked automatically when the countdown runs out (hands-free dialogue)
+  async choose(who, text, options, kn = '', def = 0) {
     this._check();
-    const i = await this.game.dlg.choose(this.speaker(who), text, options, kn);
+    const i = await this.game.dlg.choose(this.speaker(who), text, options, kn, def);
     this._check();
     return i;
   }
@@ -323,14 +324,17 @@ export class Quests {
     const quests = this.story.quests || [];
     for (const n of this.npcs.values()) {
       if (n.def.temp) continue;
-      const q = quests.find((q) => q.giver === n.id && this.available(q));
-      n.setMarker(this.active ? null : q ? 'quest' : null);
+      const q = quests.find((q) => q.giver === n.id && this.available(q) && !q.repeat) || quests.find((q) => q.giver === n.id && this.available(q));
+      n.setMarker(this.active ? null : q ? (q.repeat ? 'activity' : 'quest') : null);
     }
   }
 
   markers() {
     const out = [];
-    for (const n of this.npcs.values()) if (n.markerKind === 'quest') out.push({ x: n.pos.x, z: n.pos.z, icon: '!', color: '#f2c14e', size: 18 });
+    for (const n of this.npcs.values()) {
+      if (n.markerKind === 'quest') out.push({ x: n.pos.x, z: n.pos.z, icon: '!', color: '#f2c14e', size: 18 });
+      else if (n.markerKind === 'activity') out.push({ x: n.pos.x, z: n.pos.z, icon: '★', color: '#3fb3a6', size: 15 });
+    }
     if (this.target) out.push({ x: this.target.x, z: this.target.z, icon: this.target.icon || '★', color: '#3fb3a6', size: 18, clamp: true });
     for (const c of this.cards) if (Math.hypot(c.x - this.game.player.pos.x, c.z - this.game.player.pos.z) < 120) out.push({ x: c.x, z: c.z, icon: 'ಕ', color: '#f2c14e', size: 13 });
     return out;
@@ -403,7 +407,8 @@ export class Quests {
     if (this.talking) return;
     this.talking = true;
     try {
-      const q = (this.story.quests || []).find((q) => q.giver === n.id && this.available(q));
+      const qs = (this.story.quests || []).filter((q) => q.giver === n.id && this.available(q));
+      const q = qs.find((q) => !q.repeat) || qs[0];
       if (q && !this.active) { this.start(q); return; }
       const lines = n.def.chatter || ['Namaskara!'];
       const pick = lines[Math.floor(Math.random() * lines.length)];
@@ -450,13 +455,36 @@ export class Quests {
       const ped = g.crowd.nearest(p.pos.x, p.pos.z, 2.6);
       if (ped && !ped.greeted) {
         g.hud.prompt(this.pedTalk.prompt);
-        if (g.input.consume('interact')) this.pedTalk.fn(ped);
+        const d = Math.hypot(ped.x - p.pos.x, ped.z - p.pos.z);
+        if (g.input.consume('interact') || d < 1.9) this.pedTalk.fn(ped);
         return;
+      }
+    }
+    const now = performance.now();
+    for (const n of this.npcs.values()) {
+      const d2 = n.pos.distanceToSquared(p.pos);
+      if (d2 > 36) { n.dwell = 0; n.autoDone = false; }
+      if (d2 < 45 * 45 && !n.prefetched) { n.prefetched = true; g.audio?.prefetchVoices(n.speaker.voiceId); }
+      // ambient chatter: a voiced speech bubble when you walk past
+      if (d2 < 7.5 * 7.5 && !n.def.temp && !n.def.silent && n.markerKind !== 'quest' && !this.active && !this.talking
+          && now > (n.nextBark || 0) && now > (this.nextBark || 0) && (n.def.chatter || []).length && n.markerKind !== 'activity') {
+        const lines = n.def.chatter.filter((l) => typeof l !== 'function');
+        const line = lines[Math.floor(Math.random() * lines.length)];
+        if (line) {
+          n.bark(Array.isArray(line) ? line[0] : line, Math.max(0.35, 1 - Math.sqrt(d2) / 9));
+          n.nextBark = now + 16000 + Math.random() * 10000;
+          this.nextBark = now + 5000;
+        }
       }
     }
     if (best) {
       g.hud.prompt(`Talk to ${best.name}`);
-      if (g.input.consume('interact') || (g.input.pressed('click') && false)) this.talk(best);
+      // a quest giver starts the conversation when you stop next to them: no button needed
+      if (best.markerKind === 'quest' && !this.active && !best.autoDone && (p.speedNow || 0) < 2.5) {
+        best.dwell = (best.dwell || 0) + dt;
+        if (best.dwell > 0.45) { best.autoDone = true; this.talk(best); return; }
+      }
+      if (g.input.consume('interact')) { best.autoDone = true; this.talk(best); }
     } else g.hud.prompt(null);
   }
 

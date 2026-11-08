@@ -5,16 +5,122 @@
 const MOHANAM = [0, 2, 4, 7, 9];   // Sa Ri Ga Pa Dha
 const SA = 146.83;                  // D3
 
+// Voice clips are keyed by FNV-1a of "speaker|text" (tools/gen_voices.py uses the same hash).
+export function voiceKey(id, text) {
+  let h = 0x811c9dc5;
+  for (const b of new TextEncoder().encode(`${id}|${text}`)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
+
+// What a line sounds like without its stage directions and emoji.
+export function speakable(text) {
+  return String(text).replace(/\*[^*]*\*/g, ' ').replace(/[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
 export class Audio {
   constructor() {
     this.ctx = null;
     this.muted = false;
     this.musicOn = true;
     this.listener = { x: 0, z: 0, yaw: 0 };
+    this.voiceOn = true;
+    this.voiceSet = new Set();
+    this.voiceCache = new Map();
     try {
       this.muted = localStorage.getItem('pb.mute') === '1';
       this.musicOn = localStorage.getItem('pb.music') !== '0';
+      this.voiceOn = localStorage.getItem('pb.voice') !== '0';
     } catch {}
+    fetch('voice/manifest.json').then((r) => (r.ok ? r.json() : null)).then((m) => {
+      if (!m) return;
+      this.voiceSet = new Set(m.keys || []);
+      this.voiceGroups = m.groups || {};
+    }).catch(() => {});
+  }
+
+  setVoices(on) {
+    this.voiceOn = on;
+    try { localStorage.setItem('pb.voice', on ? '1' : '0'); } catch {}
+    if (!on) this.stopVoice();
+  }
+
+  async _voiceBuf(key) {
+    if (this.voiceCache.has(key)) return this.voiceCache.get(key);
+    const p = fetch(`voice/${key}.mp3`).then((r) => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); })
+      .then((b) => this.ctx.decodeAudioData(b)).catch(() => null);
+    this.voiceCache.set(key, p);
+    if (this.voiceCache.size > 80) this.voiceCache.delete(this.voiceCache.keys().next().value);
+    return p;
+  }
+
+  // Warm the cache with a character's lines (called when you get near them).
+  prefetchVoices(id) {
+    if (!this.ctx || !this.voiceOn || !this.voiceGroups?.[id]) return;
+    for (const k of this.voiceGroups[id].slice(0, 12)) this._voiceBuf(k);
+  }
+
+  hasVoice(id, text) { return this.voiceSet.has(voiceKey(id, text)); }
+
+  // Speak a line: the pre-rendered clip if we have one, else the browser's own voice (Indian English
+  // where available). Resolves to { done: Promise, stop() } or null when silent.
+  async speak(id, text, { pitch = 1, volume = 1, pan = 0, fallback = true } = {}) {
+    if (!this.voiceOn || this.muted) return null;
+    const clean = speakable(text);
+    if (!clean) return null;
+    const key = voiceKey(id, text);
+    if (this.ctx && this.voiceSet.has(key)) {
+      const buf = await this._voiceBuf(key);
+      if (buf) {
+        const c = this.ctx;
+        const src = c.createBufferSource();
+        src.buffer = buf;
+        const g = c.createGain();
+        g.gain.value = 1.15 * volume;
+        let node = g;
+        if (c.createStereoPanner && pan) { const pn = c.createStereoPanner(); pn.pan.value = pan; g.connect(pn); node = pn; }
+        src.connect(g);
+        node.connect(this.master);
+        this._duck(true);
+        const handle = {
+          done: new Promise((res) => { src.onended = () => { this._duck(false); res(); }; }),
+          stop: () => { try { src.stop(); } catch {} },
+        };
+        src.start();
+        if (volume >= 0.9) this.current = handle;
+        return handle;
+      }
+    }
+    if (!fallback || !('speechSynthesis' in window)) return null;
+    return this._browserSpeak(clean, pitch, volume);
+  }
+
+  _browserSpeak(text, pitch, volume) {
+    const ss = window.speechSynthesis;
+    const voices = ss.getVoices();
+    const pickV = voices.find((v) => /en[-_]IN/i.test(v.lang)) || voices.find((v) => /^en/i.test(v.lang));
+    const u = new SpeechSynthesisUtterance(text);
+    if (pickV) u.voice = pickV;
+    u.lang = pickV?.lang || 'en-IN';
+    u.pitch = Math.min(2, Math.max(0.5, pitch));
+    u.rate = 1.02;
+    u.volume = Math.min(1, volume);
+    this._duck(true);
+    const handle = {
+      done: new Promise((res) => { u.onend = u.onerror = () => { this._duck(false); res(); }; setTimeout(res, 2500 + text.length * 120); }),
+      stop: () => { try { ss.cancel(); } catch {} },
+    };
+    ss.cancel();
+    ss.speak(u);
+    if (volume >= 0.9) this.current = handle;
+    return handle;
+  }
+
+  stopVoice() { this.current?.stop(); this.current = null; }
+
+  _duck(on) {
+    if (!this.ctx) return;
+    this._ducks = Math.max(0, (this._ducks || 0) + (on ? 1 : -1));
+    if (this.musicOn) this.music.gain.setTargetAtTime(this._ducks ? 0.1 : 0.32, this.ctx.currentTime, 0.25);
   }
 
   unlock() {

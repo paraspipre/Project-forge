@@ -236,7 +236,7 @@ export const STORY = {
         id: 'sixes', title: 'Catch the Six', giver: 'eshwar', requires: ['cup'], repeat: true,
         summary: 'Catch cricket balls flying out of Chinnaswamy (play with friends!)',
         async run(q) {
-          const i = await q.choose('eshwar', 'Catch the Six! I hit, you catch. Everyone nearby can join. Ready?', ['Let\'s go!', 'Later']);
+          const i = await q.choose('eshwar', 'Catch the Six! I hit, you catch. Everyone nearby can join. Ready?', ['Let\'s go!', 'Later'], '', 1);
           if (i === 1) return;
           q.done();
           const c = q.spot('stadiumCenter');
@@ -249,7 +249,7 @@ export const STORY = {
         summary: 'Race through real streets on your hover scooter',
         async run(q) {
           const best = +(localStorage.getItem('pb.race.central') || 0);
-          const i = await q.choose('rakesh', `Hover race through the streets! Checkpoints, no traffic rules (as usual). Everyone nearby can join.${best ? ` Your best: ${best.toFixed(1)}s.` : ''}`, ['Start a race!', 'Not now']);
+          const i = await q.choose('rakesh', `Hover race through the streets! Checkpoints, no traffic rules (as usual). Everyone nearby can join.${best ? ` Your best: ${best.toFixed(1)}s.` : ''}`, ['Start a race!', 'Not now'], '', 1);
           if (i === 1) return;
           q.done();
           await q.minigame('race');

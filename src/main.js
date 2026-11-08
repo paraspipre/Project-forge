@@ -31,6 +31,8 @@ class UI {
     $('btn-quit').onclick = () => location.reload();
     $('btn-mute').onclick = () => { game.audio.setMuted(!game.audio.muted); this._labels(); };
     $('btn-music').onclick = () => { game.audio.setMusic(!game.audio.musicOn); this._labels(); };
+    $('btn-voice').onclick = () => { game.audio.setVoices(!game.audio.voiceOn); this._labels(); };
+    $('btn-auto').onclick = () => { game.profile.autoDialogue = game.profile.autoDialogue === false; game.saveProfile(); this._labels(); };
     $('btn-quality').onclick = () => {
       const keys = Object.keys(QUALITY);
       game.setQuality(keys[(keys.indexOf(game.qualityKey) + 1) % keys.length]);
@@ -56,6 +58,8 @@ class UI {
     const g = this.g;
     $('btn-mute').textContent = `Sound: ${g.audio.muted ? 'Off' : 'On'}`;
     $('btn-music').textContent = `Music: ${g.audio.musicOn ? 'On' : 'Off'}`;
+    $('btn-voice').textContent = `Voices: ${g.audio.voiceOn ? 'On' : 'Off'}`;
+    $('btn-auto').textContent = `Dialogue: ${g.profile.autoDialogue === false ? 'Tap to continue' : 'Auto'}`;
     $('btn-quality').textContent = `Quality: ${QUALITY[g.qualityKey].name}`;
   }
 
