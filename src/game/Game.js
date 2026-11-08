@@ -120,6 +120,7 @@ export class Game {
     this.ren.scene.add(this.skyLife.group);
     this.traffic = new Traffic(city, this.ren.quality, { jam: meta.jam || 0 });
     this.traffic.honk = (x, z, kind) => this.audio.horn(x, z, kind);
+    this.audio.hornGap = (meta.jam || 0) > 0.8 ? 1.3 : 2.4;   // Silk Board is allowed to be louder
     this.ren.scene.add(this.traffic.group);
     this.crowd = new Crowd(this, city, this.ren.quality);
     this.ren.scene.add(this.crowd.group);

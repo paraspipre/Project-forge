@@ -259,8 +259,8 @@ export class Traffic {
         const along = dx * hx + dz * hz, side = Math.abs(dx * hz - dz * hx);
         if (along > 0 && along < look + 2 && side < v.type.r * 0.7 + 0.8) {
           block = Math.min(block, along - v.type.r - 0.6);
-          v.honkT -= dt * 3;
-          if (v.honkT < 0 && this.honk) { this.honk(v.x, v.z, v.type.key); v.honkT = 2.5 + Math.random() * 4; }
+          v.honkT -= dt;
+          if (v.honkT < 0 && this.honk) { this.honk(v.x, v.z, v.type.key); v.honkT = 6 + Math.random() * 6; }
         }
       }
       for (const o of this.obstacles) {
@@ -268,9 +268,9 @@ export class Traffic {
         const along = dx * hx + dz * hz, side = Math.abs(dx * hz - dz * hx);
         if (along > 0 && along < look + 3 && side < v.type.r * 0.6 + o.r) block = Math.min(block, along - v.type.r - o.r);
       }
-      // random honks: it is Bengaluru
-      v.honkT -= dt * (0.25 + this.jam * 0.6);
-      if (v.honkT < 0) { v.honkT = 4 + Math.random() * 10; if (this.honk && Math.random() < 0.4) this.honk(v.x, v.z, v.type.key); }
+      // the odd random honk: it is Bengaluru (the audio side also limits how often anyone is heard)
+      v.honkT -= dt * (0.05 + this.jam * 0.12);
+      if (v.honkT < 0) { v.honkT = 6 + Math.random() * 12; if (this.honk && Math.random() < 0.3) this.honk(v.x, v.z, v.type.key); }
       const want = block < 1 ? 0 : block < look ? v.cruise * Math.min(1, (block - 1) / (look * 0.8)) : v.cruise;
       v.v += (want - v.v) * Math.min(1, dt * (want < v.v ? 5 : 1.2));
       if (v.v < 0.05) v.v = 0;

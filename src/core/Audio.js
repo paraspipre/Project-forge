@@ -24,18 +24,26 @@ export class Audio {
     this.musicOn = true;
     this.listener = { x: 0, z: 0, yaw: 0 };
     this.voiceOn = true;
+    this.trafficOn = true;
+    this.lastHorn = 0;
     this.voiceSet = new Set();
     this.voiceCache = new Map();
     try {
       this.muted = localStorage.getItem('pb.mute') === '1';
       this.musicOn = localStorage.getItem('pb.music') !== '0';
       this.voiceOn = localStorage.getItem('pb.voice') !== '0';
+      this.trafficOn = localStorage.getItem('pb.traffic') !== '0';
     } catch {}
     fetch('voice/manifest.json').then((r) => (r.ok ? r.json() : null)).then((m) => {
       if (!m) return;
       this.voiceSet = new Set(m.keys || []);
       this.voiceGroups = m.groups || {};
     }).catch(() => {});
+  }
+
+  setTraffic(on) {
+    this.trafficOn = on;
+    try { localStorage.setItem('pb.traffic', on ? '1' : '0'); } catch {}
   }
 
   setVoices(on) {
@@ -185,7 +193,7 @@ export class Audio {
   }
 
   _ambience() {
-    this.cityHum = this._loopNoise('lowpass', 280, 0.6, 0.18);
+    this.cityHum = this._loopNoise('lowpass', 220, 0.5, 0.05);
     this.rainN = this._loopNoise('bandpass', 1800, 0.5, 0);
     this.rainLow = this._loopNoise('lowpass', 500, 0.5, 0);
     this.birdT = 0; this.honkT = 0;
@@ -195,9 +203,9 @@ export class Audio {
     const c = this.ctx;
     this.sc = { o1: c.createOscillator(), o2: c.createOscillator(), g: c.createGain(), f: c.createBiquadFilter() };
     const s = this.sc;
-    s.o1.type = 'sawtooth'; s.o2.type = 'sine';
-    s.o1.frequency.value = 70; s.o2.frequency.value = 140;
-    s.f.type = 'lowpass'; s.f.frequency.value = 600;
+    s.o1.type = 'triangle'; s.o2.type = 'sine';
+    s.o1.frequency.value = 90; s.o2.frequency.value = 181;
+    s.f.type = 'lowpass'; s.f.frequency.value = 700; s.f.Q.value = 0.5;
     s.g.gain.value = 0;
     s.o1.connect(s.f); s.o2.connect(s.f); s.f.connect(s.g); s.g.connect(this.sfx);
     s.o1.start(); s.o2.start();
@@ -205,25 +213,34 @@ export class Audio {
 
   scooter(on) {
     if (!this.ctx) return;
-    this.sc.g.gain.setTargetAtTime(on ? 0.06 : 0, this.ctx.currentTime, 0.2);
+    this.sc.g.gain.setTargetAtTime(on ? 0.035 : 0, this.ctx.currentTime, 0.2);
     this._tone({ f: on ? 300 : 500, f2: on ? 900 : 200, dur: 0.35, type: 'sine', vol: 0.12 });
   }
 
   scooterSpeed(k) {
     if (!this.ctx) return;
+    // only retune when the speed has really changed, and never pile up automation events
+    if (Math.abs(k - (this._scK ?? -1)) < 0.04) return;
+    this._scK = k;
     const t = this.ctx.currentTime;
-    this.sc.o1.frequency.setTargetAtTime(60 + k * 160, t, 0.1);
-    this.sc.o2.frequency.setTargetAtTime(120 + k * 320, t, 0.1);
-    this.sc.f.frequency.setTargetAtTime(400 + k * 1800, t, 0.1);
+    for (const [o, f] of [[this.sc.o1, 90 + k * 90], [this.sc.o2, 181 + k * 180]]) {
+      o.frequency.cancelScheduledValues(t);
+      o.frequency.setTargetAtTime(f, t, 0.15);
+    }
   }
 
   // env: { night, rain, crowd (0..1 traffic density) }
   updateAmbience(env, dt) {
     if (!this.ctx) return;
-    const t = this.ctx.currentTime;
-    this.cityHum.g.gain.setTargetAtTime(0.1 + (env.crowd || 0) * 0.15, t, 1);
-    this.rainN.g.gain.setTargetAtTime((env.rain || 0) * 0.25, t, 1);
-    this.rainLow.g.gain.setTargetAtTime((env.rain || 0) * 0.18, t, 1);
+    this._ambT = (this._ambT || 0) - dt;
+    if (this._ambT <= 0) {
+      this._ambT = 0.5;
+      const t = this.ctx.currentTime;
+      for (const [g, v] of [[this.cityHum.g, this.trafficOn ? 0.03 + (env.crowd || 0) * 0.05 : 0], [this.rainN.g, (env.rain || 0) * 0.16], [this.rainLow.g, (env.rain || 0) * 0.12]]) {
+        g.gain.cancelScheduledValues(t);
+        g.gain.setTargetAtTime(v, t, 1);
+      }
+    }
     this.birdT -= dt;
     if (this.birdT < 0) {
       this.birdT = 1.5 + Math.random() * 5;
@@ -267,29 +284,35 @@ export class Audio {
     s.start(t, Math.random()); s.stop(t + dur + 0.05);
   }
 
-  // Karplus-ish plucked string (veena-like): a short burst through a feedback delay.
+  // A soft plucked string (veena-ish): a few harmonics with a quick decay and a small slide into
+  // the note (a gamaka) for the Carnatic flavour. Plain oscillators, so it is always in tune.
   _pluck(freq, at, vol = 0.18, bright = 3000) {
     const c = this.ctx;
-    const t = at;
-    const s = c.createBufferSource(); s.buffer = this.noise;
-    const burst = c.createGain();
-    burst.gain.setValueAtTime(1, t); burst.gain.setValueAtTime(0, t + 1 / freq * 2);
-    const d = c.createDelay(); d.delayTime.value = 1 / freq;
-    const fb = c.createGain(); fb.gain.value = 0.985;
-    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = bright;
+    const t = at, dur = 1.6;
     const out = c.createGain();
-    out.gain.setValueAtTime(vol, t); out.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
-    s.connect(burst); burst.connect(d); d.connect(lp); lp.connect(fb); fb.connect(d);
+    out.gain.setValueAtTime(0.0001, t);
+    out.gain.exponentialRampToValueAtTime(vol * 0.6, t + 0.006);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass'; lp.Q.value = 0.4;
+    lp.frequency.value = Math.min(bright, freq * 5, 4000);
     lp.connect(out); out.connect(this.music); out.connect(this.verb);
-    s.start(t); s.stop(t + 0.05);
-    setTimeout(() => { try { fb.disconnect(); d.disconnect(); } catch {} }, (t - c.currentTime + 2.5) * 1000);
+    for (const [mult, type, v] of [[1, 'triangle', 1], [2, 'sine', 0.28], [3, 'sine', 0.1]]) {
+      const o = c.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(freq * mult * 0.97, t);
+      o.frequency.exponentialRampToValueAtTime(freq * mult, t + 0.07);
+      const g = c.createGain(); g.gain.value = v;
+      o.connect(g); g.connect(lp);
+      o.start(t); o.stop(t + dur + 0.05);
+    }
   }
 
   _drone(at, dur) {
     const c = this.ctx;
-    for (const [mult, v] of [[1, 0.035], [1.5, 0.025], [2, 0.02], [0.5, 0.03]]) {
-      const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = SA * mult;
-      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
+    for (const [mult, v] of [[1, 0.03], [1.5, 0.018], [2, 0.014], [0.5, 0.026]]) {
+      const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = SA * mult;
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 700; f.Q.value = 0.4;
       const g = c.createGain();
       g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(v, at + 0.8); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
       o.connect(f); f.connect(g); g.connect(this.music);
@@ -351,29 +374,48 @@ export class Audio {
     return { vol, pan: Math.max(-1, Math.min(1, right / Math.max(d, 1))) };
   }
 
+  // A horn note: a couple of tones through a gentle low-pass, with soft attack and release.
+  _horn(freqs, dur, type, cutoff, vol, pan, at = 0) {
+    const c = this.ctx;
+    const t = c.currentTime + at;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.setValueAtTime(vol, t + dur - 0.04);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; lp.Q.value = 0.5;
+    let node = g;
+    if (c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = pan; g.connect(p); node = p; }
+    lp.connect(g); node.connect(this.sfx);
+    for (const f of freqs) { const o = c.createOscillator(); o.type = type; o.frequency.value = f; o.connect(lp); o.start(t); o.stop(t + dur + 0.05); }
+  }
+
   horn(x, z, kind) {
-    if (!this.ctx) return;
-    const sp = this._spatial(x, z);
-    if (!sp || sp.vol < 0.03) return;
-    const v = sp.vol * 0.22;
-    if (kind === 'auto') {         // the squeaky rubber-bulb "pom pom"
-      this._tone({ f: 520, f2: 470, dur: 0.12, type: 'square', vol: v * 0.6, pan: sp.pan, q: 900 });
-      this._tone({ f: 520, f2: 470, dur: 0.14, type: 'square', vol: v * 0.6, at: 0.17, pan: sp.pan, q: 900 });
+    if (!this.ctx || !this.trafficOn) return;
+    // the city honks, but not all at once: one horn at a time, only nearby ones
+    const now = this.ctx.currentTime;
+    if (now - this.lastHorn < (this.hornGap || 2.2)) return;
+    const sp = this._spatial(x, z, 60);
+    if (!sp || sp.vol < 0.08) return;
+    this.lastHorn = now;
+    const v = sp.vol * 0.07;
+    if (kind === 'auto') {          // the rubber-bulb "pom pom"
+      this._horn([392, 588], 0.13, 'sine', 1400, v, sp.pan);
+      this._horn([392, 588], 0.15, 'sine', 1400, v, sp.pan, 0.2);
     } else if (kind === 'bus' || kind === 'tanker') {
-      this._tone({ f: 196, dur: 0.6, type: 'sawtooth', vol: v * 0.7, pan: sp.pan, q: 600 });
-      this._tone({ f: 247, dur: 0.6, type: 'sawtooth', vol: v * 0.5, pan: sp.pan, q: 700 });
+      this._horn([196, 247], 0.5, 'sawtooth', 700, v * 0.7, sp.pan);
     } else if (kind === 'car') {
-      this._tone({ f: 415, dur: 0.25, type: 'square', vol: v * 0.5, pan: sp.pan, q: 1200 });
-      this._tone({ f: 523, dur: 0.25, type: 'square', vol: v * 0.4, pan: sp.pan, q: 1200 });
-    } else {                        // scooters: beep-beep-beeeep
-      for (let i = 0; i < 3; i++) this._tone({ f: 880, dur: i === 2 ? 0.3 : 0.09, type: 'square', vol: v * 0.45, at: i * 0.14, pan: sp.pan, q: 1800 });
+      this._horn([415, 523], 0.22, 'triangle', 1500, v, sp.pan);
+    } else {                        // scooters: beep-beep
+      this._horn([660, 830], 0.09, 'triangle', 1800, v * 0.8, sp.pan);
+      this._horn([660, 830], 0.12, 'triangle', 1800, v * 0.8, sp.pan, 0.15);
     }
   }
 
   myHorn() {
     if (!this.ctx) return;
-    this._tone({ f: 660, dur: 0.12, type: 'square', vol: 0.12, q: 1500 });
-    this._tone({ f: 660, dur: 0.25, type: 'square', vol: 0.12, at: 0.16, q: 1500 });
+    this._horn([660, 830], 0.1, 'triangle', 1800, 0.08, 0);
+    this._horn([660, 830], 0.18, 'triangle', 1800, 0.08, 0, 0.15);
   }
 
   _chirp() {
