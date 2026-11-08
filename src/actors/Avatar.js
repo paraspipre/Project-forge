@@ -169,6 +169,35 @@ function buildGeometry(look) {
   if (ex.has('jersey')) {
     P.push(part(box(0.3, 0.12, 0.01), 'chest', '#f2c14e', [0, 1.3, 0.15]));
   }
+  // boutique items
+  if (ex.has('shades')) {
+    P.push(part(box(0.21, 0.014, 0.012), 'head', '#c9a23a', [0, 1.718, 0.113]));
+    P.push(part(box(0.075, 0.05, 0.01), 'head', '#141216', [0.048, 1.7, 0.117]));
+    P.push(part(box(0.075, 0.05, 0.01), 'head', '#141216', [-0.048, 1.7, 0.117]));
+  }
+  if (ex.has('mallige')) for (let i = 0; i < 7; i++) {
+    const a = (i / 6 - 0.5) * 1.9;
+    P.push(part(sph(0.024, 5, 4), 'head', '#fbfaf2', [Math.sin(a) * 0.11, 1.68 - Math.abs(a) * 0.03, -Math.cos(a) * 0.115]));
+  }
+  if (ex.has('headphones')) {
+    P.push(part(box(0.25, 0.03, 0.045), 'head', '#22252b', [0, 1.835, 0]));
+    for (const sx of [-1, 1]) {
+      P.push(part(box(0.025, 0.12, 0.04), 'head', '#22252b', [sx * 0.122, 1.77, 0]));
+      P.push(part(cyl(0.05, 0.05, 0.04, 10), 'head', '#e75a7c', [sx * 0.125, 1.69, 0], [0, 0, Math.PI / 2]));
+    }
+  }
+  if (ex.has('goldchain')) {
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 8 - 0.5) * 2.4;
+      P.push(part(sph(0.014, 4, 3), 'chest', '#e2b13c', [Math.sin(a) * 0.1, 1.46 - Math.cos(a * 0.5) * 0.07 + 0.05, 0.1 + Math.cos(a) * 0.045]));
+    }
+    P.push(part(box(0.04, 0.05, 0.012), 'chest', '#e2b13c', [0, 1.36, 0.152]));
+  }
+  if (ex.has('rcb')) {
+    P.push(part(box(0.31, 0.22, 0.012), 'chest', '#c8102e', [0, 1.33, 0.148]));
+    P.push(part(box(0.31, 0.07, 0.013), 'chest', '#1b1718', [0, 1.2, 0.149]));
+    P.push(part(box(0.1, 0.035, 0.014), 'chest', '#e2b13c', [0, 1.38, 0.151]));
+  }
   const g = mergeGeometries(P);
   g.computeVertexNormals();
   return g;

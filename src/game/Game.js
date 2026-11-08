@@ -18,6 +18,8 @@ import { Labels } from '../ui/Labels.js';
 import { Dialogue } from '../ui/Dialogue.js';
 import { Net, makeId, clean } from '../net/Net.js';
 import { RemotePlayer } from '../net/Remote.js';
+import { VoiceChat } from '../net/VoiceChat.js';
+import { Social } from '../social/Social.js';
 import { ZONES, TRAVEL_TIPS } from '../data/zones.js';
 import { STORY } from '../data/story.js';
 import { PLAYER_LOOK } from '../actors/Avatar.js';
@@ -62,10 +64,29 @@ export class Game {
     this.time = 0;
     this.menuT = 0;
     this.quests = new Quests(this);
+    this.voice = new VoiceChat(this);
+    this.social = new Social(this);
     window.addEventListener('pointerdown', () => this.audio.unlock(), { once: false });
     window.addEventListener('keydown', () => this.audio.unlock());
     this._loop = this._loop.bind(this);
     requestAnimationFrame(this._loop);
+  }
+
+  // A compact code with all your progress, to move it to another device.
+  progressCode() {
+    const p = { ...this.profile, phrases: [...this.unlocked] };
+    return 'PB1.' + btoa(unescape(encodeURIComponent(JSON.stringify(p))));
+  }
+
+  loadProgressCode(code) {
+    try {
+      const raw = String(code).trim();
+      if (!raw.startsWith('PB1.')) return false;
+      const p = JSON.parse(decodeURIComponent(escape(atob(raw.slice(4)))));
+      if (!p || !p.id || !Array.isArray(p.done)) return false;
+      localStorage.setItem('pb.profile', JSON.stringify(p));
+      return true;
+    } catch { return false; }
   }
 
   saveProfile() {
@@ -109,6 +130,7 @@ export class Game {
     this.ren.scene.add(city.build());
     finishLandmarks(city, landmarks, this.zoneId);
     this.landmarks = landmarks;
+    try { this.social.build(city, this.zoneId); } catch (e) { console.error('venue', e); }
     for (const lm of landmarks) this.ren.scene.add(lm.object);
     this.signs = new Signs(city, data);
     this.ren.scene.add(this.signs.group);
@@ -138,6 +160,7 @@ export class Game {
     this.hud.buildMinimap(city, data);
     this.hud.setZone(meta.name);
     this.quests.loadZone(this.zoneId);
+    try { this.social.spawn(); } catch (e) { console.error('venue npcs', e); }
     this.profile.zone = this.zoneId;
     this.saveProfile();
     return city;
@@ -177,6 +200,7 @@ export class Game {
     s.remove(this.skyLife.group);
     s.remove(this.traffic.group);
     this.crowd.dispose(); s.remove(this.crowd.group);
+    this.social.unload();
     this.quests.unloadZone();
     this.labels.clear();
     for (const r of this.remotes.values()) r.dispose();
@@ -194,6 +218,7 @@ export class Game {
     card.classList.remove('hidden');
     this.audio.whoosh();
     this.state = 'loading';
+    this.voice?.closeAll();
     this.net?.close();
     this.net = null;
     try {
@@ -235,12 +260,17 @@ export class Game {
       this.hud.setOnline(1 + this.remotes.size, true);
     };
     net.on.state = (p, st) => this.remotes.get(p.id)?.push(st);
+    net.on.booth = (n, m) => this.social.hall?.onBooth(n, m);
     net.on.chat = (p, text) => {
       this.hud.chat(p.name, text);
       this.remotes.get(p.id)?.say(text);
       this.audio.chat();
     };
-    net.on.event = (p, type, data, ts) => this.quests.onNetEvent(p, type, data, ts);
+    net.on.event = (p, type, data, ts) => {
+      if (type === 'rtc') this.voice.onSignal(p, data);
+      else if (/^(party|quiz|dance|chor|club|kaapi|blast|stage|booth|hall):/.test(type)) this.social.onNet(p, type, data, ts);
+      else this.quests.onNetEvent(p, type, data, ts);
+    };
     const ok = await net.connect();
     if (this.net !== net) { net.close(); return; }
     if (ok) this.hud.chat(null, this.profile.room === 'public' ? `Online in ${ZONES[this.zoneId].short}. Say hi with T or the 💬 button.` : `Private room “${this.profile.room}”. Share the invite link from the menu.`, true);
@@ -362,7 +392,8 @@ export class Game {
     this.time += dt;
     this.input.update();
     try {
-      if (this.state === 'paused' && this.input.consume('pause')) { if (this.ui?.mapInGame) this.ui.closeMap(); else this.ui?.pause(false); }
+      if (this.state === 'paused' && (this.input.consume('pause') || this.input.consume('players'))) this.ui?.escape();
+      if (this.state === 'paused') this.voice.update(dt);
       if (this.state === 'play') this._play(dt);
       else if (this.state === 'menu' || this.state === 'loading') this._menuCam(dt);
       if (this.city) this._world(dt);
@@ -410,7 +441,7 @@ export class Game {
       p.frozen = true;
       if (inp.pressed('advance') || inp.pressed('click')) this.dlg.advance();
       for (let i = 1; i <= 4; i++) if (inp.pressed('n' + i)) this.dlg.key(i);
-    } else p.frozen = !!this.quests.freeze;
+    } else p.frozen = !!this.quests.freeze || !!this.social.freeze;
     if (inp.consume('pause')) {
       if (hud.chatOpen) hud.closeChat();
       else if (hud.wheelOpen) hud.closeWheel();
@@ -423,6 +454,9 @@ export class Game {
       if (inp.consume('chat') && performance.now() - (this.dlg.closedAt || 0) > 700 && !this.quests.talking) hud.openChat();
       if (inp.consume('emote')) hud.openWheel(this.unlocked);
       if (inp.consume('horn')) { this.audio.myHorn(); this.net?.event('horn', {}); }
+      if (inp.consume('mic')) this.ui?.toggleMic();
+      if (inp.consume('players')) this.ui?.openPlayers();
+      for (let i = 1; i <= 4; i++) if (this.social.cur?.key && inp.consume('n' + i)) this.social.key(i);
       for (let i = 1; i <= 9; i++) if (inp.consume('n' + i) && !hud.wheelOpen) {
         const e = ['wave', 'namaste', 'wobble', 'dance', 'cheer', 'laugh', 'facepalm', 'shrug', 'phone'][i - 1];
         this.doEmote(e);
@@ -436,6 +470,7 @@ export class Game {
     this._vehicleHits(dt);
     this.crowd.collidePlayer(p);
     this.quests.update(dt);
+    this.social.update(dt);
     this._social(dt);
     this.camRig.update(dt, p, inp);
 
@@ -448,17 +483,31 @@ export class Game {
     // multiplayer
     const resolveDriver = (id) => (id === this.profile.id ? { pos: p.pos, yaw: p.yaw, lean: p.lean, mode: p.mode } : this.remotes.get(id));
     for (const r of this.remotes.values()) r.update(dt, resolveDriver);
+    this.voice.update(dt);
+    this.ui?.micMeter(this.voice);
     this.sendT -= dt;
     const moving = p.speedNow > 0.2 || !p.grounded || p.mode !== 'walk';
     if (this.net && this.sendT <= 0) {
       this.sendT = moving ? 0.1 : 1.0;
-      this.net.sendState({ x: p.pos.x, y: p.pos.y, z: p.pos.z, yaw: p.yaw, mode: p.mode, emote: this.myEmote || '', speed: p.speedNow || 0, lean: p.lean, flags: p.grounded ? 0 : 1 });
+      this.net.sendState({ x: p.pos.x, y: p.pos.y, z: p.pos.z, yaw: p.yaw, mode: p.mode, emote: this.myEmote || '', speed: p.speedNow || 0, lean: p.lean, flags: (p.grounded ? 0 : 1) | this.voice.flags });
+    }
+
+    // autosave where you are, so you continue right here next time
+    this.saveT = (this.saveT ?? 4) - dt;
+    if (this.saveT <= 0) {
+      this.saveT = 4;
+      const sp = this.profile.pos;
+      if (p.mode !== 'pillion' && (!sp || sp.zone !== this.zoneId || Math.hypot(sp.x - p.pos.x, sp.z - p.pos.z) > 3)) {
+        this.profile.pos = { zone: this.zoneId, x: +p.pos.x.toFixed(1), z: +p.pos.z.toFixed(1), yaw: +p.yaw.toFixed(2) };
+        this.profile.playMin = (this.profile.playMin || 0) + 4 / 60;
+        this.saveProfile();
+      }
     }
 
     // guide arrow at the screen edge + distance to whatever we should do next
-    const gd = this.dlg.open ? null : this.quests.guide();
+    const gd = this.dlg.open || this.social.cur?.fullscreen ? null : this.quests.active ? this.quests.guide() : (this.social.guide() || this.quests.guide());
     hud.waypoint(this.ren.camera, gd ? { x: gd.x, y: gd.y || 0, z: gd.z } : null, p.pos);
-    if (gd && !this.quests.active) hud.objectiveDist(Math.hypot(gd.x - p.pos.x, gd.z - p.pos.z));
+    if (gd && !this.quests.active && gd.npc) hud.objectiveDist(Math.hypot(gd.x - p.pos.x, gd.z - p.pos.z));
 
     // HUD
     this.streetT -= dt;
@@ -471,7 +520,7 @@ export class Game {
     this.mmT -= dt;
     if (this.mmT <= 0) {
       this.mmT = 1 / 15;
-      hud.drawMinimap(p, this.camRig.yaw, [...this.remotes.values()].filter((r) => r.visible), this.quests.markers());
+      hud.drawMinimap(p, this.camRig.yaw, [...this.remotes.values()].filter((r) => r.visible), [...this.social.markers(), ...this.quests.markers()]);
     }
   }
 

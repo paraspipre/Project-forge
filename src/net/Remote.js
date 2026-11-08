@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { Avatar } from '../actors/Avatar.js';
 import { scooterGeo, vehicleMaterial } from '../actors/Vehicles.js';
 import { lerpAngle } from '../game/Player.js';
+import { TITLES } from '../data/cosmetics.js';
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // Other players: an avatar per peer, smoothly interpolated ~150 ms behind the latest packets,
 // with a name tag, chat bubbles, emotes and their own hover scooter.
@@ -57,6 +60,7 @@ export class RemotePlayer {
     this.mode = st.mode;
     this.speed = st.speed;
     this.lean = st.lean;
+    this.flags = st.flags;
   }
 
   say(text) {
@@ -69,6 +73,14 @@ export class RemotePlayer {
   // resolveDriver(id) -> { pos, yaw } of whoever this player rides pillion with
   update(dt, resolveDriver) {
     if (!this.snaps.length) return;
+    // name tag shows who has a mic on, and who is talking right now
+    const label = this.peer.name + (this.speaking ? ' 🔊' : (this.flags & 2) ? ' 🎙️' : '');
+    const title = TITLES[this.peer.look?.title] || '';
+    if (label + title !== this._label) {
+      this._label = label + title;
+      this.tag.set(esc(label) + (title ? `<span class="sub">${esc(title)}</span>` : ''), true);
+      this.tag.el.classList.toggle('speaking', !!this.speaking);
+    }
     const last = this.snaps[this.snaps.length - 1];
     if (last.mode === 'pillion' && this.pillionOf && resolveDriver) {
       const d = resolveDriver(this.pillionOf);

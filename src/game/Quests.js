@@ -323,7 +323,7 @@ export class Quests {
   refreshMarkers() {
     const quests = this.story.quests || [];
     for (const n of this.npcs.values()) {
-      if (n.def.temp) continue;
+      if (n.def.temp || n.def.social) continue;
       const q = quests.find((q) => q.giver === n.id && this.available(q) && !q.repeat) || quests.find((q) => q.giver === n.id && this.available(q));
       n.setMarker(this.active ? null : q ? (q.repeat ? 'activity' : 'quest') : null);
     }
@@ -414,6 +414,12 @@ export class Quests {
     if (this.talking) return;
     this.talking = true;
     try {
+      if (n.def.onTalk) {
+        n.face(this.game.player.pos.x, this.game.player.pos.z);
+        await n.def.onTalk(new Ctx(this, { title: '' }));
+        this.game.dlg.close();
+        return;
+      }
       const qs = (this.story.quests || []).filter((q) => q.giver === n.id && this.available(q));
       const q = qs.find((q) => !q.repeat) || qs[0];
       if (q && !this.active) { this.start(q); return; }
@@ -492,7 +498,7 @@ export class Quests {
         if (best.dwell > 0.45) { best.autoDone = true; this.talk(best); return; }
       }
       if (g.input.consume('interact')) { best.autoDone = true; this.talk(best); }
-    } else g.hud.prompt(null);
+    } else if (!g.social?.want) g.hud.prompt(null);
   }
 
   onNetEvent(peer, type, data, ts) {

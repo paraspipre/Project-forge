@@ -35,6 +35,12 @@ export class Scatter {
     this._c = new THREE.Color();
   }
 
+  // Remove items in a circle (a landmark built later on open ground).
+  clearAround(x, z, r) {
+    for (const it of this.grid.query(x - r, z - r, x + r, z + r, [])) if ((it.x - x) ** 2 + (it.z - z) ** 2 < r * r) it.gone = true;
+    this.last.set(1e9, 0, 1e9);
+  }
+
   update(cam) {
     if (Math.hypot(cam.x - this.last.x, cam.z - this.last.z) < Math.min(this.radius * 0.12, 18)) return;
     this.last.set(cam.x, 0, cam.z);
@@ -45,6 +51,7 @@ export class Scatter {
     const counts = this.meshes.map(() => 0), ncounts = this.meshes.map(() => 0);
     const up = new THREE.Vector3(0, 1, 0);
     for (const it of near) {
+      if (it.gone) continue;
       const d2 = (it.x - cam.x) ** 2 + (it.z - cam.z) ** 2;
       if (d2 > R * R) break;
       const inShadow = d2 < SR2;

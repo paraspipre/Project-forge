@@ -1,6 +1,7 @@
 import { Game } from './game/Game.js';
 import { ZONES, ZONE_ORDER } from './data/zones.js';
 import { SKINS, SHIRT_COLS, PLAYER_LOOK, randomLook } from './actors/Avatar.js';
+import { SHOP, TITLES } from './data/cosmetics.js';
 import { lobbyCounts, makeId } from './net/Net.js';
 import { QUALITY } from './core/Renderer.js';
 
@@ -39,10 +40,20 @@ class UI {
       game.setQuality(keys[(keys.indexOf(game.qualityKey) + 1) % keys.length]);
     };
     $('btn-invite').onclick = () => this.invite();
+    $('btn-save-code').onclick = () => this.copyProgress();
+    $('btn-load-code').onclick = () => this.pasteProgress();
     $('btn-quests').onclick = () => this.questList();
+    $('btn-boards').onclick = () => this.g.social.openBoards();
+    $('btn-calendar').onclick = () => { this.pause(false); this.g.social.hall?.openCalendar(); };
     $('btn-photo').onclick = () => { this.pause(false); game.photo(true); };
     $('btn-cert').onclick = () => this.certificate();
     $('map-close').onclick = () => this.closeMap();
+    $('btn-mic').onclick = () => this.toggleMic();
+    $('btn-players').onclick = () => this.openPlayers();
+    $('pl-close').onclick = () => this.closePlayers();
+    $('pl-invite').onclick = () => this.invite();
+    $('pl-mic').onclick = async () => { await this.toggleMic(); this._playersList(); };
+    $('pl-listen').onclick = () => { game.voice.setListen(!game.voice.listenOn); this._playersList(); };
     $('look-done').onclick = () => this.closeLook();
     $('look-random').onclick = () => { P.look = { ...randomLook(), extras: P.look.extras || [] }; this._lookRows(); this._applyLook(); };
     this._labels();
@@ -83,6 +94,11 @@ class UI {
     const z = zone || g.profile.zone || 'central';
     if (g.zoneId !== z) await g.travel(z);
     else { g._connect(); g.hud.big(ZONES[z].short.toUpperCase(), ZONES[z].kn, 2400); }
+    const sp = g.profile.pos;
+    if (sp && sp.zone === g.zoneId && !zone) {
+      g.player.place(sp.x, sp.z, sp.yaw || 0);
+      g.camRig.yaw = sp.yaw || 0;
+    }
     g.state = 'play';
     g.hud.show(true);
     g.hud.setCoins(g.profile.coins || 0);
@@ -147,6 +163,99 @@ class UI {
     show('quest-list', true);
   }
 
+  // ------------------------------------------------------------------ progress codes
+
+  copyProgress() {
+    const code = this.g.progressCode();
+    const done = () => this.g.hud.toast('Progress code copied! Paste it with "Load progress code" on your other device.', 5000);
+    if (navigator.clipboard) navigator.clipboard.writeText(code).then(done, () => prompt('Copy your progress code:', code));
+    else prompt('Copy your progress code:', code);
+  }
+
+  pasteProgress() {
+    const code = prompt('Paste a progress code (starts with PB1.)');
+    if (!code) return;
+    if (this.g.loadProgressCode(code)) { alert('Progress loaded! Reloading…'); location.reload(); }
+    else alert('That code did not work. Copy it again from the other device.');
+  }
+
+  // ------------------------------------------------------------------ voice + people
+
+  async toggleMic() {
+    const v = this.g.voice;
+    if (!this.g.net) { this.g.hud.toast('Voice chat needs online play (title screen → Play online).', 3500); return; }
+    await v.setMic(!v.micOn);
+    $('mic-state').textContent = v.micOn ? 'on' : 'off';
+    $('btn-mic').classList.toggle('live', v.micOn);
+  }
+
+  micMeter(v) {
+    const b = $('btn-mic');
+    if (!v.micOn) { b.style.boxShadow = ''; return; }
+    b.style.boxShadow = `3px 3px 0 var(--ink), 0 0 0 ${Math.min(8, v.level * 90).toFixed(1)}px rgba(63,179,166,0.7)`;
+  }
+
+  // Esc / Tab while a panel is open closes whichever one it is
+  escape() {
+    if (this.g.social.hall?.closeAny()) return;
+    if ($('boards') && !$('boards').classList.contains('hidden')) this.g.social.closeBoards();
+    else if ($('shop') && !$('shop').classList.contains('hidden')) this.g.social.closeShop();
+    else if (!$('players').classList.contains('hidden')) this.closePlayers();
+    else if (!$('map').classList.contains('hidden')) this.closeMap();
+    else this.pause(false);
+  }
+
+  openPlayers() {
+    this.g.state = 'paused';
+    $('players').classList.remove('hidden');
+    this._playersList();
+    clearInterval(this._plT);
+    this._plT = setInterval(() => this._playersList(), 1000);
+  }
+
+  closePlayers() {
+    clearInterval(this._plT);
+    $('players').classList.add('hidden');
+    this.g.state = 'play';
+  }
+
+  _playersList() {
+    const g = this.g, v = g.voice;
+    $('pl-mic').textContent = `🎙️ Mic: ${v.micOn ? 'On' : 'Off'}`;
+    $('pl-listen').textContent = `👂 Hear voices: ${v.listenOn ? 'On' : 'Off'}`;
+    const box = $('pl-list');
+    box.innerHTML = '';
+    const me = document.createElement('div');
+    me.className = 'pl';
+    me.textContent = `⭐ ${g.profile.name} (you) · ${g.profile.room === 'public' ? 'public room' : 'room ' + g.profile.room}`;
+    box.appendChild(me);
+    if (!g.remotes.size) {
+      const e = document.createElement('div'); e.className = 'pl empty';
+      e.textContent = g.net ? 'Nobody else in this district right now. Share an invite link and play together!' : 'You are playing offline.';
+      box.appendChild(e);
+    }
+    for (const r of g.remotes.values()) {
+      const row = document.createElement('div');
+      row.className = 'pl';
+      const d = Math.round(r.pos.distanceTo(g.player.pos));
+      const nm = document.createElement('span');
+      nm.textContent = `${r.speaking ? '🔊' : (r.flags & 2) ? '🎙️' : '🙂'} ${r.peer.name} · ${d} m`;
+      row.appendChild(nm);
+      const mute = document.createElement('button'); mute.className = 'mini';
+      mute.textContent = v.muted.has(r.peer.id) ? '🔈 Unmute' : '🔇 Mute';
+      mute.onclick = () => { v.toggleMute(r.peer.id); this._playersList(); };
+      const go = document.createElement('button'); go.className = 'mini';
+      go.textContent = '📍 Go to';
+      go.onclick = () => {
+        g.player.place(r.pos.x + 2, r.pos.z + 2);
+        g.fx.poof(g.player.pos, 'WHOOSH!');
+        this.closePlayers();
+      };
+      row.append(mute, go);
+      box.appendChild(row);
+    }
+  }
+
   // A printable "Certified Bengalurean" certificate, signed by the locals.
   certificate() {
     const g = this.g;
@@ -205,7 +314,7 @@ class UI {
     const extra = (v) => {
       const on = (L.extras || []).includes(v);
       const b = document.createElement('button'); b.className = 'opt' + (on ? ' on' : '');
-      b.textContent = { satchel: '👜 Satchel', backpack: '🎒 Backpack', glasses: '👓 Glasses', lanyard: '🪪 Office ID', helmet: '⛑️ Helmet', cap: '🧢 Cap', mustache: '🥸 Moustache', bindi: '🔴 Bindi', jersey: '🏏 Jersey' }[v] || v;
+      b.textContent = { satchel: '👜 Satchel', backpack: '🎒 Backpack', glasses: '👓 Glasses', lanyard: '🪪 Office ID', helmet: '⛑️ Helmet', cap: '🧢 Cap', mustache: '🥸 Moustache', bindi: '🔴 Bindi', jersey: '🏏 Jersey' }[v] || SHOP.find((s) => s.id === v)?.name || v;
       b.onclick = () => { const s = new Set(L.extras || []); on ? s.delete(v) : s.add(v); L.extras = [...s]; this._lookRows(); this._applyLook(); };
       return b;
     };
@@ -215,7 +324,16 @@ class UI {
     row('Top', ['tee', 'shirt', 'kurta'], opt('shirtStyle', { tee: 'T-shirt', shirt: 'Shirt', kurta: 'Kurta' }));
     row('Top col', SHIRT_COLS, swatch('shirt'));
     row('Pants', ['#ece3cf', '#3b4a63', '#2f2f35', '#6b5844', '#9fb4c8', '#2f8f4e'], swatch('pants'));
-    row('Extras', ['satchel', 'backpack', 'glasses', 'lanyard', 'helmet', 'cap', 'mustache', 'bindi', 'jersey'], extra);
+    const P = this.g.profile;
+    const owned = (P.owned || []).filter((id) => SHOP.some((s) => s.id === id && s.kind === 'extra'));
+    row('Extras', ['satchel', 'backpack', 'glasses', 'lanyard', 'helmet', 'cap', 'mustache', 'bindi', 'jersey', ...owned], extra);
+    const titles = [0, ...new Set(P.titles || [])];
+    if (titles.length > 1) row('Title', titles, (t) => {
+      const b = document.createElement('button'); b.className = 'opt' + ((L.title || 0) === t ? ' on' : ''); b.textContent = t ? TITLES[t] : 'None';
+      b.onclick = () => { L.title = t; this._lookRows(); this._applyLook(); };
+      return b;
+    });
+    else row('Title', [0], () => { const s = document.createElement('small'); s.textContent = 'Win games or visit Boutique Bhavana at Namma Club for titles.'; return s; });
     this.g.net?.updateProfile(this.g.profile.name, L);
   }
 

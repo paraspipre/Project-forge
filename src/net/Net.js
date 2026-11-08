@@ -31,6 +31,7 @@ export function safeLook(l) {
   if (Array.isArray(l.extras)) out.extras = l.extras.filter((e) => typeof e === 'string' && /^[a-zA-Z]{2,16}$/.test(e)).slice(0, 6);
   const h = +l.height; if (h > 0.85 && h < 1.15) out.height = h;
   const b = +l.build; if (b > 0.85 && b < 1.2) out.build = b;
+  const t = +l.title; if (Number.isInteger(t) && t > 0 && t < 40) out.title = t;
   return out;
 }
 
@@ -55,7 +56,7 @@ export class Net {
     this.seq = 0;
     this.msgN = 0;
     this.lastChat = 0;
-    this.on = { join: null, leave: null, state: null, chat: null, event: null, status: null };
+    this.on = { join: null, leave: null, state: null, chat: null, event: null, status: null, booth: null };
     this.connected = false;
   }
 
@@ -65,7 +66,7 @@ export class Net {
       const c = new MiniMqtt(url, { clientId: `pb-${this.id}-${Math.random().toString(36).slice(2, 6)}`, keepalive: 20, will });
       await c.connect(9000);
       c.onMessage((t, p, r) => this._onMessage(t, p, r));
-      for (const s of ['p/+', 's', 'c', 'e']) c.subscribe(`${this.base}/${s}`);
+      for (const s of ['p/+', 's', 'c', 'e', 'booth/+']) c.subscribe(`${this.base}/${s}`);
       c.onclose = () => { this.clients = this.clients.filter((x) => x !== c); this._status(); setTimeout(() => this._reconnect(url), 3000); };
       this.clients.push(c);
       this._status();
@@ -90,7 +91,7 @@ export class Net {
       const c = new MiniMqtt(url, { clientId: `pb-${this.id}-${Math.random().toString(36).slice(2, 6)}`, keepalive: 20, will: { topic: `${this.base}/p/${this.id}`, payload: '', retain: true } });
       await c.connect(9000);
       c.onMessage((t, p, r) => this._onMessage(t, p, r));
-      for (const s of ['p/+', 's', 'c', 'e']) c.subscribe(`${this.base}/${s}`);
+      for (const s of ['p/+', 's', 'c', 'e', 'booth/+']) c.subscribe(`${this.base}/${s}`);
       c.onclose = () => { this.clients = this.clients.filter((x) => x !== c); this._status(); setTimeout(() => this._reconnect(url), 5000); };
       this.clients.push(c);
       this._announce();
@@ -107,6 +108,9 @@ export class Net {
   _announce() {
     this._pub(`p/${this.id}`, JSON.stringify({ id: this.id, name: this.name, look: this.look, t: Date.now() }), true);
   }
+
+  // Meetup Hall booths: retained, so they stay up for everyone who comes later.
+  booth(n, data) { this._pub(`booth/${n}`, data ? JSON.stringify(data) : '', true); }
 
   updateProfile(name, look) { this.name = name; this.look = look; this._announce(); }
 
@@ -189,6 +193,14 @@ export class Net {
       this.on.state?.(p, st);
       return;
     }
+    if (sub.startsWith('booth/')) {
+      const n = parseInt(sub.slice(6), 10);
+      if (!(n >= 0 && n < 12)) return;
+      let m = null;
+      if (payload.length) { try { m = JSON.parse(dec.decode(payload)); } catch { return; } }
+      this.on.booth?.(n, m);
+      return;
+    }
     if (sub.startsWith('p/')) {
       const id = sub.slice(2);
       if (id === this.id) return;
@@ -231,6 +243,83 @@ export class Net {
     this.clients = [];
     this.peers.clear();
   }
+}
+
+// Weekly leaderboards: one retained message per player per board per week.
+//   peakblr/v1/lb/<board>/<week>/<id>  { n: name, s: score, z: zone, t }
+const LB_MAX = { quiz: 1400, dance: 60000, chor: 110, blasters: 99 };
+
+async function quickClient(timeout = 5000) {
+  for (const u of BROKERS) {
+    try { return await new MiniMqtt(u, { clientId: 'pb-lb-' + Math.random().toString(36).slice(2, 8) }).connect(timeout); } catch {}
+  }
+  throw new Error('no broker');
+}
+
+export async function postBoard(board, week, id, entry) {
+  if (!LB_MAX[board] || !(entry.s >= 0) || entry.s > LB_MAX[board]) return;
+  const payload = JSON.stringify({ ...entry, n: clean(entry.n || 'Guest').slice(0, 16) });
+  const all = await Promise.allSettled(BROKERS.map((u) => new MiniMqtt(u, { clientId: 'pb-lbp-' + Math.random().toString(36).slice(2, 8) }).connect(5000)));
+  for (const r of all) {
+    if (r.status !== 'fulfilled') continue;
+    r.value.publish(`${ROOT}/lb/${board}/${week}/${id}`, payload, true);
+    setTimeout(() => r.value.close(), 800);
+  }
+}
+
+export async function fetchBoard(board, week, wait = 1600) {
+  const c = await quickClient();
+  const rows = new Map();
+  c.onMessage((topic, payload) => {
+    if (!payload.length) return;
+    const id = topic.split('/').pop();
+    try {
+      const m = JSON.parse(dec.decode(payload));
+      const s = Math.round(+m.s);
+      if (!(s >= 0) || s > (LB_MAX[board] || 1e9)) return;
+      rows.set(id, { id, n: clean(m.n || 'Guest').slice(0, 16), s, z: String(m.z || '').replace(/[^a-z]/g, '').slice(0, 14) });
+    } catch {}
+  });
+  c.subscribe(`${ROOT}/lb/${board}/${week}/+`);
+  await new Promise((r) => setTimeout(r, wait));
+  c.close();
+  return [...rows.values()].sort((a, b) => b.s - a.s);
+}
+
+// The meetup calendar: retained entries at peakblr/v1/meetups/<id>, visible from every district.
+export async function listMeetups(wait = 1500) {
+  const c = await quickClient();
+  const out = new Map();
+  c.onMessage((topic, payload) => {
+    if (!payload.length) return;
+    const id = topic.split('/').pop();
+    try {
+      const m = JSON.parse(dec.decode(payload));
+      const at = +m.at, dur = Math.min(240, Math.max(15, +m.dur || 60));
+      if (!(at > 0) || at + dur * 60000 < Date.now() || at > Date.now() + 30 * 86400000) return;
+      out.set(id, {
+        id, at, dur, title: clean(m.title || '').slice(0, 60), desc: clean(m.desc || '').slice(0, 200),
+        host: String(m.host || '').slice(0, 8), hostName: clean(m.hostName || 'Someone').slice(0, 16),
+        zone: String(m.zone || 'central').replace(/[^a-z]/g, '').slice(0, 14), room: String(m.room || 'public').replace(/[^a-z0-9-]/g, '').slice(0, 12) || 'public',
+      });
+    } catch {}
+  });
+  c.subscribe(`${ROOT}/meetups/+`);
+  await new Promise((r) => setTimeout(r, wait));
+  c.close();
+  return [...out.values()].filter((m) => m.title).sort((a, b) => a.at - b.at);
+}
+
+export async function postMeetup(id, m) {
+  const all = await Promise.allSettled(BROKERS.map((u) => new MiniMqtt(u, { clientId: 'pb-mu-' + Math.random().toString(36).slice(2, 8) }).connect(5000)));
+  let ok = false;
+  for (const r of all) {
+    if (r.status !== 'fulfilled') continue;
+    r.value.publish(`${ROOT}/meetups/${id}`, m ? JSON.stringify(m) : '', true);
+    ok = true;
+    setTimeout(() => r.value.close(), 800);
+  }
+  return ok;
 }
 
 // Peek at how many people are in each zone (for the title screen and metro map).

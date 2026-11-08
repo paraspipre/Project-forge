@@ -67,6 +67,37 @@ export class Player {
     if (input.consume('interact') || input.consume('jump') || input.consume('ride')) this.hopOff();
   }
 
+  // Take over a vehicle (see Driving.js): veh = { key, spec, mesh, tint }
+  enterVehicle(veh) {
+    if (this.mode === 'ride') this.toggleRide();
+    this.mode = 'drive';
+    this.veh = veh;
+    this.object.add(veh.mesh);
+    veh.mesh.position.set(0, 0.08, 0);
+    this.speed = 0;
+    this.vel.set(0, 0, 0);
+    this.lean = 0;
+    this.avatar.object.visible = !veh.spec.hide;
+  }
+
+  exitVehicle() {
+    if (this.mode !== 'drive') return null;
+    const v = this.veh;
+    this.object.remove(v.mesh);
+    const out = { key: v.key, tint: v.tint, x: this.pos.x, z: this.pos.z, y: this.pos.y, yaw: this.yaw };
+    this.mode = 'walk';
+    this.veh = null;
+    this.avatar.object.visible = true;
+    // step out on the left (keep-left country: the kerb side)
+    const side = v.spec.r + 0.9;
+    const [cx, cz] = this.game.city.collide(this.pos.x + Math.cos(this.yaw) * side, this.pos.z - Math.sin(this.yaw) * side, 0.4, this.pos.y);
+    this.pos.x = cx; this.pos.z = cz;
+    this.vel.set(0, 2, 0);
+    this.grounded = false;
+    this.speed = 0;
+    return out;
+  }
+
   setLook(look) {
     this.object.remove(this.avatar.object);
     this.avatar.dispose();
@@ -82,6 +113,7 @@ export class Player {
   }
 
   toggleRide() {
+    if (this.mode === 'walk' && this.game.social?.noRide) { this.game.hud?.toast('No scooters in Chor-Police! Run!', 1800); return; }
     if (this.mode === 'ride') {
       this.mode = 'walk';
       this.scooter.object.visible = false;
@@ -109,9 +141,10 @@ export class Player {
     if (this.mode === 'pillion') {
       this._pillion(dt, input);
     } else {
-    if (!this.frozen && input.consume('ride')) this.toggleRide();
+    if (!this.frozen && input.consume('ride')) { if (this.mode === 'drive') this.game.driving?.exit(); else this.toggleRide(); }
 
     if (this.mode === 'ride') this._ride(dt, input, wish, wishLen, camYaw);
+    else if (this.mode === 'drive') this._ride(dt, input, wish, wishLen, camYaw, this.veh.spec);
     else if (this.mode === 'climb') this._climb(dt, input, wish, wishLen);
     else this._walk(dt, input, wish, wishLen);
     }
@@ -124,9 +157,10 @@ export class Player {
     this.object.position.copy(this.pos);
     this.object.rotation.y = this.yaw;
     const hspeed = Math.hypot(this.vel.x, this.vel.z);
+    const seated = this.mode === 'ride' || this.mode === 'drive';
     this.avatar.update(dt, {
-      speed: this.mode === 'ride' ? 0 : hspeed, grounded: this.grounded || this.mode === 'climb', vy: this.vel.y,
-      mode: this.mode === 'ride' ? 'ride' : this.mode === 'pillion' ? 'pillion' : 'walk', lean: this.lean,
+      speed: seated ? 0 : hspeed, grounded: this.grounded || this.mode === 'climb', vy: this.vel.y,
+      mode: seated ? 'ride' : this.mode === 'pillion' ? 'pillion' : 'walk', lean: this.lean,
     });
     this.laptop.visible = this.mode === 'pillion';
     if (this.mode === 'climb') this._climbPose();
@@ -138,6 +172,14 @@ export class Player {
     }
     if (this.mode === 'pillion') {
       this.avatar.object.position.set(0, 0.22, -0.55);
+    } else if (this.mode === 'drive') {
+      const bob = Math.sin(performance.now() / 260) * 0.04;
+      const two = this.veh.spec.pose === 'ride' && this.veh.spec.r < 1;
+      this.veh.mesh.position.y = 0.08 + bob;
+      this.veh.mesh.rotation.z = two ? -this.lean * 0.35 : -this.lean * 0.05;
+      const s = this.veh.spec.sit || [0, 0, 0];
+      this.avatar.object.position.set(s[0], s[1] + bob, s[2]);
+      this.avatar.object.rotation.z = two ? -this.lean * 0.35 : 0;
     } else if (this.mode === 'ride') {
       const bob = Math.sin(performance.now() / 260) * 0.05;
       this.scooter.object.position.y = 0.05 + bob;
@@ -156,7 +198,7 @@ export class Player {
 
   _walk(dt, input, wish, wishLen) {
     const city = this.game.city;
-    const target = (input.run ? RUN : WALK) * wishLen;
+    const target = (input.run ? RUN : WALK) * wishLen * (this.boost || 1);
     const accel = this.grounded ? 12 : 3;
     this.vel.x += (wish.x * target - this.vel.x) * Math.min(1, dt * accel);
     this.vel.z += (wish.z * target - this.vel.z) * Math.min(1, dt * accel);
@@ -236,7 +278,8 @@ export class Player {
     bn.shL.rotation.set(1.2, 0, 0); bn.shR.rotation.set(1.2, 0, 0);
   }
 
-  _ride(dt, input, wish, wishLen, camYaw) {
+  // The hover scooter, and (with a spec) any vehicle you've taken: same handling, different numbers.
+  _ride(dt, input, wish, wishLen, camYaw, spec = null) {
     const city = this.game.city;
     const keyboard = input.joy.id === null && !input.hasPad;
     let throttle = 0, steer = 0;
@@ -253,18 +296,19 @@ export class Player {
       throttle = wishLen * (Math.abs(d) > 2.2 ? -0.4 : 1);
     }
     if (this.frozen) { throttle = 0; steer = 0; }
-    const max = input.run ? SC_BOOST : SC_MAX;
-    if (throttle > 0) this.speed += throttle * 14 * dt * (this.speed < max ? 1 : -0.5);
+    const max = (spec ? spec.max * (input.run ? 1.25 : 1) : input.run ? SC_BOOST : SC_MAX) * (this.boost || 1);
+    const acc = spec ? spec.acc : 14;
+    if (throttle > 0) this.speed += throttle * acc * dt * (this.speed < max ? 1 : -0.5);
     else if (throttle < 0) this.speed += throttle * (this.speed > 0 ? 26 : 8) * dt;
     else this.speed *= Math.pow(0.55, dt);
     this.speed = THREE.MathUtils.clamp(this.speed, -6, max);
-    const turn = steer * dt * (1.4 + 1.6 / (1 + Math.abs(this.speed) * 0.08)) * (this.speed < 0 ? -1 : 1);
+    const turn = steer * dt * (1.4 + 1.6 / (1 + Math.abs(this.speed) * 0.08)) * (this.speed < 0 ? -1 : 1) * (spec ? spec.turn : 1);
     if (Math.abs(this.speed) > 0.3 || !keyboard) this.yaw += turn;
     this.lean += (steer * Math.min(1, Math.abs(this.speed) / 10) - this.lean) * Math.min(1, dt * 6);
     this.vel.x = Math.sin(this.yaw) * this.speed;
     this.vel.z = Math.cos(this.yaw) * this.speed;
     const nx = this.pos.x + this.vel.x * dt, nz = this.pos.z + this.vel.z * dt;
-    const [cx, cz, hit] = city.collide(nx, nz, 0.7, this.pos.y);
+    const [cx, cz, hit] = city.collide(nx, nz, spec ? spec.r : 0.7, this.pos.y);
     if (hit) {
       if (Math.abs(this.speed) > 8) { this.game.fx?.pop(this.pos, 'BONK!'); this.game.audio?.bonk(); this.game.camRig?.shake(0.4); }
       this.speed *= 0.35;
@@ -278,7 +322,7 @@ export class Player {
     if (this.pos.y <= g) { this.pos.y += (g - this.pos.y) * Math.min(1, dt * 18); if (this.pos.y > g - 0.4) this.pos.y = Math.max(this.pos.y, g); this.vel.y = 0; this.grounded = true; }
     else this.grounded = this.pos.y < g + 0.1;
     this.speedNow = Math.abs(this.speed);
-    this.game.audio?.scooterSpeed(Math.abs(this.speed) / SC_BOOST);
+    this.game.audio?.scooterSpeed(Math.abs(this.speed) / (spec ? spec.max * 1.25 : SC_BOOST));
   }
 
   // Knock-back when something big hits you.
@@ -319,15 +363,22 @@ export class CameraRig {
     if (look.x || look.y) this.idle = 0; else this.idle += dt;
     this.yaw -= look.x * 0.0055;
     this.pitch = THREE.MathUtils.clamp(this.pitch + look.y * 0.004, -0.35, 1.25);
-    const riding = player.mode === 'ride' || player.mode === 'pillion';
+    const riding = player.mode === 'ride' || player.mode === 'pillion' || player.mode === 'drive';
     // drift behind the player while they move and the camera is left alone
     const sp = player.speedNow || 0;
     if (this.idle > (riding ? 0.5 : 1.4) && sp > 1.5) {
       this.yaw = lerpAngle(this.yaw, player.yaw, Math.min(1, dt * (riding ? 2.2 : 0.8)));
       if (riding) this.pitch += (0.22 - this.pitch) * Math.min(1, dt);
     }
-    const dist = this.dist + (riding ? 2.5 + sp * 0.08 : 0);
-    const tgt = player.pos.clone().add(new THREE.Vector3(0, riding ? 1.8 : 1.55, 0));
+    const big = player.mode === 'drive' ? player.veh.spec.cam - 9 : 0;
+    let dist = this.dist + (riding ? 2.5 + sp * 0.08 + big : 0);
+    const tgt = player.pos.clone().add(new THREE.Vector3(0, riding ? 1.8 + big * 0.15 : 1.55, 0));
+    // over-the-shoulder aiming (Blasters)
+    if (this.shoulder) {
+      dist = 3.6;
+      tgt.y += 0.15;
+      tgt.x += -Math.cos(this.yaw) * 0.75; tgt.z += Math.sin(this.yaw) * 0.75;
+    }
     this.target.lerp(tgt, Math.min(1, dt * 14));
     if (this.target.distanceTo(tgt) > 20) this.target.copy(tgt);
     const dir = new THREE.Vector3(-Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), -Math.cos(this.yaw) * Math.cos(this.pitch));

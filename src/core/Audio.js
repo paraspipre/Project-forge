@@ -141,6 +141,7 @@ export class Audio {
     this.music = c.createGain(); this.music.gain.value = this.musicOn ? 0.32 : 0; this.music.connect(this.master);
     this.sfx = c.createGain(); this.sfx.gain.value = 0.8; this.sfx.connect(this.master);
     this.amb = c.createGain(); this.amb.gain.value = 0.5; this.amb.connect(this.master);
+    this.club = c.createGain(); this.club.gain.value = 0; this.club.connect(this.music);
     // a soft room for the music
     this.verb = c.createConvolver();
     this.verb.buffer = this._impulse(2.2);
@@ -337,11 +338,14 @@ export class Audio {
   // Bar-by-bar generative score: 8-beat (adi tala-ish) cycles, gentle phrases over the drone.
   _schedule() {
     const c = this.ctx;
-    if (!c || !this.musicOn) { if (c) this.nextT = c.currentTime + 0.2; return; }
+    if (!c || !this.musicOn) { if (c) this.nextT = c.currentTime + 0.2; this.clubN = null; return; }
+    this._clubSchedule();
+    const clubOn = this._clubLevel() > 0.35;
     const beat = 60 / 84;
     while (this.nextT < c.currentTime + 0.4) {
       const s = this.step;
       const t = this.nextT;
+      if (clubOn) { this.step++; this.nextT += beat; continue; }
       const inBar = s % 8;
       if (s % 32 === 0) this._drone(t, beat * 32 + 0.5);
       const pat = ['dha', 'ti', 'na', 'ti', 'dha', 'dha', 'na', 'ti'];
@@ -359,6 +363,95 @@ export class Audio {
       }
       this.step++;
       this.nextT += beat;
+    }
+  }
+
+  // ------------------------------------------------------------- Namma Club
+  // House at 118 BPM in the Mohanam scale. The beat grid is tied to the wall clock, so everyone at
+  // the club hears the same bar at the same moment (and dance-off notes land on the beat).
+
+  setClub(level) { this.clubLevel = level; }
+  clubForce(on) { this.clubForced = on; }
+  _clubLevel() { return this.clubForced ? 1 : this.clubLevel || 0; }
+
+  clubDrop() {
+    if (!this.ctx) return;
+    this._noise({ dur: 1.4, vol: 0.3, f: 500, type: 'lowpass', bus: this.club });
+    this._tone({ f: 1200, f2: 90, dur: 1.1, type: 'sawtooth', vol: 0.1, bus: this.club, q: 700 });
+  }
+
+  _clubSchedule() {
+    const c = this.ctx, lvl = this._clubLevel(), t = c.currentTime;
+    if (Math.abs(lvl - (this._clubG ?? -1)) > 0.02) {
+      this._clubG = lvl;
+      this.club.gain.cancelScheduledValues(t);
+      this.club.gain.setTargetAtTime(lvl, t, 0.4);
+    }
+    if (lvl < 0.01) { this.clubN = null; return; }
+    const stepMs = 60000 / 118 / 4;
+    const off = t - Date.now() / 1000;
+    if (this.clubOff == null || Math.abs(off - this.clubOff) > 0.03) this.clubOff = off;
+    if (this.clubN == null) this.clubN = Math.ceil(Date.now() / stepMs);
+    for (;;) {
+      const at = (this.clubN * stepMs) / 1000 + this.clubOff;
+      if (at > t + 0.3) break;
+      if (at >= t) this._clubStep(this.clubN, at);
+      this.clubN++;
+    }
+  }
+
+  _clubStep(n, at) {
+    const c = this.ctx, bus = this.club;
+    const s = n % 16, bar = Math.floor(n / 16), sect = bar % 16;
+    const h = (k) => (((n * 2654435761) ^ (k * 40503)) >>> 0) / 4294967296;   // same "random" for everyone
+    const env = (node, vol, dur, a = 0.004) => {
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(vol, at + a); g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+      node.connect(g); g.connect(bus);
+      return g;
+    };
+    const osc = (type, f, dur) => { const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f, at); o.start(at); o.stop(at + dur + 0.05); return o; };
+    const breakdown = sect >= 12 && sect < 14;
+    // kick
+    if (s % 4 === 0 && !breakdown) {
+      const o = osc('sine', 150, 0.32);
+      o.frequency.exponentialRampToValueAtTime(44, at + 0.12);
+      env(o, 0.9, 0.32);
+    }
+    // clap and hats
+    if ((s === 4 || s === 12) && !breakdown) {
+      const src = c.createBufferSource(); src.buffer = this.noise;
+      const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1500; f.Q.value = 0.9;
+      src.connect(f); env(f, 0.28, 0.16, 0.002); src.start(at, h(1)); src.stop(at + 0.2);
+    }
+    if (s % 4 === 2 || (s % 2 === 1 && h(2) < 0.4)) {
+      const src = c.createBufferSource(); src.buffer = this.noise;
+      const f = c.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000;
+      src.connect(f); env(f, s % 4 === 2 ? 0.12 : 0.05, s % 4 === 2 ? 0.09 : 0.03, 0.002); src.start(at, h(3)); src.stop(at + 0.12);
+    }
+    // bass on the off-beats, following a four-chord loop in the scale
+    const prog = [0, 0, 9, 9, 7, 7, 4, 2];
+    const root = prog[Math.floor(bar / 2) % 8];
+    if (s % 4 === 2 || (s === 15 && h(4) < 0.5)) {
+      const o = osc('sawtooth', (SA / 2) * Math.pow(2, root / 12), 0.24);
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 380; f.Q.value = 1;
+      o.connect(f); env(f, breakdown ? 0.12 : 0.3, 0.22, 0.01);
+    }
+    // chord stabs
+    if ((s === 0 || s === 6 || s === 10) && bar % 2 === 0) {
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2200; f.Q.value = 0.5;
+      const g = env(f, 0.07, 0.3, 0.006);
+      g.connect(this.verb);
+      for (const k of [0, 7, 12, 16]) osc('triangle', SA * Math.pow(2, (root + k) / 12), 0.3).connect(f);
+    }
+    // a little Mohanam hook on top in the second half of each section
+    if (sect % 8 >= 4 && s % 2 === 0 && h(5) < 0.55) {
+      const deg = Math.floor(h(6) * 5), oct = h(7) < 0.25 ? 2 : 1;
+      const o = osc('square', SA * 2 * oct * Math.pow(2, MOHANAM[deg] / 12), 0.16);
+      const f = c.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 2400; f.Q.value = 0.4;
+      o.connect(f);
+      const g = env(f, 0.035, 0.16, 0.005);
+      g.connect(this.verb);
     }
   }
 
