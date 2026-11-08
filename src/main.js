@@ -88,7 +88,12 @@ class UI {
     g.hud.setCoins(g.profile.coins || 0);
     g.player.setLook(g.profile.look);
     g.quests.nextHint();
-    if (!g.profile.done.length) setTimeout(() => g.hud.toast('Welcome to Bengaluru, 2099! Find Manju Anna (yellow !) next to the metro station.', 6000), 2600);
+    const first = g.quests.guide();
+    if (first && Math.hypot(first.x - g.player.pos.x, first.z - g.player.pos.z) < 300) {
+      g.camRig.yaw = Math.atan2(first.x - g.player.pos.x, first.z - g.player.pos.z);
+      g.player.yaw = g.camRig.yaw;
+    }
+    if (!g.profile.done.length) setTimeout(() => g.hud.toast('Welcome to Bengaluru, 2099! Follow the yellow ▼ to Manju Anna.', 4500), 2600);
     if (g.input.isTouch && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
   }
 

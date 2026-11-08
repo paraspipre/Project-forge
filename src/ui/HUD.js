@@ -214,21 +214,34 @@ export class HUD {
     t.classList.toggle('hurry', sec < 10);
   }
 
-  // Edge-of-screen arrow towards a world point when it's off screen (or behind).
-  waypoint(camera, p) {
+  // Always-visible guide marker: a bobbing ▼ with the distance right above the target while it's on
+  // screen, and an arrow pinned to the screen edge pointing at it when it's off screen or behind.
+  // It stays out of the top band of the screen where the HUD panels sit.
+  waypoint(camera, p, playerPos) {
     const wp = $('waypoint');
     if (!p) { wp.classList.add('hidden'); return; }
-    const v = this._v.set(p.x, (p.y || 0) + 2, p.z).project(camera);
+    const from = playerPos || camera.position;
+    const d = Math.hypot(p.x - from.x, p.z - from.z);
+    if (d < 5) { wp.classList.add('hidden'); return; }
+    $('wp-dist').textContent = d > 1000 ? `${(d / 1000).toFixed(1)} km` : `${Math.round(d)} m`;
+    const v = this._v.set(p.x, (p.y || 0) + 3.2, p.z).project(camera);
     const behind = v.z > 1;
     let x = v.x, y = v.y;
-    if (behind) { x = -x; y = -y; }
-    const on = !behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.85;
-    if (on) { wp.classList.add('hidden'); return; }
-    const m = Math.max(Math.abs(x) / 0.9, Math.abs(y) / 0.8);
-    x /= m; y /= m;
+    if (behind) { x = -x; y = -Math.abs(y) - 0.2; }
+    const TOP = 0.62, BOTTOM = -0.82, SIDE = 0.9;   // NDC limits (top band is HUD territory)
+    const on = !behind && Math.abs(x) < SIDE && y < TOP && y > BOTTOM;
+    if (!on) {
+      // squash onto the edge of the allowed rectangle along the direction from screen centre
+      const cy = (TOP + BOTTOM) / 2;
+      const dy = y - cy;
+      const m = Math.max(Math.abs(x) / SIDE, dy > 0 ? dy / (TOP - cy) : dy / (BOTTOM - cy), 1e-6);
+      x /= m; y = cy + dy / m;
+    }
     wp.classList.remove('hidden');
+    wp.classList.toggle('edge', !on);
     wp.style.transform = `translate(${((x * 0.5 + 0.5) * innerWidth).toFixed(0)}px, ${((-y * 0.5 + 0.5) * innerHeight).toFixed(0)}px) translate(-50%, -50%)`;
-    $('wp-arrow').style.transform = `rotate(${Math.atan2(x, y)}rad)`;
+    $('wp-arrow').textContent = on ? '▼' : '▲';
+    $('wp-arrow').style.transform = on ? '' : `rotate(${Math.atan2(x, y - (TOP + BOTTOM) / 2)}rad)`;
   }
 
   // ------------------------------------------------------------ chat

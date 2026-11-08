@@ -6,6 +6,12 @@ from playwright.async_api import async_playwright
 
 ZONES = ['silkboard', 'koramangala', 'indiranagar', 'basavanagudi', 'bellandur', 'majestic', 'malleshwaram', 'ecity', 'whitefield']
 SCENARIOS = {
+    'guide': [
+        ('wait', 2500), ('shot', 'facing'),
+        ('js', "game.camRig.yaw += Math.PI; game.player.yaw = game.camRig.yaw;"), ('wait', 1200), ('shot', 'away'),
+        ('js', "game.player.place(game.player.pos.x - 300, game.player.pos.z + 200)"), ('wait', 1500), ('shot', 'far'),
+        ('js', "console.error('GUIDE ' + JSON.stringify({ wp: !document.getElementById('waypoint').classList.contains('hidden'), dist: document.getElementById('wp-dist').textContent, obj: document.getElementById('obj-text').textContent, objDist: document.getElementById('obj-dist').textContent }))"),
+    ],
     'handsfree': [
         ('wait', 2000),
         ('js', "const m = game.quests.npcs.get('manju'); game.player.place(m.pos.x + 1.6, m.pos.z + 1.2, Math.PI); window.__t0 = performance.now(); window.__log = []; setInterval(() => window.__log.push([Math.round((performance.now() - window.__t0) / 1000), document.getElementById('dlg-name').textContent, document.getElementById('dlg-text').textContent.slice(0, 40), !document.getElementById('dialogue').classList.contains('hidden'), document.getElementById('obj-text').textContent.slice(0, 50)]), 2000);"),

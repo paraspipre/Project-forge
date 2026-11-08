@@ -455,6 +455,11 @@ export class Game {
       this.net.sendState({ x: p.pos.x, y: p.pos.y, z: p.pos.z, yaw: p.yaw, mode: p.mode, emote: this.myEmote || '', speed: p.speedNow || 0, lean: p.lean, flags: p.grounded ? 0 : 1 });
     }
 
+    // guide arrow at the screen edge + distance to whatever we should do next
+    const gd = this.dlg.open ? null : this.quests.guide();
+    hud.waypoint(this.ren.camera, gd ? { x: gd.x, y: gd.y || 0, z: gd.z } : null, p.pos);
+    if (gd && !this.quests.active) hud.objectiveDist(Math.hypot(gd.x - p.pos.x, gd.z - p.pos.z));
+
     // HUD
     this.streetT -= dt;
     if (this.streetT <= 0) {

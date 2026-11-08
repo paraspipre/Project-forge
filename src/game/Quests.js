@@ -332,7 +332,7 @@ export class Quests {
   markers() {
     const out = [];
     for (const n of this.npcs.values()) {
-      if (n.markerKind === 'quest') out.push({ x: n.pos.x, z: n.pos.z, icon: '!', color: '#f2c14e', size: 18 });
+      if (n.markerKind === 'quest') out.push({ x: n.pos.x, z: n.pos.z, icon: '!', color: '#f2c14e', size: 18, clamp: n === this.guideNpc });
       else if (n.markerKind === 'activity') out.push({ x: n.pos.x, z: n.pos.z, icon: '★', color: '#3fb3a6', size: 15 });
     }
     if (this.target) out.push({ x: this.target.x, z: this.target.z, icon: this.target.icon || '★', color: '#3fb3a6', size: 18, clamp: true });
@@ -396,11 +396,18 @@ export class Quests {
   }
 
   nextHint() {
-    const q = (this.story.quests || []).find((q) => this.available(q));
-    if (q) {
-      const g = this.npcs.get(q.giver);
-      this.game.hud.objective(`Talk to ${g ? g.name : 'the locals'} (follow the yellow !)`, 'NEXT');
-    } else this.game.hud.objective(null);
+    const q = (this.story.quests || []).find((q) => this.available(q) && !q.repeat);
+    const g = q && this.npcs.get(q.giver);
+    this.guideNpc = g || null;
+    if (g) this.game.hud.objective(`Talk to ${g.name} — follow the yellow ▼`, 'NEXT');
+    else this.game.hud.objective(null);
+  }
+
+  // Where the player should head right now: the active objective, else the next "!".
+  guide() {
+    if (this.active) return this.target;
+    const n = this.guideNpc;
+    return n && n.markerKind === 'quest' ? { x: n.pos.x, z: n.pos.z, y: n.pos.y, npc: n } : null;
   }
 
   async talk(n) {
