@@ -11,7 +11,7 @@ const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084
 const ROOT = 'peakblr/v1';
 const enc = new TextEncoder(), dec = new TextDecoder();
 
-export const MODES = ['walk', 'ride', 'climb', 'sit', 'glide'];
+export const MODES = ['walk', 'ride', 'climb', 'sit', 'glide', 'pillion'];
 export const EMOTES = ['', 'wave', 'namaste', 'wobble', 'dance', 'cheer', 'facepalm', 'laugh', 'point', 'shrug', 'phone', 'typing', 'sit'];
 
 const BAD = ['fuck', 'shit', 'bitch', 'cunt', 'dick', 'pussy', 'nigg', 'fag', 'rape', 'slut', 'whore', 'bastard', 'madarchod', 'behenchod', 'bhenchod', 'chutiya', 'chutiye', 'gandu', 'randi', 'bosadi', 'bsdk', 'lavde', 'lund', 'soole', 'bolimaga', 'boli maga', 'tunne', 'tullu', 'harami'];

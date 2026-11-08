@@ -19,6 +19,7 @@ import { Dialogue } from '../ui/Dialogue.js';
 import { Net, makeId, clean } from '../net/Net.js';
 import { RemotePlayer } from '../net/Remote.js';
 import { ZONES, TRAVEL_TIPS } from '../data/zones.js';
+import { STORY } from '../data/story.js';
 import { PLAYER_LOOK } from '../actors/Avatar.js';
 import { Look } from '../core/Toon.js';
 
@@ -263,7 +264,88 @@ export class Game {
     setTimeout(() => { if (this.myBubble === b) { b.remove(); this.myBubble = null; } }, 5000);
   }
 
+  // Player-to-player: hop on someone's scooter as pillion; high-fives when two people wave.
+  _social(dt) {
+    const p = this.player, now = performance.now();
+    if (this.dlg.open || this.quests.busy || this.quests.freeze) return;
+    if (p.mode === 'walk' && (!this.hud.promptText || this._pillionPrompt)) {
+      let best = null, bd = 2.8 * 2.8;
+      for (const r of this.remotes.values()) {
+        if (!r.visible || r.mode !== 'ride') continue;
+        const d = r.pos.distanceToSquared(p.pos);
+        if (d < bd) { bd = d; best = r; }
+      }
+      if (best) {
+        this.hud.prompt(`Hop on pillion with ${best.peer.name}`);
+        this._pillionPrompt = true;
+        if (this.input.consume('interact')) {
+          const id = best.peer.id;
+          p.hopOn(() => { const r = this.remotes.get(id); return r ? { pos: r.pos, yaw: r.yaw, lean: r.lean, mode: r.mode, speed: r.speed } : null; }, best.peer.name);
+          this.net?.event('pillion', { driver: id, on: true });
+          this.hud.toast(`Pillion with ${best.peer.name}! Laptop out: peak Bengaluru. (E to hop off)`, 4000);
+          this.fx.pop(p.pos, 'PILLION!');
+          this._pillionPrompt = false;
+          this.hud.prompt(null);
+        }
+      } else if (this._pillionPrompt) { this._pillionPrompt = false; this.hud.prompt(null); }
+    }
+    for (const r of this.remotes.values()) {
+      if (!r.visible || !r.waveT || !this.myWaveT) continue;
+      if (now - r.waveT > 2500 || now - this.myWaveT > 2500 || r.pos.distanceTo(p.pos) > 3.5) continue;
+      if ((r.hi5 || 0) > now) continue;
+      r.hi5 = now + 20000;
+      this.fx.pop(p.pos.clone().lerp(r.pos, 0.5), 'HIGH FIVE!');
+      this.audio.fanfare(false);
+      this.addCoins(5);
+    }
+  }
+
+  onPillion(on) { if (!on) this.net?.event('pillion', { driver: null, on: false }); }
+
+  // How Bengalurean you are: story missions everywhere plus the Kannada word cards.
+  progress() {
+    let total = 0, done = 0;
+    const doneSet = new Set(this.profile.done), cards = new Set(this.profile.cards);
+    for (const [zone, st] of Object.entries(STORY)) {
+      for (const q of st.quests || []) if (!q.repeat) { total += 1; if (doneSet.has(q.id)) done += 1; }
+      for (const c of st.cards || []) { total += 0.5; if (cards.has(`${zone}:${c.phrase}`)) done += 0.5; }
+    }
+    return total ? Math.round((done / total) * 100) : 0;
+  }
+
+  // Photo mode: hide the HUD, allow zooming further out, save a PNG.
+  photo(on) {
+    this.photoMode = on ?? !this.photoMode;
+    document.body.classList.toggle('photo', this.photoMode);
+    let bar = document.getElementById('photobar');
+    if (this.photoMode && !bar) {
+      bar = document.createElement('div');
+      bar.id = 'photobar';
+      bar.innerHTML = '<button id="ph-save">📸 Save photo</button><button id="ph-exit">✕</button>';
+      document.getElementById('app').appendChild(bar);
+      bar.querySelector('#ph-save').onclick = () => this.savePhoto();
+      bar.querySelector('#ph-exit').onclick = () => this.photo(false);
+    }
+    if (bar) bar.classList.toggle('hidden', !this.photoMode);
+    this.camRig.maxDist = this.photoMode ? 45 : 16;
+  }
+
+  savePhoto() {
+    this.ren.render();
+    this.canvas.toBlob((b) => {
+      if (!b) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = `peak-bengaluru-${this.zoneId}-${Date.now() % 100000}.png`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    }, 'image/png');
+    this.audio.click();
+  }
+
   doEmote(id) {
+    if (id === 'wave') this.myWaveT = performance.now();
+    if (this.player.mode === 'pillion') return;
     if (this.player.mode === 'ride') this.player.toggleRide();
     this.player.avatar.play(id, id === 'sit' ? 999 : id === 'dance' ? 5 : 2.6);
     this.myEmote = id;
@@ -333,6 +415,7 @@ export class Game {
       else if (hud.wheelOpen) hud.closeWheel();
       else { this.ui?.pause(true); return; }
     }
+    if (inp.consume('photo')) this.photo();
     if (!this.dlg.open) {
       if (inp.consume('map')) { this.ui?.openMap(true); return; }
       // Enter both advances dialogue and opens chat: ignore it right after a conversation
@@ -352,6 +435,7 @@ export class Game {
     this._vehicleHits(dt);
     this.crowd.collidePlayer(p);
     this.quests.update(dt);
+    this._social(dt);
     this.camRig.update(dt, p, inp);
 
     // scooter light trails from the two hover pads
@@ -361,7 +445,8 @@ export class Game {
     } else this.fx.trail(null, dt);
 
     // multiplayer
-    for (const r of this.remotes.values()) r.update(dt);
+    const resolveDriver = (id) => (id === this.profile.id ? { pos: p.pos, yaw: p.yaw, lean: p.lean, mode: p.mode } : this.remotes.get(id));
+    for (const r of this.remotes.values()) r.update(dt, resolveDriver);
     this.sendT -= dt;
     const moving = p.speedNow > 0.2 || !p.grounded || p.mode !== 'walk';
     if (this.net && this.sendT <= 0) {

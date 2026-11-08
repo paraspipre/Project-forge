@@ -52,8 +52,11 @@ export class RemotePlayer {
       this.pos.set(st.x, st.y, st.z);
       this.yaw = st.yaw;
     }
-    if (st.emote && st.emote !== this.lastEmote) this.avatar.play(st.emote, 3);
+    if (st.emote && st.emote !== this.lastEmote) { this.avatar.play(st.emote, 3); if (st.emote === 'wave') this.waveT = performance.now(); }
     this.lastEmote = st.emote;
+    this.mode = st.mode;
+    this.speed = st.speed;
+    this.lean = st.lean;
   }
 
   say(text) {
@@ -63,8 +66,21 @@ export class RemotePlayer {
     setTimeout(() => { if (this.bubble === b) { b.remove(); this.bubble = null; } }, 6000);
   }
 
-  update(dt) {
+  // resolveDriver(id) -> { pos, yaw } of whoever this player rides pillion with
+  update(dt, resolveDriver) {
     if (!this.snaps.length) return;
+    const last = this.snaps[this.snaps.length - 1];
+    if (last.mode === 'pillion' && this.pillionOf && resolveDriver) {
+      const d = resolveDriver(this.pillionOf);
+      if (d) {
+        this.pos.copy(d.pos); this.yaw = d.yaw;
+        this.object.position.copy(this.pos); this.object.rotation.y = this.yaw;
+        this.scooter.visible = false;
+        this.avatar.object.position.set(0, 0.22, -0.55);
+        this.avatar.update(dt, { speed: 0, mode: 'pillion', grounded: true, lean: d.lean || 0 });
+        return;
+      }
+    }
     const rt = performance.now() - DELAY;
     let a = this.snaps[0], b = this.snaps[this.snaps.length - 1];
     for (let i = 0; i < this.snaps.length - 1; i++) {

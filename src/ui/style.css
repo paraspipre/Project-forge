@@ -226,3 +226,9 @@ h2 { margin: 0 0 10px; font-weight: 800; }
 .mg-bar { flex: 1; height: 12px; border: 2.5px solid var(--ink); border-radius: 8px; background: #fff; overflow: hidden; }
 .mg-bar i { display: block; height: 100%; background: var(--teal); transition: width 0.15s; }
 body.touch #mg-hud { top: calc(120px + var(--safe-t)); }
+
+/* photo mode */
+body.photo #hud, body.photo #labels { display: none !important; }
+#photobar { position: absolute; z-index: 4; left: 50%; bottom: calc(18px + var(--safe-b)); transform: translateX(-50%); display: flex; gap: 8px; }
+#photobar button { border: 3px solid var(--ink); border-radius: 14px; background: var(--paper); box-shadow: 3px 3px 0 var(--ink); font-weight: 800; font-size: 17px; padding: 6px 16px; }
+#photobar button:first-child { background: var(--yellow); }

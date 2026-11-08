@@ -356,6 +356,9 @@ export class Quests {
       if (q.coins) this.game.addCoins(q.coins, this.game.player.pos);
       if (q.phrase) this.game.unlockPhrase(q.phrase);
       this.game.net?.event('quest', { title: q.title });
+      const pct = this.game.progress();
+      setTimeout(() => this.game.hud.toast(`Bengalurean-ness: ${pct}%${pct >= 100 ? ' — CERTIFIED BENGALUREAN!' : ''}`, 3500), 3000);
+      if (pct >= 100 && !this.game.profile.certified) { this.game.profile.certified = true; this.game.saveProfile(); setTimeout(() => this.game.ui?.certificate(), 4500); }
     } catch (e) {
       ctx.done();
       if (!(e instanceof QuestFail)) console.error(e);
@@ -460,6 +463,11 @@ export class Quests {
   onNetEvent(peer, type, data, ts) {
     if (type === 'horn') { const r = this.game.remotes.get(peer.id); if (r) this.game.audio.horn(r.pos.x, r.pos.z, 'scooter'); }
     if (type === 'quest') this.game.hud.chat(null, `${peer.name} completed “${data.title}” 🎉`, true);
+    if (type === 'pillion') {
+      const r = this.game.remotes.get(peer.id);
+      if (r) r.pillionOf = data.on ? data.driver : null;
+      if (data.on && data.driver === this.game.profile.id) this.game.hud.toast(`${peer.name} hopped on your scooter! Take them for a ride.`, 4000);
+    }
     this.mini.onNetEvent(peer, type, data, ts);
   }
 

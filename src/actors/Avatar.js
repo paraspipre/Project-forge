@@ -236,12 +236,13 @@ export class Avatar {
 
     const mode = state.mode || 'walk';
     if (mode === 'ride') this._ride(state);
+    else if (mode === 'pillion') { this._ride(state); this._emote('typing', 1); }
     else if (mode === 'sit' || this.emote === 'sit') this._sit();
     else if (mode === 'glide') this._glide();
     else if (!state.grounded && state.grounded !== undefined) this._air(state.vy || 0);
     else this._locomote(dt, sp);
 
-    if (this.emote && mode !== 'ride') {
+    if (this.emote && mode !== 'ride' && mode !== 'pillion') {
       this.emoteT += dt;
       this._emote(this.emote, this.emoteT);
       if (this.emoteDur && this.emoteT > this.emoteDur) this.emote = null;

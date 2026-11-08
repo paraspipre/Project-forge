@@ -3,7 +3,7 @@
 
 const KEYMAP = {
   Space: 'jump', KeyE: 'interact', KeyF: 'interact', KeyR: 'ride', KeyQ: 'emote', KeyT: 'chat', Enter: 'chat',
-  KeyM: 'map', Escape: 'pause', KeyP: 'pause', KeyH: 'horn', KeyC: 'camera',
+  KeyM: 'map', Escape: 'pause', KeyP: 'photo', KeyH: 'horn', KeyC: 'camera',
   Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
 };
 

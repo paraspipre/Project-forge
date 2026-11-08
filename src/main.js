@@ -37,6 +37,8 @@ class UI {
     };
     $('btn-invite').onclick = () => this.invite();
     $('btn-quests').onclick = () => this.questList();
+    $('btn-photo').onclick = () => { this.pause(false); game.photo(true); };
+    $('btn-cert').onclick = () => this.certificate();
     $('map-close').onclick = () => this.closeMap();
     $('look-done').onclick = () => this.closeLook();
     $('look-random').onclick = () => { P.look = { ...randomLook(), extras: P.look.extras || [] }; this._lookRows(); this._applyLook(); };
@@ -88,9 +90,10 @@ class UI {
     const g = this.g;
     this.fromMenu = fromMenu;
     show('pause', on);
-    $('pause-title').textContent = fromMenu ? 'Settings' : 'Paused';
+    $('pause-title').textContent = fromMenu ? 'Settings' : `Paused · Bengalurean-ness ${g.progress()}%`;
     $('btn-resume').textContent = fromMenu ? 'Back' : 'Resume';
-    show('btn-quit', !fromMenu); show('btn-quests', !fromMenu); show('btn-invite', true);
+    show('btn-quit', !fromMenu); show('btn-quests', !fromMenu); show('btn-invite', true); show('btn-photo', !fromMenu);
+    show('btn-cert', !fromMenu && !!g.profile.certified);
     show('quest-list', false);
     if (on) { this.prevState = g.state; if (!fromMenu) g.state = 'paused'; }
     else if (!fromMenu) g.state = 'play';
@@ -131,6 +134,35 @@ class UI {
     }
     if (!st.quests?.length) box.textContent = 'No story missions here yet — explore, find word cards, and meet the locals!';
     show('quest-list', true);
+  }
+
+  // A printable "Certified Bengalurean" certificate, signed by the locals.
+  certificate() {
+    const g = this.g;
+    const c = document.createElement('canvas');
+    c.width = 1400; c.height = 990;
+    const x = c.getContext('2d');
+    x.fillStyle = '#fff6e6'; x.fillRect(0, 0, 1400, 990);
+    x.strokeStyle = '#2a2226'; x.lineWidth = 14; x.strokeRect(30, 30, 1340, 930);
+    x.strokeStyle = '#f07b5a'; x.lineWidth = 6; x.strokeRect(58, 58, 1284, 874);
+    x.textAlign = 'center';
+    x.fillStyle = '#8e5bb5'; x.font = '800 34px "Baloo Tamma 2", sans-serif'; x.fillText('ನಮ್ಮ ಬೆಂಗಳೂರು · YEAR 2099', 700, 150);
+    x.fillStyle = '#2a2226'; x.font = '84px Bangers, sans-serif'; x.fillText('CERTIFIED BENGALUREAN', 700, 260);
+    x.font = '600 32px "Baloo 2", sans-serif'; x.fillText('This is to certify that', 700, 350);
+    x.fillStyle = '#f07b5a'; x.font = '800 72px "Baloo 2", sans-serif'; x.fillText(g.profile.name, 700, 440);
+    x.fillStyle = '#2a2226'; x.font = '600 30px "Baloo 2", sans-serif';
+    ['has survived Silk Board, a landlord interview and the CTR queue,', 'said "Swalpa adjust maadi" with feeling, defeated the Bellandur foam,', 'and now complains about the weather when it drops below 22°C.'].forEach((l, i) => x.fillText(l, 700, 520 + i * 46));
+    x.font = '700 28px "Baloo 2", sans-serif';
+    [['Manju Anna', 'Hover-auto driver', 330], ['Kamalamma Ajji', 'Darshini owner', 700], ['Constable Thimmappa', 'Silk Board', 1070]].forEach(([n, t, px]) => {
+      x.strokeStyle = '#2a2226'; x.lineWidth = 2; x.beginPath(); x.moveTo(px - 140, 800); x.lineTo(px + 140, 800); x.stroke();
+      x.fillText(n, px, 840); x.font = '600 22px "Baloo 2", sans-serif'; x.fillText(t, px, 872); x.font = '700 28px "Baloo 2", sans-serif';
+    });
+    x.font = '600 22px "Baloo 2", sans-serif'; x.fillStyle = '#7a6f6a'; x.fillText('game.paraspipre.com · Meter mele 50 not included', 700, 925);
+    c.toBlob((b) => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b); a.download = 'certified-bengalurean.png'; a.click();
+    });
+    g.hud.big('CERTIFIED BENGALUREAN', 'Certificate downloaded. Frame it. Next to the Sintex tank.', 4000);
   }
 
   // ------------------------------------------------------------------ look editor

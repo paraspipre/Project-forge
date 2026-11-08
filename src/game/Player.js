@@ -26,6 +26,45 @@ export class Player {
     this.frozen = false;
     this.climbWall = null;
     this.bump = 0;
+    // the pillion laptop (for the most Bengaluru commute possible)
+    this.laptop = new THREE.Group();
+    const lb = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.02, 0.24), new THREE.MeshBasicMaterial({ color: 0x2b2b30 }));
+    const ls = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.22, 0.015), new THREE.MeshBasicMaterial({ color: 0x8ff0ff }));
+    ls.position.set(0, 0.11, -0.11); ls.rotation.x = -0.25;
+    this.laptop.add(lb, ls);
+    this.laptop.position.set(0, 1.12, -0.3);
+    this.laptop.visible = false;
+    this.object.add(this.laptop);
+  }
+
+  // Hop on the back of someone's scooter. driver: () => { pos, yaw } | null
+  hopOn(driver, name) {
+    if (this.mode === 'ride') this.toggleRide();
+    this.mode = 'pillion';
+    this.pillionOf = driver;
+    this.pillionName = name;
+    this.vel.set(0, 0, 0);
+  }
+
+  hopOff() {
+    if (this.mode !== 'pillion') return;
+    this.mode = 'walk';
+    this.pillionOf = null;
+    this.pos.x += Math.cos(this.yaw) * 1.4; this.pos.z -= Math.sin(this.yaw) * 1.4;
+    this.vel.set(0, 3, 0);
+    this.grounded = false;
+    this.game.onPillion?.(false);
+  }
+
+  _pillion(dt, input) {
+    const d = this.pillionOf?.();
+    if (!d || d.mode !== 'ride') { this.hopOff(); return; }
+    this.pos.copy(d.pos);
+    this.yaw = d.yaw;
+    this.lean = d.lean || 0;
+    this.speedNow = d.speed || 0;
+    this.grounded = true;
+    if (input.consume('interact') || input.consume('jump') || input.consume('ride')) this.hopOff();
   }
 
   setLook(look) {
@@ -67,11 +106,15 @@ export class Player {
     const wishLen = Math.min(1, wish.length());
     if (wishLen > 0.01) wish.normalize();
 
+    if (this.mode === 'pillion') {
+      this._pillion(dt, input);
+    } else {
     if (!this.frozen && input.consume('ride')) this.toggleRide();
 
     if (this.mode === 'ride') this._ride(dt, input, wish, wishLen, camYaw);
     else if (this.mode === 'climb') this._climb(dt, input, wish, wishLen);
     else this._walk(dt, input, wish, wishLen);
+    }
 
     // keep inside the zone
     const b = city.bounds;
@@ -83,8 +126,9 @@ export class Player {
     const hspeed = Math.hypot(this.vel.x, this.vel.z);
     this.avatar.update(dt, {
       speed: this.mode === 'ride' ? 0 : hspeed, grounded: this.grounded || this.mode === 'climb', vy: this.vel.y,
-      mode: this.mode === 'ride' ? 'ride' : 'walk', lean: this.lean,
+      mode: this.mode === 'ride' ? 'ride' : this.mode === 'pillion' ? 'pillion' : 'walk', lean: this.lean,
     });
+    this.laptop.visible = this.mode === 'pillion';
     if (this.mode === 'climb') this._climbPose();
     if (this.carry) {
       // a waiter's tray arm: both hands up in front, holding the plates
@@ -92,7 +136,9 @@ export class Player {
       bn.uaR.rotation.set(-1.1, 0, -0.25); bn.faR.rotation.set(-0.9, 0, 0);
       bn.uaL.rotation.set(-0.9, 0, 0.35); bn.faL.rotation.set(-1.2, 0.4, 0);
     }
-    if (this.mode === 'ride') {
+    if (this.mode === 'pillion') {
+      this.avatar.object.position.set(0, 0.22, -0.55);
+    } else if (this.mode === 'ride') {
       const bob = Math.sin(performance.now() / 260) * 0.05;
       this.scooter.object.position.y = 0.05 + bob;
       this.scooter.object.rotation.z = -this.lean * 0.35;
@@ -269,11 +315,11 @@ export class CameraRig {
   update(dt, player, input) {
     const look = input.takeLook();
     const z = input.takeZoom();
-    this.dist = THREE.MathUtils.clamp(this.dist * (1 + z * 0.1), 2.6, 16);
+    this.dist = THREE.MathUtils.clamp(this.dist * (1 + z * 0.1), 2.6, this.maxDist || 16);
     if (look.x || look.y) this.idle = 0; else this.idle += dt;
     this.yaw -= look.x * 0.0055;
     this.pitch = THREE.MathUtils.clamp(this.pitch + look.y * 0.004, -0.35, 1.25);
-    const riding = player.mode === 'ride';
+    const riding = player.mode === 'ride' || player.mode === 'pillion';
     // drift behind the player while they move and the camera is left alone
     const sp = player.speedNow || 0;
     if (this.idle > (riding ? 0.5 : 1.4) && sp > 1.5) {
