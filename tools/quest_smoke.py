@@ -19,6 +19,9 @@ AUTOPILOT = """async (qid) => {
   const giver = Q.npcs.get(q.giver);
   if (giver) g.player.place(giver.pos.x + 1.5, giver.pos.z + 1.5);
   const done0 = g.profile.done.length;
+  // reachability audit: every target / pickup / mission character should be walkable from a street
+  const unreach = new Set(), checked = new Set();
+  const chk = (x, z, what) => { const k = what + Math.round(x) + ',' + Math.round(z); if (checked.has(k)) return; checked.add(k); if (Q.reachable && !Q.reachable(x, z)) unreach.add(`${what} @${Math.round(x)},${Math.round(z)}`); };
   let finished = null;
   const p = Q.start(q).then(() => { finished = true; });
   const t0 = performance.now();
@@ -28,6 +31,9 @@ AUTOPILOT = """async (qid) => {
     await new Promise((r) => setTimeout(r, 120));
     if (!Q.active) break;
     if (big && !big.classList.contains('hidden')) lastBig = big.textContent;
+    for (const n of Q.npcs.values()) if (n.def.temp && !n.def.silentOk) chk(n.pos.x, n.pos.z, n.name);
+    for (const it of Q.pickups) if (!it.taken && it.y < g.city.groundAt(it.x, it.z, 1e4) + 3) chk(it.x, it.z, 'pickup');
+    if (Q.target) chk(Q.target.x, Q.target.z, 'target');
     if (g.dlg.open) {
       if (g.dlg.typing) g.dlg.advance();
       else if (g.dlg.choosing) g.dlg.key(q.repeat ? 1 : g.dlg.choosing.n);
@@ -47,7 +53,7 @@ AUTOPILOT = """async (qid) => {
   console.error = origErr;
   const ok = g.profile.done.length > done0 || (q.repeat && finished && !/FAILED|DNF/.test(lastBig));
   if (Q.active) { Q.cancelActive(); await new Promise((r) => setTimeout(r, 300)); }
-  return { qid, result: ok ? 'pass' : (lastBig || 'timeout/fail'), errors: errors.slice(0, 3), secs: Math.round((performance.now() - t0) / 1000) };
+  return { qid, result: ok ? 'pass' : (lastBig || 'timeout/fail'), errors: errors.slice(0, 3), secs: Math.round((performance.now() - t0) / 1000), unreach: [...unreach] };
 }"""
 
 
@@ -64,12 +70,14 @@ async def main():
             await pg.evaluate(f"game.travel('{z}')")
             await pg.wait_for_timeout(1500)
             qids = await pg.evaluate("game.quests.story.quests.map((q) => q.id)")
+            bad = await pg.evaluate("[...game.quests.npcs.values()].filter((n) => !n.def.social && n.pos.y < 1 && !game.quests.reachable(n.pos.x, n.pos.z)).map((n) => n.name + ' @' + Math.round(n.pos.x) + ',' + Math.round(n.pos.z))")
+            if bad: print(f"{z:13s} NPCs UNREACHABLE: {'; '.join(bad)}", flush=True)
             # satisfy prerequisites by marking everything before as done when needed
             for qid in qids:
                 await pg.evaluate("(qid) => { const q = game.quests.story.quests.find((x) => x.id === qid); for (const r of q.requires || []) if (!game.profile.done.includes(r)) game.profile.done.push(r); }", qid)
                 res = await pg.evaluate(AUTOPILOT, qid)
                 total['pass' if res['result'] == 'pass' else 'fail'] += 1
-                print(f"{z:13s} {res['qid']:14s} {res['result'][:60]:60s} {res['secs']}s {('ERR: ' + ' | '.join(res['errors'])) if res['errors'] else ''}", flush=True)
+                print(f"{z:13s} {res['qid']:14s} {res['result'][:60]:60s} {res['secs']}s {('ERR: ' + ' | '.join(res['errors'])) if res['errors'] else ''}{('  UNREACHABLE: ' + '; '.join(res['unreach'])) if res.get('unreach') else ''}", flush=True)
         print(total)
         await b.close()
 

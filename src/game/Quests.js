@@ -244,16 +244,49 @@ export class Quests {
     return this.openSpot(p[0] + off[0], p[1] + off[1], 14);
   }
 
-  // Nearest open (not inside a building, not in water) point.
+  // Nearest open point you can actually walk to: not inside a building, not in water, and not in a
+  // sealed gap between buildings (map footprints often leave slivers like that). Falls back to the
+  // nearest footpath.
   openSpot(x, z, r = 10) {
     const c = this.game.city;
-    const ok = (px, pz) => !c.buildingAt(px, pz, [], 0.7) && !c.isWater(px, pz);
+    const ok = (px, pz) => !c.buildingAt(px, pz, [], 0.7) && !c.isWater(px, pz) && this.reachable(px, pz);
     if (ok(x, z)) return [x, z];
     for (let rr = 1.5; rr <= r * 3; rr += 1.5) for (let a = 0; a < 12; a++) {
       const px = x + Math.cos((a / 12) * Math.PI * 2) * rr, pz = z + Math.sin((a / 12) * Math.PI * 2) * rr;
       if (ok(px, pz)) return [px, pz];
     }
-    return [x, z];
+    const s = this.game._safeSpawn([x, z, 0]);
+    return [s[0], s[1]];
+  }
+
+  // Can you walk from (x, z) to a street? Flood-fills open ground on a 1.5 m grid up to 40 m away.
+  // Reaching a proper street, or open ground that carries on past 40 m (a park, a plaza), counts as reachable.
+  reachable(x, z) {
+    const c = this.game.city, S = 1.5, R = 40 / S;
+    const sealed = c._sealed || (c._sealed = new Set());
+    const cell = (px, pz) => `${Math.round(px / S)},${Math.round(pz / S)}`;
+    if (sealed.has(cell(x, z))) return false;
+    const tmp = this._reachTmp || (this._reachTmp = []);
+    const free = (px, pz) => !c.buildingAt(px, pz, tmp, 0.3) && !c.isWater(px, pz);
+    const seen = new Set(['0,0']), q = [[0, 0]];
+    for (let h = 0; h < q.length && h < 3000; h++) {
+      const [i, j] = q[h];
+      const px = x + i * S, pz = z + j * S;
+      // a real street (residential or bigger): alleys and footpaths can sit inside sealed gaps too
+      const rd = c.onRoad(px, pz);
+      if (rd && rd.code <= 6) return true;
+      for (const [ni, nj] of [[i + 1, j], [i - 1, j], [i, j + 1], [i, j - 1]]) {
+        const k = `${ni},${nj}`;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        if (!free(x + ni * S, z + nj * S)) continue;
+        if (ni * ni + nj * nj > R * R) return true;   // open ground continues beyond 40 m
+        q.push([ni, nj]);
+      }
+    }
+    if (q.length >= 3000) return true;
+    for (const [i, j] of q) sealed.add(cell(x + i * S, z + j * S));
+    return false;
   }
 
   addNpc(def) {
