@@ -3,6 +3,7 @@ import { Avatar } from '../actors/Avatar.js';
 import { scooterGeo, vehicleMaterial } from '../actors/Vehicles.js';
 import { lerpAngle } from '../game/Player.js';
 import { TITLES } from '../data/cosmetics.js';
+import { VSPEC, vehicleGeo } from '../game/Driving.js';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -58,6 +59,8 @@ export class RemotePlayer {
     if (st.emote && st.emote !== this.lastEmote) { this.avatar.play(st.emote, 3); if (st.emote === 'wave') this.waveT = performance.now(); }
     this.lastEmote = st.emote;
     this.mode = st.mode;
+    this.veh = st.veh;
+    this.hp = st.hp;
     this.speed = st.speed;
     this.lean = st.lean;
     this.flags = st.flags;
@@ -114,16 +117,33 @@ export class RemotePlayer {
     this.yaw = lerpAngle(this.yaw, yaw, Math.min(1, dt * 12));
     this.object.position.copy(this.pos);
     this.object.rotation.y = this.yaw;
+    this.object.visible = this.hp !== 0;   // knocked out in Blasters
     const riding = s.mode === 'ride';
+    const driving = s.mode === 'drive' && VSPEC[s.veh];
     this.scooter.visible = riding;
     const bob = Math.sin(performance.now() / 260) * 0.05;
+    // a stolen vehicle: swap in its mesh
+    if (driving && this.vehKey !== s.veh) {
+      if (this.vehMesh) this.object.remove(this.vehMesh);
+      this.vehMesh = new THREE.Mesh(vehicleGeo(s.veh), vehicleMaterial());
+      this.vehMesh.castShadow = true;
+      this.object.add(this.vehMesh);
+      this.vehKey = s.veh;
+    }
+    if (this.vehMesh) this.vehMesh.visible = !!driving;
+    if (!driving) this.vehKey = this.vehMesh ? null : this.vehKey;
+    this.avatar.object.visible = !(driving && VSPEC[s.veh].hide);
     if (riding) {
       this.scooter.position.y = 0.05 + bob;
       this.scooter.rotation.z = -s.lean * 0.35;
       this.avatar.object.position.set(0, 0.18 + bob, -0.12);
+    } else if (driving) {
+      const st = VSPEC[s.veh].sit || [0, 0, 0];
+      this.vehMesh.position.y = 0.08 + bob * 0.8;
+      this.avatar.object.position.set(st[0], st[1] + bob * 0.8, st[2]);
     } else this.avatar.object.position.set(0, 0, 0);
     const grounded = !(s.flags & 1);
-    this.avatar.update(dt, { speed: riding ? 0 : s.speed, mode: riding ? 'ride' : s.mode === 'sit' ? 'sit' : 'walk', grounded, vy: 0, lean: s.lean });
+    this.avatar.update(dt, { speed: riding || driving ? 0 : s.speed, mode: riding || driving ? 'ride' : s.mode === 'sit' ? 'sit' : 'walk', grounded, vy: 0, lean: s.lean });
   }
 
   dispose() {

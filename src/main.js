@@ -22,6 +22,20 @@ class UI {
     $('in-online').checked = P.online !== false;
     $('in-room').value = P.room && P.room !== 'public' ? P.room : '';
     $('btn-play').onclick = () => this.play();
+    // the four ways in
+    $('mode-story').onclick = () => { $('in-online').checked = false; this.play(); };
+    $('mode-online').onclick = () => { $('in-online').checked = true; this.play(); };
+    $('mode-party').onclick = async () => {
+      $('in-online').checked = true;
+      await this.play();
+      setTimeout(() => { this.g.social.takeMeThere(); setTimeout(() => this.g.hud.toast('🎉 Talk to Meetup Mamta (★) to start a game. Invite friends from the menu (☰).', 5000), 1500); }, 800);
+    };
+    $('mode-meetup').onclick = async () => {
+      $('in-online').checked = true;
+      await this.play();
+      setTimeout(() => { this.g.social.toHall(); setTimeout(() => this.g.social.hall?.openCalendar(), 1400); }, 800);
+    };
+    $('btn-radio').onclick = () => this.g.radio.toggleUI();
     $('btn-districts').onclick = () => this.openMap(false);
     $('btn-look').onclick = () => this.openLook();
     $('btn-settings').onclick = () => this.pause(true, true);

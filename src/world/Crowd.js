@@ -171,6 +171,17 @@ export class Crowd {
     }
     for (let i = this.peds.length - 1; i >= 0; i--) {
       const p = this.peds[i];
+      // knocked over / fighting / running away: Combat moves them (see Combat.js)
+      if (p.free) {
+        const f = p.free;
+        p.x = f.x; p.z = f.z;
+        p.av.object.position.set(f.x, (f.y || 0) + (f.rx ? 0.12 : 0), f.z);
+        p.av.object.rotation.set(f.rx || 0, f.yaw || 0, 0);
+        const vis = (f.x - focus.x) ** 2 + (f.z - focus.z) ** 2 < 90 * 90;
+        p.av.object.visible = vis;
+        if (vis) p.av.update(dt, { speed: f.speed || 0, grounded: (f.y || 0) < 0.05 });
+        continue;
+      }
       let [x, z, yaw, L] = this._pos(p);
       const d2 = (x - focus.x) ** 2 + (z - focus.z) ** 2;
       if (d2 > 170 * 170) {

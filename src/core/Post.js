@@ -16,6 +16,8 @@ const fs = /* glsl */ `
   precision highp float;
   uniform sampler2D tColor;
   uniform sampler2D tDepth;
+  uniform sampler2D tBloom;
+  uniform float uBloom;
   uniform vec2 uRes;
   uniform float uNear, uFar, uThick, uTime, uGrain, uInkFar, uFlash;
   uniform vec3 uInk;
@@ -67,6 +69,8 @@ const fs = /* glsl */ `
     edge *= mix(1.0, 0.3, far) * step(zc, uFar * 0.98 + 1.0) ;
     vec3 col = c.rgb;
     col = mix(col, uInk, edge * 0.92);
+    // glow from lamps, neon and lit windows (strong at night)
+    if (uBloom > 0.0) col += texture2D(tBloom, vUv).rgb * uBloom;
 
     // print finish: grain that ticks at ~10 fps, paper blotches, warm tint, vignette
     vec2 fc = gl_FragCoord.xy;
@@ -81,9 +85,60 @@ const fs = /* glsl */ `
   }
 `;
 
+// Bloom: a bright-pass at quarter resolution, blurred twice; FXAA smooths the final image.
+const brightFs = /* glsl */ `
+  precision highp float;
+  uniform sampler2D tColor; uniform vec2 uTexel; uniform float uThresh;
+  varying vec2 vUv;
+  void main() {
+    vec3 c = vec3(0.0);
+    for (int i = 0; i < 4; i++) {
+      vec2 o = vec2(float(i - (i / 2) * 2) - 0.5, float(i / 2) - 0.5) * uTexel * 2.0;
+      vec3 s = texture2D(tColor, vUv + o).rgb;
+      float m = max(s.r, max(s.g, s.b));
+      c += s * smoothstep(uThresh, uThresh + 0.12, m);
+    }
+    gl_FragColor = vec4(c * 0.25, 1.0);
+  }
+`;
+const blurFs = /* glsl */ `
+  precision highp float;
+  uniform sampler2D tSrc; uniform vec2 uDir;
+  varying vec2 vUv;
+  void main() {
+    vec3 c = texture2D(tSrc, vUv).rgb * 0.227;
+    c += (texture2D(tSrc, vUv + uDir * 1.385).rgb + texture2D(tSrc, vUv - uDir * 1.385).rgb) * 0.316;
+    c += (texture2D(tSrc, vUv + uDir * 3.231).rgb + texture2D(tSrc, vUv - uDir * 3.231).rgb) * 0.070;
+    gl_FragColor = vec4(c, 1.0);
+  }
+`;
+const fxaaFs = /* glsl */ `
+  precision highp float;
+  uniform sampler2D tSrc; uniform vec2 uRes;
+  varying vec2 vUv;
+  void main() {
+    vec2 inv = 1.0 / uRes;
+    vec3 nw = texture2D(tSrc, vUv + vec2(-1.0, -1.0) * inv).rgb, ne = texture2D(tSrc, vUv + vec2(1.0, -1.0) * inv).rgb;
+    vec3 sw = texture2D(tSrc, vUv + vec2(-1.0, 1.0) * inv).rgb, se = texture2D(tSrc, vUv + vec2(1.0, 1.0) * inv).rgb;
+    vec3 m = texture2D(tSrc, vUv).rgb;
+    vec3 L = vec3(0.299, 0.587, 0.114);
+    float lnw = dot(nw, L), lne = dot(ne, L), lsw = dot(sw, L), lse = dot(se, L), lm = dot(m, L);
+    float lmin = min(lm, min(min(lnw, lne), min(lsw, lse))), lmax = max(lm, max(max(lnw, lne), max(lsw, lse)));
+    vec2 dir = vec2(-((lnw + lne) - (lsw + lse)), (lnw + lsw) - (lne + lse));
+    float red = max((lnw + lne + lsw + lse) * 0.03125, 1.0 / 128.0);
+    float rcp = 1.0 / (min(abs(dir.x), abs(dir.y)) + red);
+    dir = clamp(dir * rcp, vec2(-8.0), vec2(8.0)) * inv;
+    vec3 a = 0.5 * (texture2D(tSrc, vUv + dir * (1.0 / 3.0 - 0.5)).rgb + texture2D(tSrc, vUv + dir * (2.0 / 3.0 - 0.5)).rgb);
+    vec3 b = a * 0.5 + 0.25 * (texture2D(tSrc, vUv - dir * 0.5).rgb + texture2D(tSrc, vUv + dir * 0.5).rgb);
+    float lb = dot(b, L);
+    gl_FragColor = vec4((lb < lmin || lb > lmax) ? a : b, 1.0);
+  }
+`;
+
 export class Post {
-  constructor(renderer) {
+  constructor(renderer, opts = {}) {
     this.renderer = renderer;
+    this.opts = opts;
     this.target = new THREE.WebGLRenderTarget(4, 4, {
       type: THREE.UnsignedByteType,
       depthTexture: new THREE.DepthTexture(4, 4, THREE.UnsignedIntType),
@@ -99,8 +154,22 @@ export class Post {
         uThick: { value: 1 }, uTime: Look.uTime, uGrain: { value: 0.035 },
         uInkFar: { value: 900 }, uFlash: { value: 0 },
         uInk: Look.uInk, uTint: { value: new THREE.Color(1.0, 0.97, 0.9) },
+        tBloom: { value: null }, uBloom: { value: 0 },
       },
     });
+    const lin = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, type: THREE.UnsignedByteType, depthBuffer: false };
+    const pass = (fs, uniforms) => new THREE.ShaderMaterial({ vertexShader: vs, fragmentShader: fs, depthTest: false, depthWrite: false, uniforms });
+    if (opts.bloom) {
+      this.bA = new THREE.WebGLRenderTarget(4, 4, lin);
+      this.bB = new THREE.WebGLRenderTarget(4, 4, lin);
+      this.brightMat = pass(brightFs, { tColor: { value: this.target.texture }, uTexel: { value: new THREE.Vector2() }, uThresh: { value: 0.9 } });
+      this.blurMat = pass(blurFs, { tSrc: { value: null }, uDir: { value: new THREE.Vector2() } });
+      this.material.uniforms.tBloom.value = this.bA.texture;
+    }
+    if (opts.fxaa) {
+      this.comp = new THREE.WebGLRenderTarget(4, 4, lin);
+      this.fxaaMat = pass(fxaaFs, { tSrc: { value: this.comp.texture }, uRes: { value: new THREE.Vector2() } });
+    }
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute([-1, -1, 0, 3, -1, 0, -1, 3, 0], 3));
     this.quad = new THREE.Mesh(g, this.material);
@@ -115,6 +184,20 @@ export class Post {
     this.material.uniforms.uRes.value.set(w, h);
     // ~1.3px lines at 1080p, scaled with resolution
     this.material.uniforms.uThick.value = Math.max(1, (h / 1080) * 1.3 * Math.min(pixelRatio, 1.5));
+    this.w = w; this.h = h;
+    if (this.bA) {
+      const bw = Math.max(1, Math.floor(w / 4)), bh = Math.max(1, Math.floor(h / 4));
+      this.bA.setSize(bw, bh); this.bB.setSize(bw, bh);
+      this.brightMat.uniforms.uTexel.value.set(1 / w, 1 / h);
+      this.bw = bw; this.bh = bh;
+    }
+    if (this.comp) { this.comp.setSize(w, h); this.fxaaMat.uniforms.uRes.value.set(w, h); }
+  }
+
+  _pass(mat, target) {
+    this.quad.material = mat;
+    this.renderer.setRenderTarget(target);
+    this.renderer.render(this.postScene, this.postCam);
   }
 
   render(scene, camera) {
@@ -122,7 +205,18 @@ export class Post {
     u.uNear.value = camera.near; u.uFar.value = camera.far;
     r.setRenderTarget(this.target);
     r.render(scene, camera);
-    r.setRenderTarget(null);
-    r.render(this.postScene, this.postCam);
+    if (this.bA) {
+      const night = Look.uNight.value;
+      this.brightMat.uniforms.uThresh.value = 0.93 - night * 0.3;
+      u.uBloom.value = 0.12 + night * 0.85;
+      this._pass(this.brightMat, this.bA);
+      const bu = this.blurMat.uniforms;
+      for (const s of [1, 2.2]) {
+        bu.tSrc.value = this.bA.texture; bu.uDir.value.set(s / this.bw, 0); this._pass(this.blurMat, this.bB);
+        bu.tSrc.value = this.bB.texture; bu.uDir.value.set(0, s / this.bh); this._pass(this.blurMat, this.bA);
+      }
+    }
+    this._pass(this.material, this.comp || null);
+    if (this.comp) this._pass(this.fxaaMat, null);
   }
 }

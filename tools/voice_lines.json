@@ -978,5 +978,90 @@
   "id": "wf_commuter",
   "text": "*panting* Made it! When you leave somewhere here, say \"Hogi banni\" — go and come back. We always come back. Rent is paid.",
   "name": "Commuter Kiran"
+ },
+ {
+  "id": "mamta",
+  "text": "Quiz night, dance-off, chor-police. Something is always on here!",
+  "name": "Meetup Mamta"
+ },
+ {
+  "id": "mamta",
+  "text": "Bring your friends, macha. More people, more fun.",
+  "name": "Meetup Mamta"
+ },
+ {
+  "id": "dj",
+  "text": "Ee beat, macha! Feel it!",
+  "name": "DJ Dinesh"
+ },
+ {
+  "id": "dj",
+  "text": "Next track is a banger, trust me.",
+  "name": "DJ Dinesh"
+ },
+ {
+  "id": "dj",
+  "text": "Who wants a drop?",
+  "name": "DJ Dinesh"
+ },
+ {
+  "id": "quizmaster",
+  "text": "Which lake makes foam? Easy one. Tonight's questions are harder.",
+  "name": "Quizmaster Krishna"
+ },
+ {
+  "id": "quizmaster",
+  "text": "Fastest fingers in Bengaluru, step up!",
+  "name": "Quizmaster Krishna"
+ },
+ {
+  "id": "kaapi",
+  "text": "Strong filter kaapi! Wakes up even Silk Board traffic.",
+  "name": "Kaapi Kumar"
+ },
+ {
+  "id": "kaapi",
+  "text": "Kaapi, saar? Ten coins only.",
+  "name": "Kaapi Kumar"
+ },
+ {
+  "id": "bhavana",
+  "text": "New shades just arrived from Commercial Street!",
+  "name": "Boutique Bhavana"
+ },
+ {
+  "id": "bhavana",
+  "text": "Look sharp at the club, darling.",
+  "name": "Boutique Bhavana"
+ },
+ {
+  "id": "dj",
+  "text": "Namaskara, I'm DJ Dinesh! Want me to drop the bass? Everyone dancing on the floor gets a bonus.",
+  "name": "DJ Dinesh"
+ },
+ {
+  "id": "quizmaster",
+  "text": "Fancy a quiz? Eight questions on Namma Bengaluru. Faster answers score more.",
+  "name": "Quizmaster Krishna"
+ },
+ {
+  "id": "kaapi",
+  "text": "Filter kaapi, saar! Ten coins. Strong enough to make you run thirty percent faster.",
+  "name": "Kaapi Kumar"
+ },
+ {
+  "id": "bhavana",
+  "text": "Welcome to Bhavana's Boutique! Shades, jasmine, gold chains, and titles everyone can see.",
+  "name": "Boutique Bhavana"
+ },
+ {
+  "id": "mamta",
+  "text": "A meetup is about to start! Want in?",
+  "name": "Meetup Mamta"
+ },
+ {
+  "id": "mamta",
+  "text": "Namaskara! I run the meetups here. Quiz nights, dance-offs, chor-police and blaster battles. What shall we do?",
+  "name": "Meetup Mamta"
  }
 ]

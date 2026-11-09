@@ -20,6 +20,9 @@ import { Net, makeId, clean } from '../net/Net.js';
 import { RemotePlayer } from '../net/Remote.js';
 import { VoiceChat } from '../net/VoiceChat.js';
 import { Social } from '../social/Social.js';
+import { Driving } from './Driving.js';
+import { Combat } from './Combat.js';
+import { Radio } from '../core/Radio.js';
 import { ZONES, TRAVEL_TIPS } from '../data/zones.js';
 import { STORY } from '../data/story.js';
 import { PLAYER_LOOK } from '../actors/Avatar.js';
@@ -66,6 +69,9 @@ export class Game {
     this.quests = new Quests(this);
     this.voice = new VoiceChat(this);
     this.social = new Social(this);
+    this.driving = new Driving(this);
+    this.combat = new Combat(this);
+    this.radio = new Radio(this);
     window.addEventListener('pointerdown', () => this.audio.unlock(), { once: false });
     window.addEventListener('keydown', () => this.audio.unlock());
     this._loop = this._loop.bind(this);
@@ -147,6 +153,7 @@ export class Game {
     this.crowd = new Crowd(this, city, this.ren.quality);
     this.ren.scene.add(this.crowd.group);
     this.traffic.obstacles = this.crowd.cows;
+    this.driving._syncObstacles();
     onProgress('Placing auto drivers, cows and filter coffee…');
     if (!this.player) {
       this.player = new Player(this, this.profile.look);
@@ -201,6 +208,7 @@ export class Game {
     s.remove(this.traffic.group);
     this.crowd.dispose(); s.remove(this.crowd.group);
     this.social.unload();
+    this.driving.unload();
     this.quests.unloadZone();
     this.labels.clear();
     for (const r of this.remotes.values()) r.dispose();
@@ -269,6 +277,7 @@ export class Game {
     net.on.event = (p, type, data, ts) => {
       if (type === 'rtc') this.voice.onSignal(p, data);
       else if (/^(party|quiz|dance|chor|club|kaapi|blast|stage|booth|hall):/.test(type)) this.social.onNet(p, type, data, ts);
+      else if (type.startsWith('fight:')) this.combat.onNet(p, type, data);
       else this.quests.onNetEvent(p, type, data, ts);
     };
     const ok = await net.connect();
@@ -376,7 +385,7 @@ export class Game {
 
   doEmote(id) {
     if (id === 'wave') this.myWaveT = performance.now();
-    if (this.player.mode === 'pillion') return;
+    if (this.player.mode === 'pillion' || this.player.mode === 'drive') return;
     if (this.player.mode === 'ride') this.player.toggleRide();
     this.player.avatar.play(id, id === 'sit' ? 999 : id === 'dance' ? 5 : 2.6);
     this.myEmote = id;
@@ -455,6 +464,7 @@ export class Game {
       if (inp.consume('emote')) hud.openWheel(this.unlocked);
       if (inp.consume('horn')) { this.audio.myHorn(); this.net?.event('horn', {}); }
       if (inp.consume('mic')) this.ui?.toggleMic();
+      if (inp.consume('radio')) this.radio.toggleUI();
       if (inp.consume('players')) this.ui?.openPlayers();
       for (let i = 1; i <= 4; i++) if (this.social.cur?.key && inp.consume('n' + i)) this.social.key(i);
       for (let i = 1; i <= 9; i++) if (inp.consume('n' + i) && !hud.wheelOpen) {
@@ -462,7 +472,7 @@ export class Game {
         this.doEmote(e);
       }
     }
-    if (this.myEmote && (inp.move.x || inp.move.y || inp.pressed('jump'))) { this.player.avatar.stop(); this.myEmote = null; }
+    if (this.myEmote && this.myEmote !== 'punch' && this.myEmote !== 'aim' && (inp.move.x || inp.move.y || inp.pressed('jump'))) { this.player.avatar.stop(); this.myEmote = null; }
     if (this.myEmote) { this.myEmoteT -= dt; if (this.myEmoteT < 0) this.myEmote = null; }
 
     p.update(dt, inp, this.camRig.yaw);
@@ -471,6 +481,9 @@ export class Game {
     this.crowd.collidePlayer(p);
     this.quests.update(dt);
     this.social.update(dt);
+    this.combat.update(dt);
+    this.driving.update(dt);
+    this.radio.update(dt);
     this._social(dt);
     this.camRig.update(dt, p, inp);
 
@@ -489,7 +502,7 @@ export class Game {
     const moving = p.speedNow > 0.2 || !p.grounded || p.mode !== 'walk';
     if (this.net && this.sendT <= 0) {
       this.sendT = moving ? 0.1 : 1.0;
-      this.net.sendState({ x: p.pos.x, y: p.pos.y, z: p.pos.z, yaw: p.yaw, mode: p.mode, emote: this.myEmote || '', speed: p.speedNow || 0, lean: p.lean, flags: (p.grounded ? 0 : 1) | this.voice.flags });
+      this.net.sendState({ x: p.pos.x, y: p.pos.y, z: p.pos.z, yaw: p.yaw, mode: p.mode, emote: this.myEmote || '', speed: p.speedNow || 0, lean: p.lean, flags: (p.grounded ? 0 : 1) | this.voice.flags, veh: p.veh?.key, hp: this.blasters?.active ? this.blasters.hp : this.combat.hp });
     }
 
     // autosave where you are, so you continue right here next time
@@ -505,7 +518,7 @@ export class Game {
     }
 
     // guide arrow at the screen edge + distance to whatever we should do next
-    const gd = this.dlg.open || this.social.cur?.fullscreen ? null : this.quests.active ? this.quests.guide() : (this.social.guide() || this.quests.guide());
+    const gd = this.dlg.open || (this.social.cur && !this.social.cur.done) ? null : this.quests.active ? this.quests.guide() : (this.social.guide() || this.quests.guide());
     hud.waypoint(this.ren.camera, gd ? { x: gd.x, y: gd.y || 0, z: gd.z } : null, p.pos);
     if (gd && !this.quests.active && gd.npc) hud.objectiveDist(Math.hypot(gd.x - p.pos.x, gd.z - p.pos.z));
 
@@ -527,11 +540,21 @@ export class Game {
   _vehicleHits() {
     const p = this.player;
     if (p.pos.y > 3 && p.mode !== 'ride') return;
-    for (const v of this.traffic.near(p.pos.x, p.pos.z, p.mode === 'ride' ? 0.8 : 0.4, this._hitTmp || (this._hitTmp = []))) {
+    for (const v of this.traffic.near(p.pos.x, p.pos.z, p.mode === 'drive' ? p.veh.spec.r * 0.8 : p.mode === 'ride' ? 0.8 : 0.4, this._hitTmp || (this._hitTmp = []))) {
       if (Math.abs(v.y - p.pos.y) > 2) continue;
       const dx = p.pos.x - v.x, dz = p.pos.z - v.z, d = Math.hypot(dx, dz) || 1;
       const push = (v.type.r + 0.5 - d);
       p.pos.x += (dx / d) * push; p.pos.z += (dz / d) * push;
+      if (p.mode === 'drive') {
+        // a fender-bender: you bounce, they honk
+        if (Math.abs(p.speed) > 6 && !this._bonkCd) {
+          this.fx.pop(p.pos, ['CRASH!', 'DENT!', 'AYYO, MY BUMPER!'][Math.floor(Math.random() * 3)]);
+          this.audio.bonk(); this.audio.horn(v.x, v.z, v.type.key); this.camRig.shake(0.4);
+          this._bonkCd = true; setTimeout(() => (this._bonkCd = false), 900);
+        }
+        p.speed *= 0.6;
+        continue;
+      }
       if (v.v > 3 && !this._bonkCd) {
         p.knock(dx / d, dz / d, Math.min(8, v.v));
         this.fx.pop(p.pos, ['BONK!', 'SWALPA ADJUST!', 'AYYO!', 'BEEP BEEP!'][Math.floor(Math.random() * 4)]);

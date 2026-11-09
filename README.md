@@ -64,6 +64,26 @@ The city is built from the **real map**. Every street, building footprint, park,
   - **Catch the Six**: catch the sixes at Chinnaswamy
 
   Use the menu's **Invite friends** for a private room link.
+- **Four ways in** from the title screen: **Story mode** (missions, solo), **Multiplayer** (free roam with everyone), **Party games** and **Meetups**.
+- **Voice chat:** opt-in proximity voice (WebRTC). Voices fade with distance and pan left/right. Mute anyone from the 👥 People panel.
+- **Your progress is saved:** you continue where you left off. Copy a progress code from the menu to move to another device.
+- **Namma Club** in every district: a DJ, a light-up dance floor and club music on a beat shared by everyone there.
+  - **Meetup Mamta** starts games any time, and a meetup starts on a shared schedule when other players are around.
+  - **Namma Quiz Night** (Bengaluru trivia), **Dance-off** (a rhythm game), **Chor-Police** (tag) and **Bengaluru Blasters** (a cartoon sci-fi blaster battle with over-the-shoulder aim, three blasters and a kill feed).
+  - Bots join when you play alone. Weekly leaderboards reset every Monday.
+  - **Kaapi Kumar** sells filter coffee (run faster), **Boutique Bhavana** sells shades, jasmine, gold chains and titles shown under your name.
+- **Namma Meetup Hall**, for real meetups:
+  - walk onto the stage to present: share your screen live on the big screen, or show slides and a link
+  - your voice goes through the PA, so the whole hall hears you clearly
+  - the audience reacts (👏🔥😂💡❤️) and raises hands, and the presenter can give someone the floor
+  - six **project booths** where anyone can put up what they're building
+  - a **meetup calendar** (talks, demo days, hangouts) seen from every district, with reminders
+- **GTA mode:**
+  - walk up to any auto, car, scooter, bus or water tanker and take it; the owner is not pleased
+  - the traffic police chase you on hover scooters, and if they catch you it's a challan
+  - street scuffles with filmy *DHISHOOM*: aunties fight back with a chappal, some people run, most complain
+  - no fighting in the Meetup Hall or at Namma Club
+- **Namma Radio:** live Kannada, Bollywood, Punjabi and English stations (via radio-browser.info, streamed from the broadcasters), or play your own music files. It switches on when you get into a vehicle.
 - **Day and night, Bengaluru weather:** a shared 24-minute day with afternoon showers, the same for everyone online.
 - **Fully voiced, hands-free conversations:**
   - every character has their own voice
@@ -87,6 +107,11 @@ The stereotypes are the city's own jokes, told with affection. It's a game.
 | Chat | T or Enter | 💬 | |
 | City map / travel | M | 🗺️ | Back |
 | Horn | H | | RB |
+| Take / leave a vehicle | E near it | ✋ | X |
+| Punch | X | 👊 | |
+| Voice chat mic / people | V / Tab | 🎙️ / 👥 | |
+| Radio | B | 📻 | |
+| Blasters: aim / fire / switch | mouse (click to lock) / hold click / 1–3 | drag / 🔫 / 🔁 | |
 
 ## How it works
 

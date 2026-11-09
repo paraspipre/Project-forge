@@ -8,7 +8,7 @@ import { Avatar, randomLook } from '../actors/Avatar.js';
 
 const $ = (id) => document.getElementById(id);
 
-class PartyGame {
+export class PartyGame {
   constructor(social, inv) {
     this.s = social;
     this.g = social.game;
@@ -24,6 +24,7 @@ class PartyGame {
     this.el = document.createElement('div');
     this.el.className = 'party';
     $('hud').appendChild(this.el);
+    document.body.classList.add('partying');
   }
   addPlayer(id, name) {
     if (this.players.has(id)) return this.players.get(id);
@@ -45,9 +46,9 @@ class PartyGame {
     this.el.innerHTML = `<div class="pg-card"><div class="pg-kicker">${title}</div><h3>${rank === 1 ? 'YOU WIN! 🏆' : `You came #${rank}`}</h3><div class="pg-board">${this.board(sortDesc, fmt)}</div><div class="pg-foot">+${coins} 🪙 · next round at the club soon</div></div>`;
     this.g.addCoins(coins, this.g.player.pos);
     if (rank === 1) { this.g.fx.confetti(this.g.player.pos, 160); this.g.audio.fanfare(true); this.g.player.avatar.play('cheer', 3); }
-    setTimeout(() => { this.el.remove(); this._resolve({ rank, coins, score: this.players.get(this.g.profile.id).score }); }, 7000);
+    setTimeout(() => { this.el.remove(); document.body.classList.remove('partying'); this._resolve({ rank, coins, score: this.players.get(this.g.profile.id).score }); }, 7000);
   }
-  dispose() { this.el.remove(); this.done = true; this._resolve(null); }
+  dispose() { this.el.remove(); document.body.classList.remove('partying'); this.done = true; this._resolve(null); }
 }
 
 const escapeHtml = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

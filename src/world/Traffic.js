@@ -257,6 +257,8 @@ export class Traffic {
       if (player && Math.abs((player.pos.y || 0) - v.y) < 2.5) {
         const dx = P.x - v.x, dz = P.z - v.z;
         const along = dx * hx + dz * hz, side = Math.abs(dx * hz - dz * hx);
+        // someone on foot right next to us (about to hop in?): stop
+        if (player.mode === 'walk' && dx * dx + dz * dz < (v.type.r + 1.3) ** 2) block = 0;
         if (along > 0 && along < look + 2 && side < v.type.r * 0.7 + 0.8) {
           block = Math.min(block, along - v.type.r - 0.6);
           v.honkT -= dt;

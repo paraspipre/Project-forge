@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Venue } from './Venue.js';
 import { Hall } from './Hall.js';
 import { Quiz, DanceOff, ChorPolice } from './PartyGames.js';
+import { Blasters } from './Blasters.js';
 import { SHOP, TITLES, EARNED } from '../data/cosmetics.js';
 import { Avatar, randomLook } from '../actors/Avatar.js';
 import { fetchBoard, postBoard } from '../net/Net.js';
@@ -17,6 +18,7 @@ export const KINDS = {
   quiz: { name: 'Namma Quiz Night', icon: '🧠', cls: Quiz, len: 8 * 16 + 10, late: 70, bots: true, blurb: '8 questions about Bengaluru. Fastest right answers win.' },
   dance: { name: 'Dance-off', icon: '🕺', cls: DanceOff, len: 44, late: 3, bots: true, blurb: 'Hit the arrows on the beat. Combos score big.' },
   chor: { name: 'Chor-Police', icon: '🚨', cls: ChorPolice, len: 106, late: 70, blurb: 'Police catches a chor and you swap. Stay free the longest!' },
+  blasters: { name: 'Bengaluru Blasters', icon: '💥', cls: Blasters, len: 156, late: 100, blurb: 'Sci-fi blaster battle around Namma Club. Most knock-outs wins.' },
 };
 export const BOARD_NAMES = { quiz: '🧠 Quiz', dance: '🕺 Dance-off', chor: '🚨 Chor-Police', blasters: '💥 Blasters' };
 const ROTATION = ['quiz', 'dance', 'chor', 'blasters', 'dance', 'quiz', 'chor', 'blasters'];
@@ -574,10 +576,10 @@ export class Social {
     }
     // kaapi / game boosts
     p.boost = Math.max(now < this.boostUntil ? 1.3 : 1, this.cur?.boost || 1);
-    // the meetup hall, and its action-button prompts (stage, booths, benches, calendar)
-    if (this.hall) {
-      this.hall.update(dt);
-      const w = this.cur ? null : this.hall.want();
+    // the meetup hall, and action-button prompts (stage, booths, benches, calendar, vehicles to take)
+    {
+      this.hall?.update(dt);
+      const w = this.cur || g.dlg.open ? null : (this.hall?.want() || g.driving?.want() || null);
       this.want = w;
       const hud = g.hud;
       if (w) {

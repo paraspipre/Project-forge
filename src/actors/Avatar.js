@@ -412,6 +412,21 @@ export class Avatar {
         lerp(b.faL, 'y', -0.7); lerp(b.faR, 'y', 0.7); lerp(b.head, 'z', 0.2);
         b.chest.position.y = J.chest[1] - J.spine[1] + 0.03 * k;
         break;
+      case 'punch': {
+        // a quick filmy jab: out in 0.1 s, back by 0.4 s, left hand up as a guard
+        const ext = Math.min(1, t / 0.1) * (1 - Math.min(1, Math.max(0, (t - 0.16) / 0.22)));
+        b.uaR.rotation.x = -0.4 - 1.25 * ext; b.uaR.rotation.z = -0.15;
+        b.faR.rotation.x = -1.5 * (1 - ext);
+        b.uaL.rotation.x = -0.7; b.faL.rotation.x = -1.8; b.uaL.rotation.z = -0.2;
+        b.chest.rotation.y -= 0.45 * ext;
+        b.spine.rotation.x += 0.1 * ext;
+        break;
+      }
+      case 'aim':
+        b.uaR.rotation.x = -1.45; b.faR.rotation.x = -0.15; b.uaR.rotation.z = 0.15;
+        b.uaL.rotation.x = -1.35; b.uaL.rotation.z = -0.55; b.faL.rotation.x = -0.35;
+        b.chest.rotation.y += 0.25;
+        break;
       case 'phone':
         lerp(b.uaR, 'x', -0.5); lerp(b.uaR, 'z', 0.5); lerp(b.faR, 'x', -2.2); lerp(b.head, 'z', -0.15);
         break;

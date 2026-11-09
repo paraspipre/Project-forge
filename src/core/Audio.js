@@ -125,10 +125,16 @@ export class Audio {
 
   stopVoice() { this.current?.stop(); this.current = null; }
 
+  // the radio is playing: the game's own music steps aside
+  musicHold(on) {
+    this.held = on;
+    if (this.ctx) this.music.gain.setTargetAtTime(on || !this.musicOn ? 0 : this._ducks ? 0.1 : 0.32, this.ctx.currentTime, 0.4);
+  }
+
   _duck(on) {
     if (!this.ctx) return;
     this._ducks = Math.max(0, (this._ducks || 0) + (on ? 1 : -1));
-    if (this.musicOn) this.music.gain.setTargetAtTime(this._ducks ? 0.1 : 0.32, this.ctx.currentTime, 0.25);
+    if (this.musicOn && !this.held) this.music.gain.setTargetAtTime(this._ducks ? 0.1 : 0.32, this.ctx.currentTime, 0.25);
   }
 
   unlock() {
@@ -164,7 +170,7 @@ export class Audio {
   setMusic(on) {
     this.musicOn = on;
     try { localStorage.setItem('pb.music', on ? '1' : '0'); } catch {}
-    if (this.ctx) this.music.gain.setTargetAtTime(on ? 0.32 : 0, this.ctx.currentTime, 0.3);
+    if (this.ctx) this.music.gain.setTargetAtTime(on && !this.held ? 0.32 : 0, this.ctx.currentTime, 0.3);
   }
 
   _impulse(sec) {
@@ -503,6 +509,12 @@ export class Audio {
       this._horn([660, 830], 0.09, 'triangle', 1800, v * 0.8, sp.pan);
       this._horn([660, 830], 0.12, 'triangle', 1800, v * 0.8, sp.pan, 0.15);
     }
+  }
+
+  // the traffic police: a short two-tone wail
+  siren() {
+    if (!this.ctx) return;
+    for (let i = 0; i < 3; i++) this._tone({ f: i % 2 ? 680 : 900, dur: 0.32, type: 'triangle', vol: 0.05, at: i * 0.34, q: 1400 });
   }
 
   myHorn() {

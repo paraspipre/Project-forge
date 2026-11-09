@@ -6,8 +6,8 @@ import { Look } from './Toon.js';
 THREE.ColorManagement.enabled = false;
 
 export const QUALITY = {
-  high:   { name: 'High',   maxDpr: 1.75, shadows: true, shadowSize: 2048, shadowRange: 75, drawDistance: 1500, fogDensity: 0.0011, treeDensity: 1.0, treeRadius: 520, treeCap: 6000, crowd: 46, traffic: 90 },
-  medium: { name: 'Medium', maxDpr: 1.25, shadows: true, shadowSize: 1024, shadowRange: 55, drawDistance: 1100, fogDensity: 0.0014, treeDensity: 0.8, treeRadius: 380, treeCap: 3200, crowd: 30, traffic: 60 },
+  high:   { name: 'High',   bloom: true, fxaa: true, maxDpr: 1.75, shadows: true, shadowSize: 2048, shadowRange: 75, drawDistance: 1500, fogDensity: 0.0011, treeDensity: 1.0, treeRadius: 520, treeCap: 6000, crowd: 46, traffic: 90 },
+  medium: { name: 'Medium', bloom: true, maxDpr: 1.25, shadows: true, shadowSize: 1024, shadowRange: 55, drawDistance: 1100, fogDensity: 0.0014, treeDensity: 0.8, treeRadius: 380, treeCap: 3200, crowd: 30, traffic: 60 },
   low:    { name: 'Low',    maxDpr: 1.0,  shadows: false, shadowSize: 512, shadowRange: 40, drawDistance: 800, fogDensity: 0.0019, treeDensity: 0.55, treeRadius: 260, treeCap: 1600, crowd: 18, traffic: 36 },
 };
 
@@ -47,7 +47,7 @@ export class Renderer {
     this.scene.add(this.sun, this.sun.target);
     this.sunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
 
-    this.post = new Post(r);
+    this.post = new Post(r, { bloom: !!this.quality.bloom, fxaa: !!this.quality.fxaa });
     this.clock = new THREE.Clock();
     this.resize();
     addEventListener('resize', () => this.resize());

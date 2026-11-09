@@ -39,6 +39,7 @@
         <div id="online" class="chip" title="Players here"><span class="dot"></span> <span id="online-n">1</span></div>
         <button id="btn-mic" class="chip btn" title="Voice chat (V)">🎙️<span id="mic-state">off</span></button>
         <button id="btn-players" class="chip btn" title="Players (Tab)">👥</button>
+        <button id="btn-radio" class="chip btn" title="Radio (B)">📻</button>
         <button id="btn-map" class="chip btn" title="City map (M)">🗺️</button>
         <button id="btn-pause" class="chip btn" title="Menu (Esc)">☰</button>
       </div>
@@ -69,6 +70,7 @@
           <button id="t-act" class="tb hidden">✋</button>
           <button id="t-ride" class="tb">🛵</button>
           <button id="t-emote" class="tb small">😄</button>
+          <button id="t-punch" class="tb small">👊</button>
           <button id="t-chat" class="tb small">💬</button>
         </div>
       </div>
@@ -97,6 +99,12 @@
         <label class="field">Your name
           <input id="in-name" maxlength="16" autocomplete="off">
         </label>
+        <div class="modes">
+          <button id="mode-story" class="mode"><span>🧭</span><b>Story mode</b><small>Missions across 10 districts. Solo, at your pace.</small></button>
+          <button id="mode-online" class="mode"><span>🌐</span><b>Multiplayer</b><small>Free roam with everyone online. Voice chat, steal autos, fight.</small></button>
+          <button id="mode-party" class="mode"><span>🎉</span><b>Party games</b><small>Quiz, Dance-off, Chor-Police, Blasters with friends.</small></button>
+          <button id="mode-meetup" class="mode"><span>🎤</span><b>Meetups</b><small>Talks, demos and booths. Share your screen on stage.</small></button>
+        </div>
         <div class="menu-buttons">
           <button id="btn-play" class="menu-btn primary">Play</button>
           <button id="btn-districts" class="menu-btn">Choose district</button>

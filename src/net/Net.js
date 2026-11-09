@@ -1,4 +1,5 @@
 import { MiniMqtt } from './MiniMqtt.js';
+import { VKEYS } from '../game/Driving.js';
 
 // Serverless multiplayer over public MQTT brokers (WebSocket). The site is static (Vercel),
 // so players meet in topics: peakblr/v1/<zone>/<room>/...
@@ -11,8 +12,8 @@ const BROKERS = ['wss://broker.hivemq.com:8884/mqtt', 'wss://broker.emqx.io:8084
 const ROOT = 'peakblr/v1';
 const enc = new TextEncoder(), dec = new TextDecoder();
 
-export const MODES = ['walk', 'ride', 'climb', 'sit', 'glide', 'pillion'];
-export const EMOTES = ['', 'wave', 'namaste', 'wobble', 'dance', 'cheer', 'facepalm', 'laugh', 'point', 'shrug', 'phone', 'typing', 'sit'];
+export const MODES = ['walk', 'ride', 'climb', 'sit', 'glide', 'pillion', 'drive'];
+export const EMOTES = ['', 'wave', 'namaste', 'wobble', 'dance', 'cheer', 'facepalm', 'laugh', 'point', 'shrug', 'phone', 'typing', 'sit', 'aim', 'punch'];
 
 const BAD = ['fuck', 'shit', 'bitch', 'cunt', 'dick', 'pussy', 'nigg', 'fag', 'rape', 'slut', 'whore', 'bastard', 'madarchod', 'behenchod', 'bhenchod', 'chutiya', 'chutiye', 'gandu', 'randi', 'bosadi', 'bsdk', 'lavde', 'lund', 'soole', 'bolimaga', 'boli maga', 'tunne', 'tullu', 'harami'];
 const BAD_RE = BAD.map((w) => new RegExp((w.length <= 4 ? String.raw`\b` : '') + w.replace(/ /g, String.raw`\s*`), 'gi'));
@@ -128,6 +129,8 @@ export class Net {
     v.setInt8(26, Math.round((st.lean || 0) * 100));
     v.setUint16(27, (this.seq = (this.seq + 1) & 0xffff), true);
     v.setUint8(29, st.flags || 0);
+    v.setUint8(30, st.veh ? VKEYS.indexOf(st.veh) + 1 : 0);
+    v.setUint8(31, Math.max(0, Math.min(255, Math.round(st.hp ?? 255))));
     this._pub('s', new Uint8Array(b));
   }
 
@@ -187,6 +190,7 @@ export class Net {
         x: v.getFloat32(9, true), y: v.getFloat32(13, true), z: v.getFloat32(17, true),
         yaw: v.getInt16(21, true) / 5000, mode: MODES[v.getUint8(23)] || 'walk', emote: EMOTES[v.getUint8(24)] || '',
         speed: v.getUint8(25) / 8, lean: v.getInt8(26) / 100, flags: v.getUint8(29),
+        veh: payload.length >= 32 ? VKEYS[v.getUint8(30) - 1] || null : null, hp: payload.length >= 32 ? v.getUint8(31) : 255,
       };
       if (!Number.isFinite(st.x) || !Number.isFinite(st.z)) return;
       if (!p.known) { p.known = true; this.on.join?.(p); }
