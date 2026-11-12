@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { scooterGeo, autoGeo, carGeo, busGeo, tankerGeo, vehicleMaterial } from '../actors/Vehicles.js';
+import { scooterGeo, bikeGeo, autoGeo, carGeo, busGeo, tankerGeo, vehicleMaterial } from '../actors/Vehicles.js';
 import { Avatar, randomLook } from '../actors/Avatar.js';
 
 // GTA-style driving: walk up to anything in traffic and take it. The driver gets out (loudly),
@@ -9,8 +9,8 @@ import { Avatar, randomLook } from '../actors/Avatar.js';
 export const VKEYS = ['scooter', 'delivery', 'auto', 'car', 'bus', 'tanker'];
 export const VSPEC = {
   scooter: { name: 'scooter', max: 27, acc: 16, turn: 1.0, r: 0.8, cam: 9, sit: [0, 0.18, -0.1], pose: 'ride' },
-  delivery: { name: 'delivery scooter', max: 27, acc: 16, turn: 1.0, r: 0.8, cam: 9, sit: [0, 0.18, -0.1], pose: 'ride' },
-  auto: { name: 'auto', max: 22, acc: 11, turn: 0.85, r: 1.2, cam: 10, sit: [0, 0.42, 0.22], pose: 'ride' },
+  delivery: { name: 'delivery bike', max: 29, acc: 17, turn: 1.0, r: 0.8, cam: 9, sit: [0, 0.22, -0.25], pose: 'ride' },
+  auto: { name: 'auto', max: 22, acc: 11, turn: 0.85, r: 1.2, cam: 10, sit: [0, 0.5, 0.18], pose: 'ride' },
   car: { name: 'car', max: 31, acc: 13, turn: 0.75, r: 1.5, cam: 11, hide: true },
   bus: { name: 'BMTC bus', max: 17, acc: 6, turn: 0.45, r: 2.4, cam: 17, hide: true },
   tanker: { name: 'water tanker', max: 16, acc: 6, turn: 0.45, r: 2.2, cam: 15, hide: true },
@@ -22,7 +22,7 @@ export function vehicleGeo(key, tint = '#ffffff') {
   if (geoCache.has(k)) return geoCache.get(k);
   let g;
   if (key === 'scooter') g = scooterGeo({ body: tint === '#ffffff' ? '#d9d9de' : tint });
-  else if (key === 'delivery') g = scooterGeo({ body: '#2b2b30', box: '#f07b20' });
+  else if (key === 'delivery') g = bikeGeo({ body: '#c0262d', box: '#f07b20' });
   else if (key === 'auto') g = autoGeo({ driver: false });
   else if (key === 'car') g = carGeo({ body: tint });
   else if (key === 'bus') g = busGeo();
@@ -104,7 +104,7 @@ export class Driving {
     p.pos.set(x, y || 0, z);
     p.yaw = yaw;
     g.camRig.yaw = yaw;
-    g.audio.scooter(true);
+    if (key === 'scooter' || key === 'delivery') g.audio.scooter(true); else g.audio.engine(key);
     g.audio.whoosh();
     if (!g.profile.drove) { g.profile.drove = true; g.saveProfile(); g.hud.toast('W/S throttle · A/D steer · Shift boost · H horn · E or R to get out', 5000); }
   }
@@ -122,6 +122,7 @@ export class Driving {
     while (this.parked.length > 4) { const old = this.parked.shift(); g.ren.scene.remove(old.mesh); }
     this._syncObstacles();
     g.audio.scooter(false);
+    g.audio.engine(null);
   }
 
   _syncObstacles() {
@@ -191,7 +192,7 @@ export class Driving {
     g.audio.fail();
     if (this.driving) {
       const veh = g.player.exitVehicle();   // impounded: no parking
-      if (veh) g.audio.scooter(false);
+      if (veh) { g.audio.scooter(false); g.audio.engine(null); }
     }
     this.heat = 0;
     for (const c of [...this.cops]) this._removeCop(c);

@@ -16,7 +16,7 @@ export class Minigames {
   constructor(game) {
     this.game = game;
     this.session = null;
-    this.ballMat = toon({ color: '#c0262d', hatch: 0.2, rim: 0.3 });
+    this.ballMat = toon({ color: '#c0262d', hatch: 0.2, rim: 0.3, plain: true });
     this.ringMat = toon({ color: '#3fb3a6', unlit: true, hatch: 0 });
   }
 

@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { mergeGeometries } from '../../vendor/jsm/utils/BufferGeometryUtils.js';
 import { toon } from '../core/Toon.js';
 
-// A stylised person in the comic style: one skinned mesh (one draw call) built from simple
-// rounded parts, with procedural animation — idle, walk, run, jump, ride, sit and emotes.
+// A person: one skinned mesh (one draw call) built from shaped parts (tapered, muscled limbs, a
+// shaped torso, hands, shoes and a detailed face), with procedural animation — idle, walk, run, jump, ride, sit and emotes.
 
 const B = { root: 0, hips: 1, spine: 2, chest: 3, neck: 4, head: 5, uaL: 6, faL: 7, hL: 8, uaR: 9, faR: 10, hR: 11, thL: 12, shL: 13, ftL: 14, thR: 15, shR: 16, ftR: 17 };
 // rest positions (world, metres) of each joint
@@ -46,6 +46,18 @@ const sph = (r, ws = 10, hs = 8, ...rest) => new THREE.SphereGeometry(r, ws, hs,
 const cyl = (r0, r1, h, s = 8) => new THREE.CylinderGeometry(r0, r1, h, s);
 const mid = (a, b) => [(J[a][0] + J[b][0]) / 2, (J[a][1] + J[b][1]) / 2, (J[a][2] + J[b][2]) / 2];
 
+// A limb or torso segment: a lathe that tapers from rTop to rBottom over len, bulging a little in the
+// middle (muscle), with rounded ends (or open ends for clothing hems).
+function taper(rTop, rBot, len, seg = 12, bulge = 0, open = false) {
+  const pts = [], h = len / 2;
+  if (!open) for (let i = 0; i <= 2; i++) { const a = -Math.PI / 2 + (i / 2) * (Math.PI / 2); pts.push(new THREE.Vector2(Math.max(1e-4, Math.cos(a) * rBot), -h + Math.sin(a) * rBot)); }
+  for (let i = open ? 0 : 1; i < 5; i++) { const t = i / 4; const r = (rBot + (rTop - rBot) * t) * (1 + bulge * Math.sin(Math.PI * t) * 0.25); pts.push(new THREE.Vector2(r, -h + len * t)); }
+  if (!open) for (let i = 1; i <= 2; i++) { const a = (i / 2) * (Math.PI / 2); pts.push(new THREE.Vector2(Math.max(1e-4, Math.cos(a) * rTop), h + Math.sin(a) * rTop)); }
+  const g = new THREE.LatheGeometry(pts, Math.min(seg, 10));
+  g.computeVertexNormals();
+  return g;
+}
+
 export function randomLook(seed = Math.random() * 1e9) {
   let s = Math.floor(seed) % 2147483647 || 1;
   const r = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
@@ -68,71 +80,114 @@ function buildGeometry(look) {
   const skin = L.skin, shirt = L.shirt, pants = L.pants;
   const longShirt = L.shirtStyle === 'kurta' || L.shirtStyle === 'uniform';
   const bw = L.build;
-  // pelvis + legs
-  P.push(part(box(0.3 * bw, 0.2, 0.2), 'hips', pants, [0, 0.93, 0]));
+  // ---------------------------------------------------------------- body
+  // Realistic proportions: tapered limbs with muscle, a shaped torso, hands with a thumb, proper shoes,
+  // and a face with eyes, brows, nose, lips and ears.
+  const dark = (c, k) => new THREE.Color(c).multiplyScalar(k).getHex();
+  const L2 = (a, b) => Math.hypot(J[b][0] - J[a][0], J[b][1] - J[a][1]);
+  // pelvis / hips
+  P.push(part(taper(0.15 * bw, 0.155 * bw, 0.12, 14, 0.1), 'hips', pants, [0, 0.93, 0], null, [1.05, 1, 0.66]));
+  P.push(part(cyl(0.158 * bw, 0.158 * bw, 0.035, 14), 'hips', L.shoes === '#eeeeee' ? '#3a2f2c' : dark(pants, 0.45), [0, 1.0, 0], null, [1.05, 1, 0.67]));   // belt
+  // legs: thigh, knee, calf, ankle
   for (const s of ['L', 'R']) {
-    P.push(part(cap(0.075 * bw, 0.34), 'th' + s, pants, mid('th' + s, 'sh' + s)));
-    P.push(part(cap(0.064, 0.33), 'sh' + s, pants, mid('sh' + s, 'ft' + s)));
-    P.push(part(box(0.11, 0.08, 0.24), 'ft' + s, L.shoes, [J['ft' + s][0], 0.045, 0.045]));
-    P.push(part(cyl(0.05, 0.05, 0.06, 6), 'ft' + s, skin, [J['ft' + s][0], 0.12, 0.0]));
+    const th = 'th' + s, sh = 'sh' + s, ft = 'ft' + s;
+    P.push(part(taper(0.088 * bw, 0.064, L2(th, sh), 12, 0.25), th, pants, mid(th, sh)));
+    P.push(part(sph(0.066, 10, 8), sh, pants, [J[sh][0], J[sh][1] + 0.01, 0.005]));
+    P.push(part(taper(0.064, 0.045, L2(sh, ft) - 0.02, 12, 0.35), sh, pants, mid(sh, ft)));
+    // shoe: a sole, a rounded upper and a toe cap
+    const fx = J[ft][0];
+    P.push(part(box(0.105, 0.025, 0.27), ft, dark(L.shoes, 0.55), [fx, 0.013, 0.04]));
+    P.push(part(sph(0.07, 12, 8), ft, L.shoes, [fx, 0.06, -0.02], null, [0.75, 0.62, 1.15]));
+    P.push(part(sph(0.06, 12, 8), ft, L.shoes, [fx, 0.05, 0.1], null, [0.85, 0.6, 1.1]));
   }
-  // torso: a loose shirt that flares at the hem
-  P.push(part(cyl(0.17 * bw, 0.19 * bw, 0.26, 10), 'spine', shirt, [0, 1.1, 0], null, [1, 1, 0.75]));
-  P.push(part(cyl(0.2 * bw, 0.17 * bw, 0.28, 10), 'chest', shirt, [0, 1.35, 0], null, [1, 1, 0.72]));
-  P.push(part(sph(0.2 * bw, 10, 6), 'chest', shirt, [0, 1.44, 0], null, [1, 0.38, 0.72]));
-  if (longShirt) P.push(part(cyl(0.2 * bw, 0.25 * bw, 0.36, 10), 'hips', L.shirtStyle === 'uniform' ? shirt : shirt, [0, 0.86, 0], null, [1, 1, 0.8]));
-  else P.push(part(cyl(0.19 * bw, 0.205 * bw, 0.1, 10), 'hips', shirt, [0, 0.98, 0], null, [1, 1, 0.78]));
-  if (L.shirtStyle === 'shirt' || L.shirtStyle === 'uniform') {
-    // collar + button placket
-    P.push(part(box(0.16, 0.05, 0.05), 'chest', L.shirtStyle === 'uniform' ? shirt : '#ffffff', [0, 1.47, 0.08], [0.3, 0, 0]));
-    P.push(part(box(0.02, 0.36, 0.01), 'chest', new THREE.Color(shirt).multiplyScalar(0.8).getHex(), [0, 1.27, 0.145]));
+  // torso: abdomen (spine) + rib cage and shoulders (chest)
+  P.push(part(taper(0.152 * bw, 0.168 * bw, 0.24, 16, 0.12), 'spine', shirt, [0, 1.1, 0], null, [1, 1, 0.66]));
+  P.push(part(taper(0.2 * bw, 0.172 * bw, 0.26, 16, 0.18), 'chest', shirt, [0, 1.33, 0], null, [1, 1, 0.64]));
+  P.push(part(sph(0.205 * bw, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), 'chest', shirt, [0, 1.44, 0], null, [1, 0.42, 0.64]));
+  for (const sx of [1, -1]) P.push(part(sph(0.062 * bw, 12, 8), 'chest', shirt, [sx * 0.158 * bw, 1.425, 0], null, [1.1, 0.75, 0.9]));   // shoulders
+  if (longShirt) {
+    // kurta / uniform: falls to the knee with a slight flare
+    P.push(part(taper(0.172 * bw, 0.215 * bw, 0.34, 16, 0.0, true), 'hips', shirt, [0, 0.84, 0], null, [1, 1, 0.72]));
+  } else {
+    P.push(part(taper(0.168 * bw, 0.172 * bw, 0.08, 16, 0.0, true), 'hips', shirt, [0, 0.99, 0], null, [1, 1, 0.68]));
   }
-  // neck + head
-  P.push(part(cyl(0.05, 0.055, 0.1, 6), 'neck', skin, [0, 1.52, 0]));
-  P.push(part(sph(0.115, 12, 10), 'head', skin, [0, 1.68, 0.005], null, [0.92, 1.08, 1]));
-  P.push(part(box(0.03, 0.04, 0.03), 'head', skin, [0, 1.66, 0.115]));                 // nose
-  P.push(part(box(0.022, 0.03, 0.01), 'head', '#1b1718', [0.042, 1.7, 0.103]));        // eyes
-  P.push(part(box(0.022, 0.03, 0.01), 'head', '#1b1718', [-0.042, 1.7, 0.103]));
-  P.push(part(sph(0.025, 6, 4), 'head', skin, [0.112, 1.68, 0], null, [0.5, 1, 1]));    // ears
-  P.push(part(sph(0.025, 6, 4), 'head', skin, [-0.112, 1.68, 0], null, [0.5, 1, 1]));
+  if (L.shirtStyle === 'shirt' || L.shirtStyle === 'uniform' || L.shirtStyle === 'kurta') {
+    const collar = L.shirtStyle === 'shirt' ? '#ffffff' : shirt;
+    P.push(part(cyl(0.062, 0.075, 0.045, 12, true), 'chest', L.shirtStyle === 'kurta' ? dark(shirt, 0.85) : collar === '#ffffff' ? shirt : shirt, [0, 1.485, 0.005]));
+    P.push(part(box(0.018, L.shirtStyle === 'kurta' ? 0.16 : 0.34, 0.01), 'chest', dark(shirt, 0.78), [0, L.shirtStyle === 'kurta' ? 1.4 : 1.29, 0.13]));
+    for (let i = 0; i < (L.shirtStyle === 'kurta' ? 3 : 5); i++) P.push(part(sph(0.007, 5, 4), 'chest', '#efe8d8', [0.0, 1.45 - i * 0.065, 0.137]));
+    if (L.shirtStyle === 'uniform') for (const sx of [1, -1]) P.push(part(box(0.07, 0.07, 0.012), 'chest', dark(shirt, 0.88), [sx * 0.085, 1.35, 0.128]));
+  }
+  // neck and head
+  P.push(part(taper(0.052, 0.058, 0.09, 10, 0.1), 'neck', skin, [0, 1.515, 0]));
+  P.push(part(sph(0.104, 14, 10), 'head', skin, [0, 1.695, -0.008], null, [0.94, 1.1, 1.05]));    // skull
+  P.push(part(sph(0.078, 14, 10), 'head', skin, [0, 1.625, 0.03], null, [0.95, 0.9, 1.0]));       // jaw and chin
+  P.push(part(sph(0.03, 8, 6), 'head', skin, [0, 1.6, 0.075], null, [1.2, 0.9, 0.9]));            // chin
+  const skinDark = dark(skin, 0.82);
+  // nose: bridge and tip
+  P.push(part(box(0.022, 0.05, 0.03), 'head', skin, [0, 1.675, 0.103], [-0.25, 0, 0]));
+  P.push(part(sph(0.017, 8, 6), 'head', skin, [0, 1.652, 0.116], null, [1.15, 0.9, 1]));
+  // eyes: whites, irises, lids; brows
+  for (const sx of [1, -1]) {
+    P.push(part(sph(0.017, 10, 8), 'head', '#f1ebe2', [sx * 0.037, 1.698, 0.091], null, [1.1, 0.75, 0.6]));
+    P.push(part(sph(0.0095, 8, 6), 'head', '#2b1a12', [sx * 0.037, 1.698, 0.1]));
+    P.push(part(box(0.038, 0.007, 0.012), 'head', skinDark, [sx * 0.037, 1.711, 0.098]));
+    P.push(part(box(0.042, 0.009, 0.01), 'head', dark(L.hair, 1.0), [sx * 0.039, 1.724, 0.1], [0, 0, sx * -0.12]));
+    // ears
+    P.push(part(sph(0.026, 8, 6), 'head', skin, [sx * 0.1, 1.69, -0.005], null, [0.4, 1, 0.75]));
+  }
+  // mouth
+  P.push(part(box(0.044, 0.008, 0.012), 'head', dark(skin, 0.6), [0, 1.622, 0.104]));
+  P.push(part(sph(0.022, 8, 6), 'head', dark(skin, 0.78), [0, 1.613, 0.098], null, [1.2, 0.35, 0.5]));
   const hair = L.hair;
+  const hairCap = (y = 1.705, sx = 0.98, sy = 1.08, sz = 1.1, theta = 0.52) => part(sph(0.112, 16, 10, 0, Math.PI * 2, 0, Math.PI * theta), 'head', hair, [0, y, -0.012], [-0.42, 0, 0], [sx, sy, sz]);
+  const back = (len = 0.08) => part(sph(0.105, 14, 8, 0, Math.PI, 0, Math.PI * 0.6), 'head', hair, [0, 1.69 - len * 0.3, -0.03], [0, Math.PI, 0], [1.0, 1.0 + len, 1.05]);
   switch (L.hairStyle) {
     case 'curly':
-      for (let i = 0; i < 9; i++) {
-        const a = (i / 9) * Math.PI * 2;
-        P.push(part(sph(0.06, 6, 5), 'head', hair, [Math.cos(a) * 0.08, 1.77 + Math.sin(i * 1.7) * 0.01, Math.sin(a) * 0.075 - 0.02]));
+      P.push(hairCap(1.71, 1.0, 1.1, 1.12, 0.55));
+      for (let i = 0; i < 16; i++) {
+        const a = (i / 16) * Math.PI * 2, rr = 0.085 + (i % 3) * 0.006;
+        P.push(part(sph(0.034, 7, 6), 'head', hair, [Math.cos(a) * rr, 1.77 + Math.sin(i * 2.3) * 0.012, Math.sin(a) * rr - 0.015]));
       }
-      P.push(part(sph(0.1, 8, 6), 'head', hair, [0, 1.79, -0.02], null, [1, 0.7, 1]));
+      P.push(back(0.02));
       break;
     case 'short':
-      P.push(part(sph(0.122, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55), 'head', hair, [0, 1.69, -0.008], null, [0.95, 1.05, 1.05]));
+      P.push(hairCap()); P.push(back(0.02));
+      for (const sx of [1, -1]) P.push(part(box(0.012, 0.035, 0.03), 'head', hair, [sx * 0.098, 1.685, 0.025]));   // sideburns
       break;
     case 'spiky':
-      P.push(part(sph(0.12, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.5), 'head', hair, [0, 1.7, -0.01], null, [0.95, 1.1, 1.05]));
-      for (let i = 0; i < 5; i++) P.push(part(new THREE.ConeGeometry(0.03, 0.08, 4), 'head', hair, [(i - 2) * 0.035, 1.82, 0.02 - Math.abs(i - 2) * 0.02], [-0.3, 0, (i - 2) * 0.2]));
+      P.push(hairCap(1.712, 0.98, 1.12, 1.1)); P.push(back(0.02));
+      for (let i = 0; i < 7; i++) P.push(part(new THREE.ConeGeometry(0.026, 0.075, 5), 'head', hair, [(i - 3) * 0.028, 1.81 - Math.abs(i - 3) * 0.008, 0.03 - Math.abs(i - 3) * 0.018], [-0.35, 0, (i - 3) * 0.18]));
       break;
     case 'long':
-      P.push(part(sph(0.125, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55), 'head', hair, [0, 1.69, -0.01], null, [0.98, 1.05, 1.06]));
-      P.push(part(box(0.24, 0.32, 0.08), 'head', hair, [0, 1.55, -0.08]));
+      P.push(hairCap(1.708, 1.02, 1.1, 1.12, 0.56));
+      P.push(part(sph(0.12, 14, 10), 'head', hair, [0, 1.56, -0.075], null, [1.05, 1.55, 0.55]));
+      for (const sx of [1, -1]) P.push(part(sph(0.05, 8, 6), 'head', hair, [sx * 0.095, 1.6, 0.0], null, [0.5, 2.0, 0.8]));
       break;
     case 'bun':
-      P.push(part(sph(0.122, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55), 'head', hair, [0, 1.69, -0.008], null, [0.95, 1.05, 1.05]));
-      P.push(part(sph(0.06, 8, 6), 'head', hair, [0, 1.73, -0.13]));
+      P.push(hairCap(1.706, 0.98, 1.08, 1.1, 0.56)); P.push(back(0.04));
+      P.push(part(sph(0.055, 12, 10), 'head', hair, [0, 1.72, -0.135]));
       break;
     case 'ponytail':
-      P.push(part(sph(0.122, 10, 7, 0, Math.PI * 2, 0, Math.PI * 0.55), 'head', hair, [0, 1.69, -0.008], null, [0.95, 1.05, 1.05]));
-      P.push(part(cap(0.035, 0.18, 6), 'head', hair, [0, 1.58, -0.14], [0.4, 0, 0]));
+      P.push(hairCap(1.706, 0.98, 1.08, 1.1, 0.56)); P.push(back(0.04));
+      P.push(part(taper(0.035, 0.02, 0.2, 8, 0.2), 'head', hair, [0, 1.6, -0.15], [0.35, 0, 0]));
       break;
     default:
       break;
   }
-  // arms: short sleeves for tees, long for shirts / kurtas
+  // arms: deltoid, upper arm, elbow, forearm, hand with a thumb; sleeves by shirt style
   const longSleeve = L.shirtStyle !== 'tee';
   for (const s of ['L', 'R']) {
-    P.push(part(cap(0.058 * bw, 0.2), 'ua' + s, shirt, mid('ua' + s, 'fa' + s)));
-    P.push(part(cap(0.046, 0.2), 'fa' + s, longSleeve ? shirt : skin, mid('fa' + s, 'h' + s)));
-    if (longSleeve) P.push(part(cyl(0.048, 0.048, 0.04, 6), 'fa' + s, skin, [J['h' + s][0], J['h' + s][1] + 0.03, 0]));
-    P.push(part(box(0.06, 0.09, 0.035), 'h' + s, skin, [J['h' + s][0], J['h' + s][1] - 0.05, 0]));
+    const ua = 'ua' + s, fa = 'fa' + s, h = 'h' + s, sx = s === 'L' ? 1 : -1;
+    P.push(part(taper(0.054 * bw, 0.044, L2(ua, fa), 12, 0.3), ua, longSleeve ? shirt : skin, mid(ua, fa)));
+    if (!longSleeve) P.push(part(taper(0.062 * bw, 0.056 * bw, 0.11, 12, 0, true), ua, shirt, [J[ua][0], J[ua][1] - 0.06, 0]));
+    P.push(part(sph(0.044, 8, 6), fa, longSleeve ? shirt : skin, [J[fa][0], J[fa][1], 0]));
+    P.push(part(taper(0.043, 0.032, L2(fa, h) - 0.01, 12, 0.3), fa, longSleeve ? shirt : skin, mid(fa, h)));
+    if (longSleeve) P.push(part(cyl(0.036, 0.036, 0.025, 10), fa, dark(shirt, 0.85), [J[h][0], J[h][1] + 0.02, 0]));
+    // hand: palm, fingers, thumb
+    P.push(part(box(0.035, 0.075, 0.07), h, skin, [J[h][0], J[h][1] - 0.04, 0.005], null));
+    P.push(part(box(0.03, 0.06, 0.062), h, skin, [J[h][0] - sx * 0.002, J[h][1] - 0.105, 0.008]));
+    P.push(part(taper(0.011, 0.009, 0.045, 6, 0.3), h, skin, [J[h][0] - sx * 0.006, J[h][1] - 0.045, 0.045], [-0.5, 0, 0]));
   }
   // extras
   const ex = new Set(L.extras || []);
@@ -198,9 +253,8 @@ function buildGeometry(look) {
     P.push(part(box(0.31, 0.07, 0.013), 'chest', '#1b1718', [0, 1.2, 0.149]));
     P.push(part(box(0.1, 0.035, 0.014), 'chest', '#e2b13c', [0, 1.38, 0.151]));
   }
-  const g = mergeGeometries(P);
-  g.computeVertexNormals();
-  return g;
+  // keep each part's own smooth normals (recomputing on the merged, non-indexed mesh would facet it)
+  return mergeGeometries(P);
 }
 
 const MAT_CACHE = {};

@@ -131,6 +131,17 @@ SCENARIOS = {
         ('js', "console.error('GFX ' + JSON.stringify({ zebras: game.city.zebraCount, heads: game.traffic.lights.head.count, ao: game.ren.post.material.uniforms.uAO.value, sat: game.ren.post.material.uniforms.uSat.value }))"),
         ('js', "game.atmo.override = 0.45; game.player.toggleRide(); game.player.speed = 30; game.camRig.yaw = game.player.yaw;"), ('key', 'w', 1500), ('shot', 'speed'),
     ],
+    'people': [
+        ('js', "game.atmo.override = 0.42"), ('wait', 2000),
+        ('js', "const m = game.quests.npcs.get('manju'); game.player.place(m.pos.x + 1.6, m.pos.z + 0.4, -Math.PI / 2); m.face(game.player.pos.x, game.player.pos.z); game.camRig.yaw = Math.atan2(m.pos.x - game.player.pos.x, m.pos.z - game.player.pos.z) + 2.4; game.camRig.pitch = 0.08; game.camRig.dist = 3.0;"),
+        ('wait', 1800), ('shot', 'closeup'),
+        ('js', "game.camRig.dist = 6; game.camRig.pitch = 0.2;"), ('wait', 1200), ('shot', 'group'),
+        ('js', "const p = game.crowd.peds.filter(p => p.x != null).sort((a, b) => Math.hypot(a.x - game.player.pos.x, a.z - game.player.pos.z) - Math.hypot(b.x - game.player.pos.x, b.z - game.player.pos.z))[0]; game.player.place(p.x + 2.2, p.z + 2.2); game.camRig.yaw = Math.atan2(p.x - game.player.pos.x, p.z - game.player.pos.z); game.camRig.dist = 3.2; game.camRig.pitch = 0.1;"),
+        ('wait', 1500), ('shot', 'ped'),
+    ],
+    'cars': [('js', "game.atmo.override = 0.42"), ('wait', 2500)] + [s for k in ['car', 'auto', 'scooter', 'delivery', 'bus'] for s in [
+        ('js', "(() => { const P = game.player.pos; const v = game.traffic.vehicles.filter(v => v.type.key === '%s').sort((a, b) => Math.hypot(a.x - P.x, a.z - P.z) - Math.hypot(b.x - P.x, b.z - P.z))[0]; if (!v) return; game.traffic.freeze = 1; v.v = 0; v.cruise = 0; const a = v.yaw + 0.9, d = v.type.r * 2.2 + 3; game.player.place(v.x + Math.sin(a) * d, v.z + Math.cos(a) * d); game.camRig.yaw = Math.atan2(v.x - game.player.pos.x, v.z - game.player.pos.z); game.camRig.pitch = 0.18; game.camRig.dist = 3.5; })()" % k),
+        ('wait', 1500), ('shot', k)]],
     # each step: ('js', code) | ('key', key, ms_hold) | ('wait', ms) | ('shot', name) | ('type', text)
     'basic': [
         ('wait', 2500),

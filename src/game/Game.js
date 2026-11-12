@@ -460,7 +460,34 @@ export class Game {
     this.labels.update(cam, dt);
     this.audio.setListener(cam.position.x, cam.position.z, this.camRig?.yaw || 0);
     const t = this.atmo.t;
-    this.audio.updateAmbience({ night: Look.uNight.value, rain: this.atmo.rain, crowd: (ZONES[this.zoneId]?.jam || 0.3), morning: t > 0.25 && t < 0.4 }, dt);
+    // what's around you, for the ambience: traffic and people close by
+    this._ambCount = (this._ambCount || 0) - dt;
+    if (this._ambCount <= 0) {
+      this._ambCount = 0.5;
+      const P = this.state === 'play' ? this.player.pos : cam.position;
+      this._trafficNear = this.traffic ? this.traffic.near(P.x, P.z, 45, this._ambTmp || (this._ambTmp = [])).length : 0;
+      this._peopleNear = this.crowd ? this.crowd.peds.filter((p) => p.x != null && (p.x - P.x) ** 2 + (p.z - P.z) ** 2 < 400).length : 0;
+    }
+    this.audio.updateAmbience({ night: Look.uNight.value, rain: this.atmo.rain, crowd: (ZONES[this.zoneId]?.jam || 0.3), morning: t > 0.25 && t < 0.4, trafficNear: this._trafficNear, peopleNear: this._peopleNear }, dt);
+    // the soundtrack follows the action
+    if (this.state === 'play') {
+      const pl = this.player, sp = Math.abs(pl.speed || 0);
+      const tense = this.blasters?.active || (this.driving?.heat || 0) > 0 || (this.combat && performance.now() - this.combat.lastHurt < 6000) || !document.getElementById('timer').classList.contains('hidden');
+      this.audio.setMood(tense ? 'tension' : (pl.mode === 'ride' || pl.mode === 'drive') && sp > 8 ? 'drive' : Look.uNight.value > 0.6 ? 'night' : 'explore');
+      this.audio.wind((pl.mode === 'ride' || pl.mode === 'drive') ? THREE.MathUtils.clamp((sp - 10) / 22, 0, 1) : 0);
+      if (pl.mode === 'drive') this.audio.engineSpeed(THREE.MathUtils.clamp(sp / (pl.veh?.spec.max || 25), 0, 1));
+      // footsteps
+      if (pl.mode === 'walk' && pl.grounded && (pl.speedNow || 0) > 0.6) {
+        this._stepD = (this._stepD || 0) + (pl.speedNow || 0) * dt;
+        const stride = (pl.speedNow || 0) > 5 ? 1.25 : 0.8;
+        if (this._stepD > stride) {
+          this._stepD = 0;
+          const P = pl.pos, c = this.city;
+          const surface = P.y > 2 ? 'roof' : c.onRoad(P.x, P.z, 2) ? 'road' : 'grass';
+          this.audio.footstep(surface, (pl.speedNow || 0) > 5);
+        }
+      }
+    } else this.audio.wind(0);
   }
 
   _play(dt) {

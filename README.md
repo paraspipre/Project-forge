@@ -101,7 +101,10 @@ The city is built from the **real map**. Every street, building footprint, park,
   - lines play and move on by themselves, and replies pick a default after a short countdown (tap to skip or choose)
   - quest givers start talking when you stop next to them, and locals chat in voiced speech bubbles as you walk past
   - the pause menu switches **Voices** and **Dialogue: Auto / Tap to continue**
-- **Music and sound:** synthesised lo-fi Carnatic tunes in raga Mohanam, the morning koel, and the horn concerto.
+- **Music and sound:**
+  - an adaptive soundtrack, all synthesised: a lo-fi Bengaluru groove (FM electric piano, swung drums, bass, bansuri flute in raga Mohanam) for exploring, an upbeat track on scooters and in cars, slow pads at night, and tabla tension for chases, fights and timed missions
+  - footsteps, an engine sound for each vehicle (the auto's two-stroke putt-putt, cars, diesel buses), wind at speed, crowd murmur, traffic rumble that follows the real traffic around you, the morning koel, crickets, rain and the horn concerto
+  - voiced lines; Maga sounds like a phone speaker and SIGNAL like a machine, and AI replies use the best natural voice in your browser, matched to the character
 
 The stereotypes are the city's own jokes, told with affection. It's a game.
 
@@ -152,7 +155,7 @@ dump/grinning-hour/            the previous game (noir story engine), still play
 ```
 
 **Rendering.** Two looks share one shader (`src/core/Toon.js`), switched under Settings → Look:
-- **San Andreas** (default): smooth sun-and-sky lighting with soft shadows, and procedural world-space textures: weathered plaster with damp and rain streaks, concrete roofs, patched asphalt, paving slabs, grass and bare earth. Windows and glass towers reflect the sky, cars have glossy paint, wet streets mirror the sky, and there's a warm distance haze. No ink.
+- **San Andreas** (default): smooth sun-and-sky lighting with shadows, and procedural world-space textures: weathered plaster with damp and rain streaks, concrete roofs, patched asphalt, paving slabs, grass and bare earth. Windows and glass towers reflect the sky, cars have glossy paint, wet streets mirror the sky, and there's a warm distance haze. No ink.
 - **Comic ink**, the original Moebius-style look:
 - A custom toon shader gives the hard light/shadow split with tinted shadows and world-space hatching. It also draws the windows, shopfronts and balconies procedurally, packs the surface normal into alpha, and handles night lights.
 - A post pass inks silhouettes from depth (a Laplacian of 1/z) and creases from those packed normals, then adds grain and a print tint.
@@ -164,6 +167,8 @@ dump/grinning-hour/            the previous game (noir story engine), still play
   - a radial speed blur and a wider field of view when you're flying along on a scooter or in a stolen car
   - FXAA (High quality)
 - Traffic gets headlamps, tail-lights and headlight beams on the road at night and in heavy rain. Major roads get zebra crossings at junctions.
+- Models: people with shaped, muscled limbs, hands, shoes and faces (eyes, brows, nose, lips, ears, hair). Vehicles have extruded rounded bodies, glass cabins, wheels with rims, bumpers, mirrors and plates: the auto rickshaw, scooters, motorcycles, cars, BMTC buses and water tankers. Trees have full leafy canopies (rain trees, neem, pink tabebuia) and coconut palms with leaflet fronds.
+- The starting quality follows your GPU (integrated laptop graphics start on Medium), and the resolution adapts to keep the frame rate up.
 
 **Map pipeline.**
 - `tools/fetch_osm.py` downloads each district from the Overpass API. `tools/zones.json` holds the district boxes.

@@ -2,6 +2,11 @@
 // tanpura drone and soft tabla), city ambience with birds and the morning koel, the never-ending
 // horn concerto, scooter hum, UI sounds and "speech" blips for dialogue.
 
+import { Soundtrack } from './Music.js';
+
+// Voices by character: women's voices for the browser fallback (AI lines), so nobody switches gender.
+const FEMALE = new Set(['ajji', 'sita', 'gowramma', 'manjula', 'farah', 'dr_lake', 'orr_techie', 'tourist', 'fresher', 'gardener', 'mamta',
+  'bhavana', 'vasu', 'news', 'VC Vasundhara', 'Anxious Ananya', 'Blockchain Bhavana', 'Debug Deepa', 'Landlady Leela']);
 const MOHANAM = [0, 2, 4, 7, 9];   // Sa Ri Ga Pa Dha
 const SA = 146.83;                  // D3
 
@@ -71,7 +76,7 @@ export class Audio {
 
   // Speak a line: the pre-rendered clip if we have one, else the browser's own voice (Indian English
   // where available). Resolves to { done: Promise, stop() } or null when silent.
-  async speak(id, text, { pitch = 1, volume = 1, pan = 0, fallback = true } = {}) {
+  async speak(id, text, { pitch = 1, volume = 1, pan = 0, fallback = true, female = false } = {}) {
     if (!this.voiceOn || this.muted) return null;
     const clean = speakable(text);
     if (!clean) return null;
@@ -85,6 +90,26 @@ export class Audio {
         const g = c.createGain();
         g.gain.value = 1.15 * volume;
         let node = g;
+        // Maga talks through a phone speaker; SIGNAL is a machine
+        if (id === 'maga') {
+          const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 320;
+          const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3600;
+          const pk = c.createBiquadFilter(); pk.type = 'peaking'; pk.frequency.value = 1800; pk.gain.value = 4;
+          g.connect(hp); hp.connect(lp); lp.connect(pk); node = pk;
+        } else if (id === 'signal') {
+          const ring = c.createGain(); ring.gain.value = 0;
+          const mod = c.createOscillator(); mod.frequency.value = 38; const md = c.createGain(); md.gain.value = 0.55;
+          mod.connect(md); md.connect(ring.gain); mod.start();
+          const dry = c.createGain(); dry.gain.value = 0.6;
+          const sum = c.createGain();
+          g.connect(ring); g.connect(dry); ring.connect(sum); dry.connect(sum);
+          const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200; sum.connect(lp);
+          const echo = c.createDelay(); echo.delayTime.value = 0.09; const eg = c.createGain(); eg.gain.value = 0.25;
+          lp.connect(echo); echo.connect(eg);
+          const out = c.createGain(); lp.connect(out); eg.connect(out);
+          node = out;
+          setTimeout(() => { try { mod.stop(); } catch {} }, (buf.duration + 1) * 1000);
+        }
         if (c.createStereoPanner && pan) { const pn = c.createStereoPanner(); pn.pan.value = pan; g.connect(pn); node = pn; }
         src.connect(g);
         node.connect(this.master);
@@ -99,18 +124,44 @@ export class Audio {
       }
     }
     if (!fallback || !('speechSynthesis' in window)) return null;
-    return this._browserSpeak(clean, pitch, volume);
+    return this._browserSpeak(clean, pitch, volume, FEMALE.has(id) || female);
   }
 
-  _browserSpeak(text, pitch, volume) {
+  // The best voice the browser has: natural / neural voices first, Indian English first, then British,
+  // matching the character's gender where the voice name says it.
+  _pickVoice(female) {
     const ss = window.speechSynthesis;
-    const voices = ss.getVoices();
-    const pickV = voices.find((v) => /en[-_]IN/i.test(v.lang)) || voices.find((v) => /^en/i.test(v.lang));
+    const voices = ss.getVoices().filter((v) => /^en/i.test(v.lang));
+    if (!voices.length) return null;
+    const fem = /female|woman|neerja|heera|veena|kalpana|swara|aditi|raveena|zira|susan|hazel|libby|sonia|aria|jenny|samantha|karen|moira|tessa|fiona|serena|kate|google uk english female/i;
+    const male = /male|man|prabhat|ravi|rishi|hemant|david|mark|george|ryan|guy|thomas|daniel|alex|fred|google uk english male/i;
+    const score = (v) => {
+      let s = 0;
+      if (/natural|neural|online|premium|enhanced/i.test(v.name)) s += 8;
+      if (/google/i.test(v.name)) s += 4;
+      if (/en[-_]IN/i.test(v.lang)) s += 6;
+      else if (/en[-_]GB/i.test(v.lang)) s += 3;
+      const isF = fem.test(v.name) && !/\bmale\b/i.test(v.name.replace(/female/i, ''));
+      const isM = !isF && male.test(v.name);
+      if (female ? isF : isM) s += 7;
+      else if (female ? isM : isF) s -= 9;
+      return s;
+    };
+    const key = female ? 'f' : 'm';
+    this._vc = this._vc || {};
+    if (!this._vc[key] || this._vc.n !== voices.length) { this._vc.n = voices.length; this._vc.f = null; this._vc.m = null; this._vc[key] = [...voices].sort((a, b) => score(b) - score(a))[0]; }
+    return this._vc[key];
+  }
+
+  _browserSpeak(text, pitch, volume, female = false) {
+    const ss = window.speechSynthesis;
+    const pickV = this._pickVoice(female);
     const u = new SpeechSynthesisUtterance(text);
     if (pickV) u.voice = pickV;
     u.lang = pickV?.lang || 'en-IN';
-    u.pitch = Math.min(2, Math.max(0.5, pitch));
-    u.rate = 1.02;
+    // natural voices sound best near their own pitch: nudge rather than squeak
+    u.pitch = Math.min(1.35, Math.max(0.7, 1 + (pitch - 1) * 0.6));
+    u.rate = 1.04;
     u.volume = Math.min(1, volume);
     this._duck(true);
     const handle = {
@@ -143,7 +194,9 @@ export class Audio {
     if (!AC) return;
     const c = (this.ctx = new AC());
     this.master = c.createGain(); this.master.gain.value = this.muted ? 0 : 0.9;
-    this.master.connect(c.destination);
+    const comp = c.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.knee.value = 10; comp.ratio.value = 3.5; comp.attack.value = 0.006; comp.release.value = 0.25;
+    this.master.connect(comp); comp.connect(c.destination);
     this.music = c.createGain(); this.music.gain.value = this.musicOn ? 0.32 : 0; this.music.connect(this.master);
     this.sfx = c.createGain(); this.sfx.gain.value = 0.8; this.sfx.connect(this.master);
     this.amb = c.createGain(); this.amb.gain.value = 0.5; this.amb.connect(this.master);
@@ -156,6 +209,7 @@ export class Audio {
     this.noise = this._noiseBuf();
     this._ambience();
     this._scooterVoice();
+    this.score = new Soundtrack(this);
     this.step = 0;
     this.nextT = c.currentTime + 0.2;
     this.timer = setInterval(() => this._schedule(), 100);
@@ -201,6 +255,10 @@ export class Audio {
 
   _ambience() {
     this.cityHum = this._loopNoise('lowpass', 220, 0.5, 0.05);
+    // crowd murmur: band-passed noise, swelling and falling like many voices
+    this.murmur = this._loopNoise('bandpass', 520, 0.9, 0);
+    const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.7; const lg = this.ctx.createGain(); lg.gain.value = 0.25;
+    lfo.connect(lg); lg.connect(this.murmur.f.frequency); lfo.start();
     this.rainN = this._loopNoise('bandpass', 1800, 0.5, 0);
     this.rainLow = this._loopNoise('lowpass', 500, 0.5, 0);
     this.birdT = 0; this.honkT = 0;
@@ -216,6 +274,60 @@ export class Audio {
     s.g.gain.value = 0;
     s.o1.connect(s.f); s.o2.connect(s.f); s.f.connect(s.g); s.g.connect(this.sfx);
     s.o1.start(); s.o2.start();
+  }
+
+  // The mood of the soundtrack: explore | drive | night | tension
+  setMood(m) { this.score?.setMood(m); }
+
+  // A stolen vehicle's engine: auto (two-stroke putt-putt), car, bus/tanker (diesel), scooter.
+  engine(kind) {
+    if (!this.ctx) return;
+    const c = this.ctx, t = c.currentTime;
+    if (this.eng) { const e = this.eng; e.g.gain.setTargetAtTime(0, t, 0.15); setTimeout(() => e.parts.forEach((o) => { try { o.stop(); } catch {} }), 800); this.eng = null; }
+    if (!kind || kind === 'scooter' || kind === 'delivery') return;
+    const base = { auto: 48, car: 38, bus: 28, tanker: 26 }[kind] || 36;
+    const g = c.createGain(); g.gain.value = 0;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = kind === 'auto' ? 900 : 520; lp.Q.value = 0.8;
+    const o1 = c.createOscillator(); o1.type = kind === 'auto' ? 'sawtooth' : 'sawtooth'; o1.frequency.value = base;
+    const o2 = c.createOscillator(); o2.type = kind === 'bus' || kind === 'tanker' ? 'square' : 'triangle'; o2.frequency.value = base * 2.01;
+    const og2 = c.createGain(); og2.gain.value = 0.35;
+    // the putt-putt: amplitude chopped at the firing rate
+    const am = c.createGain(); am.gain.value = 0.6;
+    const lfo = c.createOscillator(); lfo.type = 'square'; lfo.frequency.value = base / 2;
+    const lg = c.createGain(); lg.gain.value = kind === 'auto' ? 0.4 : 0.15;
+    lfo.connect(lg); lg.connect(am.gain);
+    o1.connect(am); o2.connect(og2); og2.connect(am); am.connect(lp); lp.connect(g); g.connect(this.sfx);
+    for (const o of [o1, o2, lfo]) o.start();
+    g.gain.setTargetAtTime(kind === 'auto' ? 0.07 : 0.06, t, 0.2);
+    this.eng = { g, o1, o2, lfo, lp, base, parts: [o1, o2, lfo] };
+    this._tone({ f: 80, f2: 160, dur: 0.4, type: 'sawtooth', vol: 0.08, q: 600 });   // ignition
+  }
+
+  engineSpeed(k) {
+    const e = this.eng;
+    if (!e || Math.abs(k - (e.k ?? -1)) < 0.03) return;
+    e.k = k;
+    const t = this.ctx.currentTime;
+    const f = e.base * (1 + k * 1.6);
+    for (const [p, v] of [[e.o1.frequency, f], [e.o2.frequency, f * 2.01], [e.lfo.frequency, f / 2], [e.lp.frequency, 500 + k * 1400]]) { p.cancelScheduledValues(t); p.setTargetAtTime(v, t, 0.12); }
+  }
+
+  footstep(surface = 'road', run = false) {
+    if (!this.ctx) return;
+    const f = surface === 'grass' ? 650 : surface === 'roof' ? 1300 : 950;
+    this._noise({ dur: run ? 0.07 : 0.055, vol: run ? 0.075 : 0.05, f: f * (0.9 + Math.random() * 0.2), type: 'bandpass', q: 1.2 });
+    if (surface !== 'grass') this._tone({ f: 140 + Math.random() * 30, f2: 90, dur: 0.05, type: 'sine', vol: run ? 0.05 : 0.03 });
+  }
+
+  // wind rushing past at speed (0..1)
+  wind(k) {
+    if (!this.ctx) return;
+    if (!this.windN) this.windN = this._loopNoise('bandpass', 700, 0.4, 0, this.sfx);
+    if (Math.abs(k - (this._wk ?? -1)) < 0.03) return;
+    this._wk = k;
+    const t = this.ctx.currentTime;
+    this.windN.g.gain.cancelScheduledValues(t); this.windN.g.gain.setTargetAtTime(k * k * 0.12, t, 0.3);
+    this.windN.f.frequency.cancelScheduledValues(t); this.windN.f.frequency.setTargetAtTime(500 + k * 900, t, 0.3);
   }
 
   scooter(on) {
@@ -243,7 +355,9 @@ export class Audio {
     if (this._ambT <= 0) {
       this._ambT = 0.5;
       const t = this.ctx.currentTime;
-      for (const [g, v] of [[this.cityHum.g, this.trafficOn ? 0.03 + (env.crowd || 0) * 0.05 : 0], [this.rainN.g, (env.rain || 0) * 0.16], [this.rainLow.g, (env.rain || 0) * 0.12]]) {
+      const traffic = this.trafficOn ? 0.025 + (env.crowd || 0) * 0.03 + Math.min(1, (env.trafficNear || 0) / 12) * 0.06 : 0;
+      const murmur = Math.min(1, (env.peopleNear || 0) / 8) * 0.05 * (1 - (env.night || 0) * 0.5);
+      for (const [g, v] of [[this.cityHum.g, traffic], [this.murmur.g, murmur], [this.rainN.g, (env.rain || 0) * 0.16], [this.rainLow.g, (env.rain || 0) * 0.12]]) {
         g.gain.cancelScheduledValues(t);
         g.gain.setTargetAtTime(v, t, 1);
       }
@@ -347,7 +461,10 @@ export class Audio {
     if (!c || !this.musicOn) { if (c) this.nextT = c.currentTime + 0.2; this.clubN = null; return; }
     this._clubSchedule();
     const clubOn = this._clubLevel() > 0.35;
+    if (!clubOn) this.score.schedule();
+    else this.score.next = c.currentTime + 0.3;
     const beat = 60 / 84;
+    this.nextT = Math.max(this.nextT, c.currentTime + 0.4);
     while (this.nextT < c.currentTime + 0.4) {
       const s = this.step;
       const t = this.nextT;

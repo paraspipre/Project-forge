@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { toon, Look } from '../core/Toon.js';
+import { toon, Look, STYLE } from '../core/Toon.js';
 import { GeoBuilder, Grid, ring, polyArea, centroid, pointInRing, closestOnSeg, hash, rng } from './geo.js';
 import { Scatter, treeGeometries } from './Scatter.js';
 
@@ -20,6 +20,19 @@ const PAL = {
   roof: ['#cfcbc4', '#c4c1bc', '#d8d4cc', '#bdbab5', '#d3cdc2', '#e2ddd2'].map(hex),
   terracotta: hex('#c98a6a'),
 };
+// The San Andreas look paints Bengaluru as it is: whitewash, cream, sandstone, cement grey, faded
+// yellows and greens, terracotta, the odd sun-bleached blue.
+if (STYLE === 'sa') {
+  PAL.res = ['#e7e1d4', '#ddd4c2', '#d6c9ae', '#e3d9c4', '#cfc8ba', '#d9c7a2', '#c8b59a', '#e0cfae', '#bdb5a8', '#d2bfa0', '#c39e82', '#b7957c', '#d6cdbb', '#aea79c', '#c7cbbd', '#c2bca2', '#b9c3c1', '#d8c18e'].map(hex);
+  PAL.shop = ['#ded6c6', '#d4c6ad', '#cbb89c', '#e2dbcd', '#c9c3b8', '#d8c49e', '#bfae98'].map(hex);
+  PAL.office = ['#cfd0d0', '#c3c7cb', '#d8d4cc', '#b9bec2', '#cac2b4'].map(hex);
+  PAL.glass = ['#8fa3ac', '#869aa6', '#9aacb2', '#8a9c98'].map(hex);
+  PAL.civic = ['#d2bd9a', '#c4a27f', '#d6c2a0', '#bba78b'].map(hex);
+  PAL.worship = ['#ece6d6', '#e5d3a2', '#ebe7df', '#dcbf96'].map(hex);
+  PAL.industrial = ['#b4b8bb', '#a9b0b5', '#bdb7ad', '#9aa5ad'].map(hex);
+  PAL.construction = ['#b9b5ad', '#aaa59b'].map(hex);
+  PAL.roof = ['#b7b3ac', '#aeaba6', '#c2beb6', '#a8a5a0', '#bdb7ac', '#cbc6bb'].map(hex);
+}
 const KIND_PAL = ['res', 'shop', 'office', 'glass', 'civic', 'worship', 'industrial', 'construction', 'construction', 'civic'];
 
 // road codes from the build script

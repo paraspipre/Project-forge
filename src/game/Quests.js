@@ -203,7 +203,7 @@ export class Quests {
     this.cards = [];
     this.freeze = false;
     this.mini = new Minigames(game);
-    this.cardMat = toon({ color: '#f2c14e', hatch: 0.5, rim: 0.2 });
+    this.cardMat = toon({ color: '#f2c14e', hatch: 0.5, rim: 0.2, plain: true });
     this.cardGeo = new THREE.BoxGeometry(0.7, 0.9, 0.08);
   }
 
@@ -319,7 +319,7 @@ export class Quests {
   spawnPickup(x, z, y, color, icon) {
     const g = this.game;
     const yy = y ?? g.city.groundAt(x, z, 1e4) + 1.2;
-    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), toon({ color, hatch: 0.4, rim: 0.3 }));
+    const mesh = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42, 0), toon({ color, hatch: 0.4, rim: 0.3, plain: true }));
     mesh.position.set(x, yy, z);
     mesh.castShadow = true;
     g.ren.scene.add(mesh);

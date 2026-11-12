@@ -63,7 +63,7 @@ export class Sky {
   }
 
   _clouds() {
-    this.cloudMat = toon({ color: '#ffffff', hatch: 0.6, fog: false });
+    this.cloudMat = toon({ color: '#ffffff', hatch: 0.6, fog: false, plain: true });
     this.clouds = new THREE.Group();
     const R = rng(42);
     for (let i = 0; i < 26; i++) {

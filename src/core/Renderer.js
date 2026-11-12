@@ -17,6 +17,15 @@ export function pickQuality() {
   const touch = matchMedia('(pointer: coarse)').matches;
   const cores = navigator.hardwareConcurrency || 4;
   if (touch) return cores >= 8 ? 'medium' : 'low';
+  // laptops with integrated graphics start on Medium; dedicated GPUs get High
+  try {
+    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
+    const ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+    const name = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
+    gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    if (/swiftshader|llvmpipe|software/i.test(name)) return 'low';
+    if (/intel|uhd|iris|vega|radeon\(tm\) graphics|radeon graphics|mali|adreno|apple gpu/i.test(name) && !/nvidia|geforce|rtx|radeon rx|arc a/i.test(name)) return 'medium';
+  } catch {}
   return 'high';
 }
 
@@ -28,7 +37,7 @@ export class Renderer {
     r.outputColorSpace = THREE.LinearSRGBColorSpace;
     r.toneMapping = THREE.NoToneMapping;
     r.shadowMap.enabled = this.quality.shadows;
-    r.shadowMap.type = STYLE === 'sa' && qualityKey !== 'low' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
+    r.shadowMap.type = THREE.PCFShadowMap;
     r.setClearColor(0xcfe4ee, 1);
     this.r = r;
     this.scene = new THREE.Scene();
@@ -43,7 +52,7 @@ export class Renderer {
     s.camera.left = -R; s.camera.right = R; s.camera.top = R; s.camera.bottom = -R;
     s.camera.near = 1; s.camera.far = 600;
     s.camera.updateProjectionMatrix();
-    s.bias = -0.0006; s.normalBias = 0.04;
+    s.bias = STYLE === 'sa' ? -0.0012 : -0.0006; s.normalBias = STYLE === 'sa' ? 0.09 : 0.04;   // soft shadows need more bias on curved bodies
     this.scene.add(this.sun, this.sun.target);
     this.sunDir = new THREE.Vector3(0.4, 0.8, 0.3).normalize();
 

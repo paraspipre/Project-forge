@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { STYLE } from '../core/Toon.js';
 import { Avatar } from '../actors/Avatar.js';
 import { PlayerScooter } from '../actors/Vehicles.js';
 
@@ -173,7 +174,7 @@ export class Player {
     if (this.mode === 'pillion') {
       this.avatar.object.position.set(0, 0.22, -0.55);
     } else if (this.mode === 'drive') {
-      const bob = Math.sin(performance.now() / 260) * 0.04;
+      const bob = STYLE === 'sa' ? 0 : Math.sin(performance.now() / 260) * 0.04;
       const two = this.veh.spec.pose === 'ride' && this.veh.spec.r < 1;
       this.veh.mesh.position.y = 0.08 + bob;
       this.veh.mesh.rotation.z = two ? -this.lean * 0.35 : -this.lean * 0.05;
@@ -181,7 +182,7 @@ export class Player {
       this.avatar.object.position.set(s[0], s[1] + bob, s[2]);
       this.avatar.object.rotation.z = two ? -this.lean * 0.35 : 0;
     } else if (this.mode === 'ride') {
-      const bob = Math.sin(performance.now() / 260) * 0.05;
+      const bob = STYLE === 'sa' ? 0 : Math.sin(performance.now() / 260) * 0.05;
       this.scooter.object.position.y = 0.05 + bob;
       this.scooter.object.rotation.z = -this.lean * 0.35;
       this.avatar.object.position.set(0, 0.18 + bob, -0.12);

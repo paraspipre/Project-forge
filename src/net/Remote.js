@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { STYLE } from '../core/Toon.js';
 import { Avatar } from '../actors/Avatar.js';
 import { scooterGeo, vehicleMaterial } from '../actors/Vehicles.js';
 import { lerpAngle } from '../game/Player.js';
@@ -121,7 +122,7 @@ export class RemotePlayer {
     const riding = s.mode === 'ride';
     const driving = s.mode === 'drive' && VSPEC[s.veh];
     this.scooter.visible = riding;
-    const bob = Math.sin(performance.now() / 260) * 0.05;
+    const bob = STYLE === 'sa' ? 0 : Math.sin(performance.now() / 260) * 0.05;
     // a stolen vehicle: swap in its mesh
     if (driving && this.vehKey !== s.veh) {
       if (this.vehMesh) this.object.remove(this.vehMesh);

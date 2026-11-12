@@ -56,7 +56,7 @@ export class SkyLife {
     const vmat = vehicleMaterial();
     // birds
     this.flocks = [];
-    const bmat = toon({ vertexColors: true, hatch: 0, side: THREE.DoubleSide });
+    const bmat = toon({ vertexColors: true, hatch: 0, side: THREE.DoubleSide, plain: true });
     const bg = birdGeo();
     for (let f = 0; f < 6; f++) {
       const n = 10 + Math.floor(r() * 12);

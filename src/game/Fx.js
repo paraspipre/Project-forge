@@ -19,7 +19,7 @@ export class Fx {
     this.scene = scene;
     this.labels = labels;
     this.puffs = [];
-    const puffMat = toon({ color: '#fff8ec', hatch: 0.4 });
+    const puffMat = toon({ color: '#fff8ec', hatch: 0.4, plain: true });
     const g = new THREE.IcosahedronGeometry(0.5, 0);
     for (let i = 0; i < 40; i++) {
       const m = new THREE.Mesh(g, puffMat);

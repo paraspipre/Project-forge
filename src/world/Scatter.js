@@ -115,53 +115,101 @@ function trunk(h, r0, r1, lean = 0) {
   return g;
 }
 
+// A vertex colour gradient: darker underneath, lighter on top (sun-lit crowns, shaded undersides).
+function colorizeGrad(g, top, bottom, y0, y1) {
+  if (g.index) g = g.toNonIndexed();
+  const a = new THREE.Color(top), b = new THREE.Color(bottom), c = new THREE.Color();
+  const p = g.attributes.position, n = p.count, col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const t = Math.min(1, Math.max(0, (p.getY(i) - y0) / Math.max(0.01, y1 - y0)));
+    c.copy(b).lerp(a, t);
+    col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  g.deleteAttribute('uv');
+  return g;
+}
+
+// A full canopy: many lumpy leaf clusters scattered through an ellipsoid (rx, ry) centred at height cy.
+function canopy(n, rx, ry, cy, seed, top, bottom, detail, size = 1) {
+  let s = seed;
+  const rnd = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const parts = [];
+  for (let i = 0; i < n; i++) {
+    const a = rnd() * Math.PI * 2, r = Math.sqrt(rnd()) * rx * 0.78;
+    const y = cy + (rnd() - 0.35) * ry * 0.9;
+    const cr = (0.32 + rnd() * 0.22) * rx * size * (1 - Math.abs(y - cy) / (ry * 2));
+    const g = blob(Math.max(0.6, cr), 0.62 + rnd() * 0.2, detail, 3 + i * 7 + seed);
+    g.translate(Math.cos(a) * r, y, Math.sin(a) * r);
+    parts.push(colorizeGrad(g, top, bottom, cy - ry * 0.7, cy + ry * 0.6));
+  }
+  return parts;
+}
+
+function branches(parts, n, h, len, col, seed) {
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2 + seed;
+    const b = trunk(len, 0.18, 0.08);
+    b.rotateZ(0.75 + (i % 2) * 0.2);
+    b.rotateY(a);
+    b.translate(0, h, 0);
+    parts.push(colorize(b, col));
+  }
+}
+
 export function treeGeometries(low = false) {
   const D = low ? 0 : 1;
-  const bark = '#7a5a48', leaf = '#6fae5c', leaf2 = '#89c26a', dark = '#5c9a55';
-  // 0: rain tree — broad umbrella canopy (the Hiraeth "mushroom" silhouette)
-  const rain = mergeGeometries([
-    colorize(trunk(5.2, 0.42, 0.3), bark),
-    colorize(trunk(2.4, 0.22, 0.14).rotateZ(0.7).translate(0.6, 3.6, 0), bark),
-    colorize(trunk(2.4, 0.22, 0.14).rotateZ(-0.8).translate(-0.6, 3.4, 0.2), bark),
-    colorize(blob(5.4, 0.36, D, 7).translate(0, 6.2, 0), leaf),
-    colorize(blob(3.2, 0.45, 0, 11).translate(1.8, 7.0, 1.2), leaf2),
-  ]);
-  // 1: round neem / honge
-  const round = mergeGeometries([
-    colorize(trunk(3.4, 0.3, 0.22), bark),
-    colorize(blob(2.9, 0.85, D, 3).translate(0, 5.2, 0), dark),
-    colorize(blob(1.9, 0.8, 0, 5).translate(1.2, 6.4, -0.6), leaf),
-  ]);
-  // 2: coconut palm — slender curved trunk and drooping fronds
+  const bark = '#5e4a3c', barkLight = '#7a6550';
+  // 0: rain tree: wide, flat-topped umbrella over the avenues
+  const rainP = [colorizeGrad(trunk(4.6, 0.46, 0.32), barkLight, bark, 0, 4.6)];
+  if (!low) branches(rainP, 4, 3.8, 3.2, bark, 1);
+  rainP.push(...canopy(low ? 3 : 9, 6.2, 2.2, 6.4, 11, '#6f9a4a', '#2f4f26', D, low ? 1.35 : 1.05));
+  const rain = mergeGeometries(rainP);
+  // 1: neem / honge: a rounder, denser crown
+  const roundP = [colorizeGrad(trunk(3.2, 0.32, 0.22), barkLight, bark, 0, 3.2)];
+  if (!low) branches(roundP, 3, 2.9, 2.0, bark, 2);
+  roundP.push(...canopy(low ? 3 : 7, 3.2, 3.0, 5.6, 23, '#7aa252', '#2e4d25', D, low ? 1.3 : 1.05));
+  const round = mergeGeometries(roundP);
+  // 2: coconut palm: ringed, curving trunk and long drooping fronds with leaflets
   const parts = [];
   let x = 0;
-  for (let i = 0; i < 5; i++) {
-    const seg = colorize(trunk(2.0, 0.24 - i * 0.02, 0.22 - i * 0.02), '#9b8063');
-    seg.translate(x, i * 1.95, 0);
-    x += 0.12 + i * 0.05;
+  for (let i = 0; i < 6; i++) {
+    const seg = colorizeGrad(trunk(1.7, 0.24 - i * 0.017, 0.22 - i * 0.017), '#8a7258', '#6e5a46', 0, 1.7);
+    seg.translate(x, i * 1.65, 0);
+    x += 0.08 + i * 0.045;
     parts.push(seg);
   }
-  const top = 9.6;
-  for (let k = 0; k < 9; k++) {
-    const a = (k / 9) * Math.PI * 2;
-    const f = new THREE.PlaneGeometry(4.2, 0.9, 3, 1);
-    // droop the frond along its length
+  const top = 9.9;
+  const fronds = low ? 7 : 12;
+  for (let k = 0; k < fronds; k++) {
+    const a = (k / fronds) * Math.PI * 2 + (k % 2) * 0.2;
+    const len = 4.2 + (k % 3) * 0.5;
+    // a frond is a strip of leaflets: a plane cut into a sawtooth outline that tapers to the tip
+    const f = new THREE.PlaneGeometry(len, 1.3, low ? 2 : 9, low ? 1 : 2);
     const p = f.attributes.position;
-    for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + 2.1) / 4.2; p.setY(i, p.getY(i) * (1 - u * 0.6)); p.setZ(i, -u * u * 1.8); }
-    f.translate(2.1, 0, 0);
+    for (let i = 0; i < p.count; i++) {
+      const u = (p.getX(i) + len / 2) / len, v = p.getY(i) / 0.65;
+      const saw = low ? 1 : 0.55 + 0.45 * Math.abs(Math.sin(u * 36));
+      p.setY(i, v * 0.65 * (1 - u * 0.75) * saw);
+      p.setZ(i, -u * u * (2.4 + (k % 3) * 0.4) + Math.abs(v) * 0.15);
+    }
+    f.translate(len / 2, 0, 0);
     f.rotateX(-Math.PI / 2);
     f.rotateY(a);
     f.translate(x, top, 0);
     f.computeVertexNormals();
-    parts.push(colorize(f, k % 2 ? '#7fb35f' : '#6ea653'));
+    parts.push(colorizeGrad(f, k % 2 ? '#7b9c4c' : '#6a8f44', '#3c5a2a', top - 3, top));
   }
-  parts.push(colorize(blob(0.6, 1, 0, 9).translate(x, top - 0.4, 0), '#a0784a'));
+  parts.push(colorize(blob(0.55, 1, 0, 9).translate(x, top - 0.35, 0), '#8a6a3c'));
+  for (let i = 0; i < (low ? 0 : 5); i++) parts.push(colorize(sphere(0.16).translate(x + Math.cos(i * 1.3) * 0.35, top - 0.6, Math.sin(i * 1.3) * 0.35), '#6e7a2c'));   // coconuts
   const palm = mergeGeometries(parts);
-  // 3: flowering tabebuia / gulmohar (pink and orange canopies of February)
-  const bloom = mergeGeometries([
-    colorize(trunk(4.2, 0.32, 0.22), bark),
-    colorize(blob(4.0, 0.5, D, 13).translate(0, 5.6, 0), '#f2a0bf'),
-    colorize(blob(2.4, 0.6, 0, 17).translate(-1.4, 6.4, 0.8), '#f7b9cf'),
-  ]);
+  // 3: flowering tabebuia / gulmohar: a pink crown over green, the colours of a Bengaluru February
+  const bloomP = [colorizeGrad(trunk(4.0, 0.3, 0.2), barkLight, bark, 0, 4)];
+  if (!low) branches(bloomP, 3, 3.4, 2.4, bark, 3);
+  bloomP.push(...canopy(low ? 3 : 6, 4.2, 2.4, 5.8, 31, '#f0a3c0', '#b8607e', D, low ? 1.3 : 1.05));
+  if (!low) bloomP.push(...canopy(3, 3.8, 1.8, 5.2, 37, '#6d9a4a', '#2f4f26', D, 0.8));
+  const bloom = mergeGeometries(bloomP);
   return [rain, round, palm, bloom];
 }
+
+function sphere(r) { return new THREE.SphereGeometry(r, 6, 4); }

@@ -119,9 +119,12 @@ const fragment = /* glsl */ `
     f = f * f * (3.0 - 2.0 * f);
     return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), f.x), mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), f.x), f.y);
   }
-  float fbm(vec2 p) { return vnoise(p) * 0.55 + vnoise(p * 2.13 + 7.1) * 0.3 + vnoise(p * 4.71 + 3.3) * 0.15; }
+  float fbm(vec2 p) { return vnoise(p) * 0.62 + vnoise(p * 2.37 + 7.1) * 0.38; }
   // fine detail fades out where it would shimmer (far away / grazing)
-  float detail(vec2 p, float k) { return mix(0.5, vnoise(p * k), 1.0 - smoothstep(0.25, 0.9, fwidth(p.x * k) + fwidth(p.y * k))); }
+  float detail(vec2 p, float k) {
+    float f = 1.0 - smoothstep(0.25, 0.9, fwidth(p.x * k) + fwidth(p.y * k));
+    return f > 0.01 ? mix(0.5, vnoise(p * k), f) : 0.5;   // skip the work where it would be invisible
+  }
 
   // Anti-aliased parallel lines along coordinate c; fades out when lines get denser than a few pixels.
   float lines(float c, float width) {
@@ -287,6 +290,32 @@ const fragment = /* glsl */ `
       }
     #endif
 
+    #if defined( SA_LOOK ) && defined( USE_SWAY )
+      {
+        // trees: clumps of leaves catching the light, bark on trunks
+        vec3 wp = vWorldPos;
+        if (albedo.g > albedo.r * 0.95 || albedo.r > 0.75) {
+          float clump = vnoise(wp.xz * 1.6 + wp.y * 1.3);
+          float leaves = vnoise(wp.xz * 7.0 + wp.yy * 6.0);
+          albedo *= 0.72 + 0.38 * clump;
+          albedo *= 0.85 + 0.28 * mix(0.5, leaves, 1.0 - smoothstep(0.3, 1.2, fwidth(wp.x * 7.0)));
+          albedo *= 0.8 + 0.25 * clamp(N.y * 0.5 + 0.5, 0.0, 1.0);
+        } else {
+          vec2 bp = vec2(atan(N.z, N.x) * 0.6, wp.y * 2.2);
+          albedo *= 0.78 + 0.3 * vnoise(vec2(bp.x * 6.0, bp.y));
+        }
+      }
+    #endif
+    #if defined( SA_LOOK ) && !defined( USE_BUILDING ) && !defined( USE_GROUND ) && !defined( USE_SKINNING ) && !defined( USE_GLOWATTR ) && !defined( UNLIT ) && !defined( USE_WATER ) && !defined( USE_SWAY ) && !defined( SA_PLAIN )
+      {
+        // every other structure (viaducts, flyovers, walls, poles, landmark parts): weathered concrete
+        vec3 an = abs(N);
+        vec2 tp = an.y > 0.6 ? vWorldPos.xz : (an.x > an.z ? vWorldPos.zy : vWorldPos.xy);
+        albedo *= 0.84 + 0.22 * fbm(tp * 0.6);
+        albedo *= 0.93 + 0.12 * detail(tp, 6.0);
+        if (an.y < 0.6) albedo *= mix(0.8, 1.0, smoothstep(0.0, 1.2, vWorldPos.y - 0.1));
+      }
+    #endif
     #if defined( USE_GROUND ) && defined( SA_LOOK )
       {
         vec2 P = vWorldPos.xz;
@@ -437,6 +466,7 @@ export function toon(opts = {}) {
   if (opts.cutout) defines.USE_CUTOUT = '';
   if (opts.road) defines.USE_ROADMAT = '';
   if (opts.gloss) defines.USE_GLOSS = '';
+  if (opts.plain) defines.SA_PLAIN = '';   // clouds, smoke, pickups: no concrete grain
   if (STYLE === 'sa') defines.SA_LOOK = '';
   const uniforms = {
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.lights),

@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { R } from './City.js';
 import { Grid } from './geo.js';
-import { scooterGeo, autoGeo, carGeo, busGeo, tankerGeo, metroCarGeo, vehicleMaterial } from '../actors/Vehicles.js';
+import { scooterGeo, bikeGeo, autoGeo, carGeo, busGeo, tankerGeo, metroCarGeo, vehicleMaterial } from '../actors/Vehicles.js';
+import { STYLE } from '../core/Toon.js';
 import { VehicleLights } from './VehicleLights.js';
 import { Look } from '../core/Toon.js';
 
@@ -87,7 +88,7 @@ export class Traffic {
     const shirts = ['#5aa9e6', '#f07b5a', '#7dc47c', '#2f3a4a', '#e75a7c'];
     const geos = {
       scooter: scooterGeo({ body: '#d9d9de', withRider: true, shirt: shirts[0] }),
-      delivery: scooterGeo({ body: '#2b2b30', withRider: true, shirt: '#f07b20', helmet: '#f07b20', box: '#f07b20' }),
+      delivery: bikeGeo({ body: '#c0262d', withRider: true, shirt: '#f07b20', helmet: '#f07b20', box: '#f07b20' }),
       auto: autoGeo(),
       car: carGeo({ body: '#ffffff' }),
       bus: busGeo(),
@@ -296,9 +297,9 @@ export class Traffic {
       const i = counts[v.type.key]++;
       if (i >= v.type.cap) continue;
       v.bob += dt * 3;
-      const hover = 0.08 + Math.sin(v.bob) * 0.05;
+      const hover = STYLE === 'sa' ? 0 : 0.08 + Math.sin(v.bob) * 0.05;   // wheels on the road in the realistic look
       this._p.set(v.x, v.y + hover, v.z);
-      this._e.set(-v.pitch, v.yaw, Math.sin(v.bob * 0.7) * 0.02, 'YXZ');
+      this._e.set(-v.pitch, v.yaw, STYLE === 'sa' ? 0 : Math.sin(v.bob * 0.7) * 0.02, 'YXZ');
       this._q.setFromEuler(this._e);
       this._m.compose(this._p, this._q, this._s);
       m.setMatrixAt(i, this._m);
