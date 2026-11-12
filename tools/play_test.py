@@ -123,7 +123,7 @@ SCENARIOS = {
     ],
     'gfx': [
         ('js', "game.atmo.override = 0.5"), ('wait', 2000),
-        ('js', "const s = game._safeSpawn([612, 92, null]); game.player.place(s[0], s[1], s[2]); game.camRig.yaw = s[2] + 0.4; game.camRig.pitch = 0.18; game.camRig.dist = 9;"),
+        ('js', "const s = game._safeSpawn([700, 330, null]); game.player.place(s[0], s[1], s[2]); game.camRig.yaw = s[2] + 0.3; game.camRig.pitch = 0.2; game.camRig.dist = 11;"),
         ('wait', 2500), ('shot', 'noon'),
         ('js', "game.atmo.override = 0.27"), ('wait', 2500), ('shot', 'sunrise'),
         ('js', "game.camRig.yaw += Math.PI"), ('wait', 1500), ('shot', 'sunrise_back'),

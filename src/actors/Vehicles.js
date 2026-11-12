@@ -166,7 +166,7 @@ export function metroCarGeo(front = false) {
 
 let vmat;
 export function vehicleMaterial() {
-  return vmat || (vmat = toon({ vertexColors: true, glowAttr: true, hatch: 0.8, rim: 0.08 }));
+  return vmat || (vmat = toon({ vertexColors: true, glowAttr: true, gloss: true, hatch: 0.8, rim: 0.08 }));
 }
 
 // The player's own hover scooter, with animated pads and a light trail.

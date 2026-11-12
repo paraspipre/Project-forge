@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Look } from './Toon.js';
+import { Look, STYLE } from './Toon.js';
 
 // The comic pass: renders the scene into a target with a depth texture, then inks it.
 //  - silhouettes: discontinuities in 1/z (planes are affine in 1/z, so grazing ground doesn't ink)
@@ -26,6 +26,7 @@ const fs = /* glsl */ `
   uniform float uSunVis;
   uniform vec3 uSunCol;
   uniform float uBlur;
+  uniform float uInkAmt, uPrint;
   uniform vec2 uRes;
   uniform float uNear, uFar, uThick, uTime, uGrain, uInkFar, uFlash;
   uniform vec3 uInk;
@@ -74,7 +75,7 @@ const fs = /* glsl */ `
     }
     // ink fades into the haze with distance; the sky never inks itself
     float far = smoothstep(uInkFar * 0.25, uInkFar, zc);
-    edge *= mix(1.0, 0.3, far) * step(zc, uFar * 0.98 + 1.0) ;
+    edge *= mix(1.0, 0.3, far) * step(zc, uFar * 0.98 + 1.0) * uInkAmt;
     vec3 col = c.rgb;
     // speed: a radial blur towards the screen centre when you're flying down a flyover
     if (uBlur > 0.01) {
@@ -107,15 +108,15 @@ const fs = /* glsl */ `
     vec2 fc = gl_FragCoord.xy;
     float g = hash(floor(fc) + floor(uTime * 10.0) * 7.31) - 0.5;
     float blot = hash(floor(fc / 90.0)) - 0.5;
-    col += g * uGrain + blot * 0.012;
-    col = mix(col, col * uTint, 0.5);
+    col += g * uGrain + blot * 0.012 * uPrint;
+    col = mix(col, col * uTint, 0.5 * uPrint);
     // time-of-day grade: golden hours run warm and rich, nights cool with punchy neon, rain greys out
     float lum = dot(col, vec3(0.299, 0.587, 0.114));
     col = mix(vec3(lum), col, uSat);
     col = (col - 0.5) * uContrast + 0.5;
     col = col * uGradeMul + uLift;
     vec2 q = vUv - 0.5;
-    col *= 1.0 - dot(q, q) * 0.32;
+    col *= 1.0 - dot(q, q) * mix(0.22, 0.32, uPrint);
     col = mix(col, vec3(1.0), uFlash);
     gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
   }
@@ -254,8 +255,10 @@ export class Post {
         uGradeMul: { value: new THREE.Vector3(1, 1, 1) }, uLift: { value: new THREE.Vector3(0, 0, 0) }, uSat: { value: 1 }, uContrast: { value: 1 },
         uSunUV: { value: new THREE.Vector2(-1, -1) }, uSunVis: { value: 0 }, uSunCol: { value: new THREE.Color(1, 0.85, 0.6) },
         uBlur: { value: 0 },
+        uInkAmt: { value: STYLE === 'sa' ? 0 : 1 }, uPrint: { value: STYLE === 'sa' ? 0 : 1 },
       },
     });
+    if (STYLE === 'sa') this.material.uniforms.uGrain.value = 0.008;
     this.blur = 0;
     this.sunDir = null;
     this.sunStrength = 0;
@@ -330,8 +333,10 @@ export class Post {
     mul.lerp(new THREE.Vector3(0.96, 0.98, 1.02), rain * 0.6);
     u.uGradeMul.value.copy(mul);
     u.uLift.value.set(0.006 + g * 0.02, 0.004 + g * 0.006, 0.01 + night * 0.02);
-    u.uSat.value = 1.06 + g * 0.1 + night * 0.12 - rain * 0.25;
-    u.uContrast.value = 1.04 + g * 0.04 - rain * 0.04;
+    const sa = STYLE === 'sa';
+    u.uSat.value = (sa ? 1.0 : 1.06) + g * 0.1 + night * 0.12 - rain * 0.25;
+    u.uContrast.value = (sa ? 1.08 : 1.04) + g * 0.04 - rain * 0.04;
+    if (sa) { mul.x += 0.02; mul.z -= 0.03; u.uGradeMul.value.copy(mul); }
     u.uSunCol.value.setRGB(1, 0.82 - g * 0.12, 0.58 - g * 0.2);
   }
 
@@ -353,7 +358,7 @@ export class Post {
       au.uView.value.copy(camera.matrixWorldInverse);
       this._pass(this.aoMat, this.aoA);
       this._pass(this.aoBlurMat, this.aoB);
-      u.uAO.value = 0.8 - Look.uNight.value * 0.25;
+      u.uAO.value = (STYLE === 'sa' ? 0.65 : 0.8) - Look.uNight.value * 0.25;
     }
     // sun glare: where the sun is on screen, and how much of it to show
     if (this.sunDir && this.sunStrength > 0.01) {

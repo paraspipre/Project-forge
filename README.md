@@ -151,7 +151,9 @@ tools/                         map pipeline + test tools
 dump/grinning-hour/            the previous game (noir story engine), still playable at /dump/grinning-hour/
 ```
 
-**Rendering.**
+**Rendering.** Two looks share one shader (`src/core/Toon.js`), switched under Settings → Look:
+- **San Andreas** (default): smooth sun-and-sky lighting with soft shadows, and procedural world-space textures: weathered plaster with damp and rain streaks, concrete roofs, patched asphalt, paving slabs, grass and bare earth. Windows and glass towers reflect the sky, cars have glossy paint, wet streets mirror the sky, and there's a warm distance haze. No ink.
+- **Comic ink**, the original Moebius-style look:
 - A custom toon shader gives the hard light/shadow split with tinted shadows and world-space hatching. It also draws the windows, shopfronts and balconies procedurally, packs the surface normal into alpha, and handles night lights.
 - A post pass inks silhouettes from depth (a Laplacian of 1/z) and creases from those packed normals, then adds grain and a print tint.
 - On top of the ink:

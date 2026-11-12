@@ -7,6 +7,11 @@ import * as THREE from 'three';
 // Options switch on extra features per surface: building windows, ground stipple, water,
 // skinning (avatars), instancing, vertex colours, unlit/emissive.
 
+// The look: 'sa' (default) is a San Andreas-style realistic pass: smooth sun + sky lighting, weathered
+// textured walls, asphalt, paving and grass, reflective glass and glossy cars, no ink or hatching.
+// 'comic' is the original Moebius-style ink look. Switch in Settings (needs a reload).
+export const STYLE = (() => { try { return localStorage.getItem('pb.look') || 'sa'; } catch { return 'sa'; } })();
+
 // Uniforms shared by every toon material; the day/night cycle and weather drive them.
 export const Look = {
   uLitTint: { value: new THREE.Color(1.0, 0.97, 0.9) },
@@ -109,6 +114,14 @@ const fragment = /* glsl */ `
   #endif
 
   float hash12(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
+  float vnoise(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    f = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash12(i), hash12(i + vec2(1.0, 0.0)), f.x), mix(hash12(i + vec2(0.0, 1.0)), hash12(i + vec2(1.0, 1.0)), f.x), f.y);
+  }
+  float fbm(vec2 p) { return vnoise(p) * 0.55 + vnoise(p * 2.13 + 7.1) * 0.3 + vnoise(p * 4.71 + 3.3) * 0.15; }
+  // fine detail fades out where it would shimmer (far away / grazing)
+  float detail(vec2 p, float k) { return mix(0.5, vnoise(p * k), 1.0 - smoothstep(0.25, 0.9, fwidth(p.x * k) + fwidth(p.y * k))); }
 
   // Anti-aliased parallel lines along coordinate c; fades out when lines get denser than a few pixels.
   float lines(float c, float width) {
@@ -146,6 +159,14 @@ const fragment = /* glsl */ `
     vec3 N = normalize(vWorldNormal);
     vec3 glow = emissive;
     float hatchAmt = hatch;
+    #ifdef SA_LOOK
+      vec3 Vsa = normalize(cameraPosition - vWorldPos);
+      float fresSa = pow(1.0 - max(dot(N, Vsa), 0.0), 4.0);
+      vec3 skyRefl = mix(vec3(0.55, 0.66, 0.78), uLitTint, 0.35);
+      #if defined( USE_BUILDING ) || defined( USE_GROUND )
+        albedo = mix(albedo, vec3(dot(albedo, vec3(0.299, 0.587, 0.114))), 0.2) * 0.96;
+      #endif
+    #endif
 
     #ifdef USE_BUILDING
       // Procedural facade: storeys of windows, a shopfront band at street level, a darker plinth.
@@ -155,6 +176,23 @@ const fragment = /* glsl */ `
       float style = floor(sv / 10.0 + 0.001);
       float variant = sv - style * 10.0;
       float wallU = vBld.x, hy = vBld.y, H = vBld.z;
+      #ifdef SA_LOOK
+        if (abs(N.y) < 0.5 && style != 10.0) {
+          // plaster with patchy paint, rising damp at the base, rain streaks from the parapet
+          vec2 wp2 = vec2(wallU, hy);
+          float n = fbm(wp2 * 0.55 + vWorldPos.xz * 0.01);
+          albedo *= 0.8 + 0.3 * n;
+          albedo *= 0.94 + 0.12 * detail(wp2, 5.0);
+          albedo *= mix(0.72, 1.0, smoothstep(0.0, 1.3 + 0.8 * n, hy));
+          float streak = smoothstep(0.5, 0.85, vnoise(vec2(wallU * 0.9, 1.7))) * smoothstep(H - 4.5 - 4.0 * n, H, hy);
+          albedo *= 1.0 - 0.28 * streak;
+          if (style == 6.0) albedo *= 0.9 + 0.1 * smoothstep(0.2, 0.8, vnoise(wp2 * vec2(0.3, 2.0)));
+        } else if (N.y > 0.5) {
+          vec2 rp = vWorldPos.xz;
+          albedo *= 0.78 + 0.28 * fbm(rp * 0.3);
+          albedo *= 0.93 + 0.1 * detail(rp, 3.0);
+        }
+      #endif
       if (style == 10.0) {
         glow += vec3(1.0, 0.9, 0.65) * uNight * 1.6;
         hatchAmt = 0.0;
@@ -182,6 +220,9 @@ const fragment = /* glsl */ `
           // glass tower: curtain wall grid
           float g = max(lines(cell.x, 0.46), lines(cell.y, 0.44));
           vec3 glass = mix(vec3(0.55, 0.72, 0.8), vec3(0.75, 0.86, 0.9), step(0.5, rnd));
+          #ifdef SA_LOOK
+            glass = mix(vec3(0.16, 0.22, 0.28) + rnd * 0.05, skyRefl, 0.35 + 0.55 * fresSa);
+          #endif
           albedo = mix(glass * (0.85 + 0.15 * f.y), albedo * 0.8, g * 0.9);
           glow += vec3(1.0, 0.85, 0.55) * uNight * step(0.45, rnd) * (1.0 - g) * 0.9;
         } else if (shopBand) {
@@ -216,6 +257,9 @@ const fragment = /* glsl */ `
           float win = step(wx0, f.x) * step(f.x, wx1) * step(tall, f.y) * step(f.y, 0.78) * skip;
           float frame = win * (1.0 - step(wx0 + 0.05, f.x) * step(f.x, wx1 - 0.05) * step(tall + 0.06, f.y) * step(f.y, 0.72));
           vec3 glassC = vec3(0.32, 0.38, 0.46);
+          #ifdef SA_LOOK
+            glassC = mix(vec3(0.12, 0.14, 0.17) + vec3(0.06, 0.05, 0.04) * rnd, skyRefl * 0.85, 0.15 + 0.7 * fresSa);
+          #endif
           albedo = mix(albedo, glassC, win * 0.85);
           albedo = mix(albedo, variant == 8.0 ? vec3(0.2, 0.45, 0.55) : albedo * 0.6, frame);
           // window grills
@@ -243,7 +287,39 @@ const fragment = /* glsl */ `
       }
     #endif
 
-    #ifdef USE_GROUND
+    #if defined( USE_GROUND ) && defined( SA_LOOK )
+      {
+        vec2 P = vWorldPos.xz;
+        float lum = dot(albedo, vec3(0.299, 0.587, 0.114));
+        float sat = max(albedo.r, max(albedo.g, albedo.b)) - min(albedo.r, min(albedo.g, albedo.b));
+        #ifdef USE_ROADMAT
+          if (lum < 0.62 && sat < 0.08) {
+            // asphalt: dark, grainy, patched
+            albedo = vec3(0.34, 0.34, 0.36) * (0.82 + 0.28 * fbm(P * 0.22)) * (0.88 + 0.24 * detail(P, 9.0));
+            albedo *= 1.0 - 0.2 * smoothstep(0.64, 0.7, fbm(P * 0.11 + 11.0));
+            albedo *= 1.0 - 0.12 * smoothstep(0.7, 0.75, fbm(P * 0.6 + 3.0));
+          } else {
+            // footpath: worn concrete slabs
+            vec2 t = fract(P / vec2(1.2, 0.9));
+            float grout = (1.0 - step(0.035, t.x) * step(0.045, t.y)) * (1.0 - smoothstep(0.1, 0.5, fwidth(P.x)));
+            albedo = albedo * vec3(0.8, 0.79, 0.76) * (0.82 + 0.24 * fbm(P * 0.45));
+            albedo = mix(albedo, albedo * 0.62, grout * 0.6);
+          }
+        #else
+          if (albedo.g > albedo.r + 0.03 && albedo.g >= albedo.b) {
+            // grass: muted olive with dry, trampled patches
+            float n = fbm(P * 0.3);
+            albedo = mix(vec3(0.3, 0.38, 0.17), vec3(0.42, 0.48, 0.24), n) * (0.86 + 0.24 * detail(P, 3.5));
+            albedo = mix(albedo, vec3(0.5, 0.45, 0.31), smoothstep(0.62, 0.82, fbm(P * 0.07 + 3.0)) * 0.65);
+          } else {
+            // bare earth and compound yards
+            albedo = mix(albedo, vec3(0.62, 0.55, 0.45), 0.35) * (0.78 + 0.3 * fbm(P * 0.16));
+            albedo *= 0.9 + 0.16 * detail(P, 4.0);
+          }
+        #endif
+        albedo = mix(albedo, albedo * 0.5, uWet * 0.7);
+      }
+    #elif defined( USE_GROUND )
       // fine sand speckles + soft blotches, like printed comics; fade before they alias
       vec2 sc = vWorldPos.xz * 7.0;
       vec2 sci = floor(sc);
@@ -270,12 +346,42 @@ const fragment = /* glsl */ `
     #endif
     vec3 litCol = albedo * uLitTint;
     vec3 shadeCol = albedo * uShadeTint;
+    #ifdef SA_LOOK
+      // smooth sun (Lambert) through the shadow map + a sky/ground ambient, like a classic 3D city game
+      float sunAmt = max(NdL, 0.0);
+      #ifdef USE_SHADOWMAP
+        sunAmt *= getShadowMask();
+      #endif
+      #ifdef UNLIT
+        sunAmt = 1.0;
+      #endif
+      float hemi = N.y * 0.5 + 0.5;
+      vec3 amb = uShadeTint * mix(0.58, 0.86, hemi);
+      vec3 col = albedo * (amb + uLitTint * 0.72 * sunAmt);
+      #if defined( UNLIT ) && defined( USE_COLOR )
+        col = albedo * mix(vec3(1.0), uLitTint * 0.85, 0.4) * (1.0 - uNight * 0.6);
+      #endif
+      #ifdef USE_GROUND
+        // wet streets mirror the sky
+        col = mix(col, skyRefl * 0.7, uWet * fresSa * 0.6);
+      #endif
+      #ifdef USE_GLOSS
+        // car paint: a sun highlight and a sky reflection
+        #if NUM_DIR_LIGHTS > 0
+          vec3 Lw = normalize(inverseTransformDirection(directionalLights[0].direction, viewMatrix));
+          float spec = pow(max(dot(N, normalize(Lw + Vsa)), 0.0), 80.0) * sunAmt;
+          col += uLitTint * spec * 0.9;
+        #endif
+        col += skyRefl * fresSa * 0.3;
+      #endif
+    #else
     // a third, mid band on surfaces turned slightly away from the sun gives rounder forms
     float mid = smoothstep(0.0, 0.06, NdL - 0.45) * 0.08;
     vec3 col = mix(shadeCol, litCol * (1.0 + mid), lit);
+    #endif
 
     // hatching inside shadow: horizontal strokes on walls, diagonal on floors
-    #ifndef UNLIT
+    #if !defined( UNLIT ) && !defined( SA_LOOK )
     {
       vec3 an = abs(N);
       float c = an.y > 0.75 ? (vWorldPos.x + vWorldPos.z) * 0.7071 : vWorldPos.y + (an.x > an.z ? vWorldPos.z : vWorldPos.x) * 0.12;
@@ -288,7 +394,11 @@ const fragment = /* glsl */ `
     if (rimAmt > 0.0) {
       vec3 V = normalize(cameraPosition - vWorldPos);
       float rim = pow(1.0 - max(dot(N, V), 0.0), 3.0);
-      col += litCol * rim * rimAmt * (0.4 + 0.6 * lit);
+      #ifdef SA_LOOK
+        col += litCol * rim * rimAmt * 0.35 * (0.4 + 0.6 * lit);
+      #else
+        col += litCol * rim * rimAmt * (0.4 + 0.6 * lit);
+      #endif
     }
 
     #ifdef USE_WATER
@@ -325,6 +435,9 @@ export function toon(opts = {}) {
   if (opts.noInk) defines.NO_INK = '';
   if (opts.glowAttr) defines.USE_GLOWATTR = '';
   if (opts.cutout) defines.USE_CUTOUT = '';
+  if (opts.road) defines.USE_ROADMAT = '';
+  if (opts.gloss) defines.USE_GLOSS = '';
+  if (STYLE === 'sa') defines.SA_LOOK = '';
   const uniforms = {
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog),

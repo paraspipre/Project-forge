@@ -83,7 +83,7 @@ export class City {
       building: toon({ vertexColors: true, building: true, hatch: 1 }),
       ground: toon({ color: '#dccaa9', ground: true, hatch: 0.25 }),
       flat: toon({ vertexColors: true, ground: true, hatch: 0.3 }),
-      road: toon({ vertexColors: true, ground: true, hatch: 0.15 }),
+      road: toon({ vertexColors: true, ground: true, road: true, hatch: 0.15 }),
       water: toon({ color: '#79b8c6', water: true, hatch: 0, noInk: false }),
       paint: toon({ vertexColors: true, unlit: true, hatch: 0 }),
       props: toon({ vertexColors: true, building: true, hatch: 0.6 }),

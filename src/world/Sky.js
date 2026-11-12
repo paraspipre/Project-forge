@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { toon, Look } from '../core/Toon.js';
+import { toon, Look, STYLE } from '../core/Toon.js';
 import { rng } from './geo.js';
 
 // Comic sky: a banded gradient dome with sun, moon and stars; puffy inked clouds;
@@ -199,7 +199,7 @@ export class Atmosphere {
     Look.uNight.value = night;
     Look.uWet.value = this.rain;
     this.r.scene.fog.color.copy(fog);
-    this.r.scene.fog.density = this.r.quality.fogDensity * (1 + this.rain * 0.8 + night * 0.3);
+    this.r.scene.fog.density = this.r.quality.fogDensity * (1 + this.rain * 0.8 + night * 0.3) * (STYLE === 'sa' ? 1.2 : 1);
     // hills take the haze colour
     this.sky.hillMats[0].color.copy(hor).lerp(zen, 0.25).multiplyScalar(0.92);
     this.sky.hillMats[1].color.copy(hor).lerp(fog, 0.5).multiplyScalar(0.97);

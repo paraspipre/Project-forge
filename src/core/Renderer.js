@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Post } from './Post.js';
-import { Look } from './Toon.js';
+import { Look, STYLE } from './Toon.js';
 
 // Colours are authored and blended directly in display (sRGB) values: what you pick is what you see.
 THREE.ColorManagement.enabled = false;
@@ -28,11 +28,11 @@ export class Renderer {
     r.outputColorSpace = THREE.LinearSRGBColorSpace;
     r.toneMapping = THREE.NoToneMapping;
     r.shadowMap.enabled = this.quality.shadows;
-    r.shadowMap.type = THREE.PCFShadowMap;
+    r.shadowMap.type = STYLE === 'sa' && qualityKey !== 'low' ? THREE.PCFSoftShadowMap : THREE.PCFShadowMap;
     r.setClearColor(0xcfe4ee, 1);
     this.r = r;
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0xd2e4ec, this.quality.fogDensity);
+    this.scene.fog = new THREE.FogExp2(0xd2e4ec, this.quality.fogDensity * (STYLE === 'sa' ? 1.2 : 1));
     this.camera = new THREE.PerspectiveCamera(58, 1, 0.3, 6000);
 
     // one sun (or moon) that casts crisp shadows around the player

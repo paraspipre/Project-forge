@@ -4,6 +4,7 @@ import { SKINS, SHIRT_COLS, PLAYER_LOOK, randomLook } from './actors/Avatar.js';
 import { SHOP, TITLES } from './data/cosmetics.js';
 import { lobbyCounts, makeId } from './net/Net.js';
 import { QUALITY } from './core/Renderer.js';
+import { STYLE } from './core/Toon.js';
 
 // Boot: fonts, the game, and all the menu screens (title, look, settings, metro map, pause).
 
@@ -53,6 +54,10 @@ class UI {
     $('btn-voice').onclick = () => { game.audio.setVoices(!game.audio.voiceOn); this._labels(); };
     $('btn-traffic').onclick = () => { game.audio.setTraffic(!game.audio.trafficOn); this._labels(); };
     $('btn-auto').onclick = () => { game.profile.autoDialogue = game.profile.autoDialogue === false; game.saveProfile(); this._labels(); };
+    $('btn-style').onclick = () => {
+      try { localStorage.setItem('pb.look', STYLE === 'sa' ? 'comic' : 'sa'); } catch {}
+      location.reload();
+    };
     $('btn-quality').onclick = () => {
       const keys = Object.keys(QUALITY);
       game.setQuality(keys[(keys.indexOf(game.qualityKey) + 1) % keys.length]);
@@ -92,6 +97,7 @@ class UI {
     $('btn-traffic').textContent = `Traffic noise: ${g.audio.trafficOn ? 'On' : 'Off'}`;
     $('btn-auto').textContent = `Dialogue: ${g.profile.autoDialogue === false ? 'Tap to continue' : 'Auto'}`;
     $('btn-quality').textContent = `Quality: ${QUALITY[g.qualityKey].name}`;
+    $('btn-style').textContent = `Look: ${STYLE === 'sa' ? 'San Andreas' : 'Comic ink'}`;
   }
 
   _readMenu() {

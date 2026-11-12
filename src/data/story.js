@@ -219,7 +219,7 @@ export const STORY = {
             pts.push([x, z, i === 2 ? 22.5 : undefined]);
           }
           await q.collect(pts, { text: 'Find the lucky RCB flags', icon: '🚩', color: '#d64b3b', label: 'FLAG!', time: 240, failText: 'Match started without the flags. We lost. Again.' });
-          await q.goto(c[0], c[1], { r: 8, text: 'Take the flags to the middle of the pitch' });
+          await q.goto(c[0], c[1], { r: 8, text: 'Take the flags to the middle of the pitch', exact: true });
           q.objective('Do the chant! Press Q and choose 🙌 Cheer');
           let cheered = false;
           q.qs.emoteHook = (id) => { if (id === 'cheer') cheered = true; };
@@ -240,7 +240,7 @@ export const STORY = {
           if (i === 1) return;
           q.done();
           const c = q.spot('stadiumCenter');
-          if (c) await q.goto(c[0], c[1], { r: 30, text: 'Get onto the field' });
+          if (c) await q.goto(c[0], c[1], { r: 30, text: 'Get onto the field', exact: true });
           await q.minigame('sixes');
         },
       },

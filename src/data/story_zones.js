@@ -67,9 +67,9 @@ export const MORE = {
           const deck = roads.sort((a, b) => b.pts.length - a.pts.length)[0];
           if (!deck) { await q.say('manjula', 'Hm, the flyover is closed for "maintenance". Come back later.'); return; }
           const a = deck.pts[0], b = deck.pts[deck.pts.length - 1];
-          await q.goto(a[0], a[1], { r: 12, text: 'Ride to the start of the flyover', ride: true });
+          await q.goto(a[0], a[1], { r: 12, text: 'Ride to the start of the flyover', ride: true, exact: true });
           q.objective('Ride along the flyover to the far end (stay on the deck!)');
-          await q.goto(b[0], b[1], { r: 14, text: 'Ride along the flyover to the far end', ride: true, time: 90 });
+          await q.goto(b[0], b[1], { r: 14, text: 'Ride along the flyover to the far end', ride: true, time: 90, exact: true });
           q.big('DOUBLE DECKER!', 'Metro above, you in the middle, traffic below', 2800);
           await q.wait(2);
           await q.say('manjula', 'Smooth! Only you and the pigeons have used it without traffic. Welcome to the future.');

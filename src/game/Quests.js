@@ -80,6 +80,11 @@ class Ctx {
   goto(x, z, opts = {}) {
     this._check();
     const r = opts.r || 6;
+    // a goal inside a building (map points for shops often are) moves to the nearest walkable spot outside
+    if (!opts.exact) {
+      const c = this.game.city;
+      if (c.buildingAt(x, z, [], 0) || !this.qs.reachable(x, z)) [x, z] = this.qs.openSpot(x, z, 12);
+    }
     if (opts.text) this.objective(opts.text);
     const target = { x, z, icon: opts.icon || '★' };
     this.qs.target = target;
