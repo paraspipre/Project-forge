@@ -47,6 +47,9 @@ VOICES = {
     # Majestic, Malleshwaram, E-City, Whitefield
     "tourist": (F_AUNTY, 0.95), "coolie": (M_UNCLE, 0.9), "ctr": (M_ALT, 0.95), "veena": ("hm_omega*0.6+bm_george*0.4", 0.92),
     "security": (M_ALT, 0.95), "fresher": (F_YOUNG, 1.1), "wf_commuter": (M_PLAIN, 1.05),
+    # story mode: your phone, the traffic AI, its creator, the news
+    "maga": ("hm_psi*0.55+am_puck*0.45", 1.12), "signal": ("bm_george*0.5+hm_omega*0.5", 0.84), "vasu": (F_AUNTY, 0.88),
+    "news": (F_PRO, 1.08),
     # the hangout in every district (Namma Club, boutique, kaapi)
     "mamta": (F_WARM, 1.05), "dj": ("hm_omega*0.6+am_puck*0.4", 1.1), "quizmaster": ("hm_psi*0.6+bm_george*0.4", 0.98),
     "kaapi": (M_GRUFF, 0.92), "bhavana": (F_YOUNG, 1.06),

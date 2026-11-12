@@ -32,7 +32,8 @@ export class Npc {
     if (this.markerKind === kind) return;
     this.markerKind = kind;
     this.marker?.remove();
-    this.marker = kind ? this.game.labels.add(kind === 'quest' ? '!' : kind === 'activity' ? '★' : kind === 'turnin' ? '?' : '…', () => this.pos.clone().add(new THREE.Vector3(0, 2.75, 0)), { cls: kind === 'quest' ? 'marker' : 'marker activity', maxDist: kind === 'quest' ? 900 : 250 }) : null;
+    const icon = { quest: '!', activity: '★', turnin: '?', ai: '💬' }[kind] || '…';
+    this.marker = kind ? this.game.labels.add(icon, () => (this.object.visible ? this.pos.clone().add(new THREE.Vector3(0, kind === 'quest' && this.def.prop ? 18.5 : 2.75, 0)) : null), { cls: kind === 'quest' ? 'marker' : kind === 'ai' ? 'marker ai' : 'marker activity', maxDist: kind === 'quest' ? 900 : kind === 'ai' ? 45 : 250 }) : null;
   }
 
   // Walk along a list of points; resolves on arrival.

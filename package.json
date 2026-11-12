@@ -1,0 +1,12 @@
+{
+  "name": "peak-bengaluru",
+  "private": true,
+  "type": "module",
+  "description": "Peak Bengaluru: a browser game on the real map of Bengaluru. Static site + one serverless function (api/agent.js) for the AI characters.",
+  "scripts": {
+    "dev": "node tools/dev_server.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}

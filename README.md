@@ -64,7 +64,18 @@ The city is built from the **real map**. Every street, building footprint, park,
   - **Catch the Six**: catch the sixes at Chinnaswamy
 
   Use the menu's **Invite friends** for a private room link.
-- **Four ways in** from the title screen: **Story mode** (missions, solo), **Multiplayer** (free roam with everyone), **Party games** and **Meetups**.
+- **Four ways in** from the title screen: **Story mode**, **Multiplayer** (free roam with everyone), **Party games** and **Meetups**.
+- **Story mode: "Red Signal".**
+  - At midnight SIGNAL, the AI that has run every traffic light since 2029, turns the whole city red: "IF NOBODY MOVES, NOBODY IS LATE."
+  - You arrive at Majestic with one suitcase and a job offer at a Koramangala startup. Maga, the AI in your phone, guides you.
+  - A prologue, five chapters and a finale across Majestic, MG Road, Koramangala, Basavanagudi, Bellandur, Electronic City and Silk Board. Each chapter has a cut-scene, its district's missions, a crew member to recruit and a clue.
+  - Red districts crawl, and SIGNAL broadcasts at you. Finishing a chapter turns that district green.
+  - In the finale you talk SIGNAL down at Silk Board, using what you learned (or your own words). Then the credits roll.
+- **AI characters you can really talk to.**
+  - Type, or speak with 🎙️, to anyone: Maga (G or 📱), the crew, Dr. Vasudha Rao, SIGNAL, every named character, and two wandering AI residents in each district (💬).
+  - They know where you are (the time, the weather, the street, real places nearby), how far the story has gone and what you told them before. They remember you between visits.
+  - They act in the world: they mark places on your map, ask for favours (a mini-mission with a reward) and sometimes give you coins.
+  - Replies come from Claude through `api/agent.js` (see *AI characters* below). Without an API key, characters use a built-in offline brain. The game works either way.
 - **Voice chat:** opt-in proximity voice (WebRTC). Voices fade with distance and pan left/right. Mute anyone from the 👥 People panel.
 - **Your progress is saved:** you continue where you left off. Copy a progress code from the menu to move to another device.
 - **Namma Club** in every district: a DJ, a light-up dance floor and club music on a beat shared by everyone there.
@@ -111,11 +122,12 @@ The stereotypes are the city's own jokes, told with affection. It's a game.
 | Punch | X | 👊 | |
 | Voice chat mic / people | V / Tab | 🎙️ / 👥 | |
 | Radio | B | 📻 | |
+| Talk to Maga (phone AI) | G | 📱 | |
 | Blasters: aim / fire / switch | mouse (click to lock) / hold click / 1–3 | drag / 🔫 / 🔁 | |
 
 ## How it works
 
-No build step and no server. It's static files served by Vercel from this repository; pushing to the default branch deploys.
+No build step. It's static files served by Vercel from this repository, plus one serverless function for the AI characters (`api/agent.js`). Pushing to the default branch deploys.
 
 ```
 index.html, src/ui/style.css   page, HUD and menus
@@ -130,6 +142,9 @@ src/world/Sky.js               sky, clouds, hills; shared day/night clock and we
 src/actors/                    stylised people (one skinned mesh each) and vehicles
 src/game/                      Game loop, Player + camera, Quests, Minigames, NPCs, effects
 src/data/story.js              characters, missions and street chatter
+src/data/campaign.js           story mode "Red Signal": chapters, cut-scenes, clues (run by src/game/Campaign.js)
+src/ai/                        AI characters: personas, prompt, chat UI + offline brain (Agents.js)
+api/agent.js                   serverless function: AI character replies via the Claude API
 src/net/                       multiplayer over public MQTT brokers (WebSocket)
 data/zones/*.json              compact map data per district; data/city.json is the whole-city overview
 tools/                         map pipeline + test tools
@@ -139,6 +154,14 @@ dump/grinning-hour/            the previous game (noir story engine), still play
 **Rendering.**
 - A custom toon shader gives the hard light/shadow split with tinted shadows and world-space hatching. It also draws the windows, shopfronts and balconies procedurally, packs the surface normal into alpha, and handles night lights.
 - A post pass inks silhouettes from depth (a Laplacian of 1/z) and creases from those packed normals, then adds grain and a print tint.
+- On top of the ink:
+  - half-resolution ambient occlusion (High quality)
+  - bloom that strengthens at night (High and Medium)
+  - a time-of-day colour grade: golden-hour orange, cool nights with punchy neon, grey rain
+  - sun glare with lens ghosts when you look towards the sun
+  - a radial speed blur and a wider field of view when you're flying along on a scooter or in a stolen car
+  - FXAA (High quality)
+- Traffic gets headlamps, tail-lights and headlight beams on the road at night and in heavy rain. Major roads get zebra crossings at junctions.
 
 **Map pipeline.**
 - `tools/fetch_osm.py` downloads each district from the Overpass API. `tools/zones.json` holds the district boxes.
@@ -156,6 +179,19 @@ python tools/build_zones.py --city         # -> data/city.json
 - Presence is retained and cleared by a last-will message.
 - State is a 32-byte packet about 10 times a second. Chat goes through a small profanity filter.
 - The player with the lowest id coordinates the shared games.
+
+**AI characters.**
+- `api/agent.js` is a Vercel serverless function. The browser sends who you're talking to, a few facts about the moment and the conversation. The server builds the prompt from `src/ai/personas.js` and `src/ai/prompt.js`, so a visitor can't rewrite a character.
+- It calls the Claude Messages API with structured outputs (a fixed JSON reply: line, Kannada subtitle, gesture, suggested replies, an action, a memory note). The rules and story brief are prompt-cached. Server-side fallback is on.
+- **Setup:** in the Vercel project, add the environment variable `ANTHROPIC_API_KEY` and redeploy.
+- Optional settings:
+  - `AGENT_MODEL` (default `claude-opus-5-5`; `claude-haiku-5-5` costs about 40× less per reply)
+  - `AGENT_DAILY_LIMIT` (replies per server instance per day, default 3000)
+- Limits keep a public page from running up the bill: 12 replies a minute and 200 a day per visitor, and 150 a day per player in the browser. Each reply is capped at 2000 tokens.
+- Local testing:
+  - `npm install`, then `npm run dev` serves the game and the function at http://127.0.0.1:8770
+  - `AGENT_MOCK=1 npm run dev` fakes Claude's replies, so you can test without a key
+  - `python tools/story_test.py http://127.0.0.1:8770 out/` plays through the story
 
 **Voice-over.**
 - Clips in `voice/` are rendered offline with [Kokoro](https://github.com/thewh1teagle/kokoro-onnx) (Apache-2.0). Each character's voice blends Kokoro's Hindi voices (for the accent) with its English ones.

@@ -15,6 +15,7 @@ export const TITLES = [
   'Swalpa Adjust Specialist',
   'Blaster Bhai',
   'Meter Mele Fifty',
+  'Signal Whisperer',
 ];
 
 // kind: extra (worn, see Avatar extras) | title (index into TITLES)

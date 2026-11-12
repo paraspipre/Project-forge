@@ -21,21 +21,25 @@ class UI {
     $('in-name').value = P.name;
     $('in-online').checked = P.online !== false;
     $('in-room').value = P.room && P.room !== 'public' ? P.room : '';
-    $('btn-play').onclick = () => this.play();
+    $('btn-play').onclick = () => (this.g.profile.mode === 'story' ? this.story() : this.mode('online') || this.play());
     // the four ways in
-    $('mode-story').onclick = () => { $('in-online').checked = false; this.play(); };
-    $('mode-online').onclick = () => { $('in-online').checked = true; this.play(); };
+    $('mode-story').onclick = () => this.story();
+    $('mode-online').onclick = () => { this.mode('online'); $('in-online').checked = true; this.play(); };
     $('mode-party').onclick = async () => {
+      this.mode('party');
       $('in-online').checked = true;
       await this.play();
       setTimeout(() => { this.g.social.takeMeThere(); setTimeout(() => this.g.hud.toast('🎉 Talk to Meetup Mamta (★) to start a game. Invite friends from the menu (☰).', 5000), 1500); }, 800);
     };
     $('mode-meetup').onclick = async () => {
+      this.mode('meetup');
       $('in-online').checked = true;
       await this.play();
       setTimeout(() => { this.g.social.toHall(); setTimeout(() => this.g.social.hall?.openCalendar(), 1400); }, 800);
     };
     $('btn-radio').onclick = () => this.g.radio.toggleUI();
+    $('btn-phone').onclick = () => { if (this.g.state === 'play') this.g.agents.openMaga(); };
+    $('btn-story').onclick = () => { this.pause(false); this.g.campaign.openLog(); };
     $('btn-districts').onclick = () => this.openMap(false);
     $('btn-look').onclick = () => this.openLook();
     $('btn-settings').onclick = () => this.pause(true, true);
@@ -99,6 +103,26 @@ class UI {
     this.g.saveProfile();
   }
 
+  mode(m) { this.g.mode = m; this.g.profile.mode = m; this.g.saveProfile(); }
+
+  // Story mode: start or continue the campaign in the district of the current chapter.
+  async story() {
+    const g = this.g;
+    this.mode('story');
+    $('in-online').checked = false;
+    const ch = g.campaign.start();
+    const z = ch ? ch.zone : null;
+    await this.play(z && z !== g.profile.zone ? z : undefined);
+    g.quests.nextHint();
+  }
+
+  storyLabel() {
+    const s = this.g.profile.campaign, ch = this.g.campaign.current();
+    const el = $('mode-story').querySelector('small');
+    el.textContent = !s?.started ? 'Red Signal: SIGNAL turned every light red. Talk it down. AI characters you can really talk to.'
+      : s.finished ? 'You saved Bengaluru! Replay chapters or keep exploring.' : `Continue · ${ch.num}: ${ch.title}`;
+  }
+
   async play(zone) {
     const g = this.g;
     this._readMenu();
@@ -123,7 +147,7 @@ class UI {
       g.camRig.yaw = Math.atan2(first.x - g.player.pos.x, first.z - g.player.pos.z);
       g.player.yaw = g.camRig.yaw;
     }
-    if (!g.profile.done.length) setTimeout(() => g.hud.toast('Welcome to Bengaluru, 2099! Follow the yellow ▼ to Manju Anna.', 4500), 2600);
+    if (!g.profile.done.length && g.mode !== 'story') setTimeout(() => g.hud.toast('Welcome to Bengaluru, 2099! Follow the yellow ▼ to Manju Anna.', 4500), 2600);
     if (g.input.isTouch && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
   }
 
@@ -211,6 +235,7 @@ class UI {
 
   // Esc / Tab while a panel is open closes whichever one it is
   escape() {
+    if (this.g.campaign.closeLog()) { this.g.state = 'play'; return; }
     if (this.g.social.hall?.closeAny()) return;
     if ($('boards') && !$('boards').classList.contains('hidden')) this.g.social.closeBoards();
     else if ($('shop') && !$('shop').classList.contains('hidden')) this.g.social.closeShop();
@@ -488,8 +513,12 @@ async function boot() {
   game.state = 'menu';
   if (!ui.counts) loading.textContent = '';
   $('btn-play').textContent = game.profile.done.length ? `Continue in ${ZONES[zone].short}` : 'Play';
+  game.mode = game.profile.mode || 'story';
+  ui.storyLabel();
   // ?autoplay for testing
-  if (new URLSearchParams(location.search).has('autoplay')) ui.play();
+  const qp = new URLSearchParams(location.search);
+  if (qp.has('story')) ui.story();
+  else if (qp.has('autoplay')) ui.play();
 }
 
 boot().catch((e) => {

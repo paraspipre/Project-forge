@@ -121,6 +121,16 @@ SCENARIOS = {
         ('js', "console.error('RADIO4 ' + JSON.stringify({ paused: game.radio.el.paused, t: +game.radio.el.currentTime.toFixed(1), st: game.radio.current() && game.radio.current().name, n: (game.radio.lists.english || []).length }))"),
         ('js', "game.radio.stop(); game.radio.closeUI(); game.state = 'menu'; document.body.classList.remove('playing'); document.getElementById('menu').classList.remove('hidden'); game.hud.show(false)"), ('wait', 1000), ('shot', 'menu'),
     ],
+    'gfx': [
+        ('js', "game.atmo.override = 0.5"), ('wait', 2000),
+        ('js', "const s = game._safeSpawn([612, 92, null]); game.player.place(s[0], s[1], s[2]); game.camRig.yaw = s[2] + 0.4; game.camRig.pitch = 0.18; game.camRig.dist = 9;"),
+        ('wait', 2500), ('shot', 'noon'),
+        ('js', "game.atmo.override = 0.27"), ('wait', 2500), ('shot', 'sunrise'),
+        ('js', "game.camRig.yaw += Math.PI"), ('wait', 1500), ('shot', 'sunrise_back'),
+        ('js', "game.atmo.override = 0.9"), ('wait', 2500), ('shot', 'night_traffic'),
+        ('js', "console.error('GFX ' + JSON.stringify({ zebras: game.city.zebraCount, heads: game.traffic.lights.head.count, ao: game.ren.post.material.uniforms.uAO.value, sat: game.ren.post.material.uniforms.uSat.value }))"),
+        ('js', "game.atmo.override = 0.45; game.player.toggleRide(); game.player.speed = 30; game.camRig.yaw = game.player.yaw;"), ('key', 'w', 1500), ('shot', 'speed'),
+    ],
     # each step: ('js', code) | ('key', key, ms_hold) | ('wait', ms) | ('shot', name) | ('type', text)
     'basic': [
         ('wait', 2500),

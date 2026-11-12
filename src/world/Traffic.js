@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import { R } from './City.js';
 import { Grid } from './geo.js';
 import { scooterGeo, autoGeo, carGeo, busGeo, tankerGeo, metroCarGeo, vehicleMaterial } from '../actors/Vehicles.js';
+import { VehicleLights } from './VehicleLights.js';
+import { Look } from '../core/Toon.js';
 
 // Ambient traffic on the real road network. Vehicles keep left, follow each other, slow for
 // anything in front (including the player), wander junction to junction, and are recycled
@@ -32,6 +34,8 @@ export class Traffic {
     this._e = new THREE.Euler();
     this.trains = [];
     this._buildTrains();
+    this.lights = new VehicleLights(this.count + 8);
+    this.group.add(this.lights.group);
     this.honk = null; // callback(x, z, kind)
     this.obstacles = []; // extra things to brake for: { x, z, r }
   }
@@ -273,7 +277,8 @@ export class Traffic {
       // the odd random honk: it is Bengaluru (the audio side also limits how often anyone is heard)
       v.honkT -= dt * (0.05 + this.jam * 0.12);
       if (v.honkT < 0) { v.honkT = 6 + Math.random() * 12; if (this.honk && Math.random() < 0.3) this.honk(v.x, v.z, v.type.key); }
-      const want = block < 1 ? 0 : block < look ? v.cruise * Math.min(1, (block - 1) / (look * 0.8)) : v.cruise;
+      const cruise = v.cruise * (1 - (this.freeze || 0));   // story mode: SIGNAL holds red districts at a crawl
+      const want = block < 1 ? 0 : block < look ? cruise * Math.min(1, (block - 1) / (look * 0.8)) : cruise;
       v.v += (want - v.v) * Math.min(1, dt * (want < v.v ? 5 : 1.2));
       if (v.v < 0.05) v.v = 0;
       v.s += v.v * dt;
@@ -305,6 +310,7 @@ export class Traffic {
       m.instanceMatrix.needsUpdate = true;
       if (m.instanceColor) m.instanceColor.needsUpdate = true;
     }
+    this.lights.update(this.vehicles, Math.max(Look.uNight.value, Look.uWet.value * 0.45), P);
     // metro trains shuttle along their viaducts, pausing at the ends
     for (const t of this.trains) {
       if (t.wait > 0) t.wait -= dt;

@@ -23,6 +23,8 @@ import { Social } from '../social/Social.js';
 import { Driving } from './Driving.js';
 import { Combat } from './Combat.js';
 import { Radio } from '../core/Radio.js';
+import { Agents } from '../ai/Agents.js';
+import { Campaign } from './Campaign.js';
 import { ZONES, TRAVEL_TIPS } from '../data/zones.js';
 import { STORY } from '../data/story.js';
 import { PLAYER_LOOK } from '../actors/Avatar.js';
@@ -72,6 +74,8 @@ export class Game {
     this.driving = new Driving(this);
     this.combat = new Combat(this);
     this.radio = new Radio(this);
+    this.agents = new Agents(this);
+    this.campaign = new Campaign(this);
     window.addEventListener('pointerdown', () => this.audio.unlock(), { once: false });
     window.addEventListener('keydown', () => this.audio.unlock());
     this._loop = this._loop.bind(this);
@@ -168,6 +172,9 @@ export class Game {
     this.hud.setZone(meta.name);
     this.quests.loadZone(this.zoneId);
     try { this.social.spawn(); } catch (e) { console.error('venue npcs', e); }
+    try { this.agents.spawn(this.zoneId); } catch (e) { console.error('ai residents', e); }
+    try { this.campaign.onZone(this.zoneId); } catch (e) { console.error('campaign', e); }
+    this.quests.nextHint();
     this.profile.zone = this.zoneId;
     this.saveProfile();
     return city;
@@ -278,6 +285,7 @@ export class Game {
       if (type === 'rtc') this.voice.onSignal(p, data);
       else if (/^(party|quiz|dance|chor|club|kaapi|blast|stage|booth|hall):/.test(type)) this.social.onNet(p, type, data, ts);
       else if (type.startsWith('fight:')) this.combat.onNet(p, type, data);
+      else if (type.startsWith('ai:')) this.agents.onNet(p, type, data);
       else this.quests.onNetEvent(p, type, data, ts);
     };
     const ok = await net.connect();
@@ -426,6 +434,18 @@ export class Game {
   _world(dt) {
     const cam = this.ren.camera;
     this.atmo.update(dt);
+    // film look: time-of-day grade, sun glare, speed blur on fast scooters and stolen cars
+    const post = this.ren.post, sd = this.sky.uniforms?.uSunDir?.value;
+    post.grade(this.atmo.t, Look.uNight.value, this.atmo.rain);
+    post.sunDir = sd || null;
+    post.sunStrength = sd ? THREE.MathUtils.clamp(sd.y * 4, 0, 1) * (1 - Look.uNight.value) * (1 - this.atmo.rain) : 0;
+    const pl = this.player, fast = this.state === 'play' && pl && (pl.mode === 'ride' || pl.mode === 'drive');
+    post.blur = fast ? THREE.MathUtils.clamp((Math.abs(pl.speed) - 17) / 14, 0, 1) * 0.8 : 0;
+    // and the camera widens a little at speed
+    if (!this.blasters?.active) {
+      const cam = this.ren.camera, want = this.ren.baseFov + (fast ? THREE.MathUtils.clamp((Math.abs(pl.speed) - 8) / 20, 0, 1) * 9 : 0);
+      if (Math.abs(cam.fov - want) > 0.05) { cam.fov += (want - cam.fov) * Math.min(1, dt * 3); cam.updateProjectionMatrix(); }
+    }
     this.sky.update(dt, cam.position);
     this.city.update(cam.position);
     this.signs?.update(cam.position);
@@ -450,9 +470,10 @@ export class Game {
       p.frozen = true;
       if (inp.pressed('advance') || inp.pressed('click')) this.dlg.advance();
       for (let i = 1; i <= 4; i++) if (inp.pressed('n' + i)) this.dlg.key(i);
-    } else p.frozen = !!this.quests.freeze || !!this.social.freeze;
+    } else p.frozen = !!this.quests.freeze || !!this.social.freeze || this.agents.open;
     if (inp.consume('pause')) {
-      if (hud.chatOpen) hud.closeChat();
+      if (this.agents.open) this.agents.close();
+      else if (hud.chatOpen) hud.closeChat();
       else if (hud.wheelOpen) hud.closeWheel();
       else { this.ui?.pause(true); return; }
     }
@@ -465,6 +486,7 @@ export class Game {
       if (inp.consume('horn')) { this.audio.myHorn(); this.net?.event('horn', {}); }
       if (inp.consume('mic')) this.ui?.toggleMic();
       if (inp.consume('radio')) this.radio.toggleUI();
+      if (inp.consume('phone') && !this.agents.open) this.agents.openMaga();
       if (inp.consume('players')) this.ui?.openPlayers();
       for (let i = 1; i <= 4; i++) if (this.social.cur?.key && inp.consume('n' + i)) this.social.key(i);
       for (let i = 1; i <= 9; i++) if (inp.consume('n' + i) && !hud.wheelOpen) {
@@ -484,6 +506,8 @@ export class Game {
     this.combat.update(dt);
     this.driving.update(dt);
     this.radio.update(dt);
+    this.agents.update(dt);
+    this.campaign.update(dt);
     this._social(dt);
     this.camRig.update(dt, p, inp);
 
@@ -518,7 +542,7 @@ export class Game {
     }
 
     // guide arrow at the screen edge + distance to whatever we should do next
-    const gd = this.dlg.open || (this.social.cur && !this.social.cur.done) ? null : this.quests.active ? this.quests.guide() : (this.social.guide() || this.quests.guide());
+    const gd = this.dlg.open || this.agents.open || (this.social.cur && !this.social.cur.done) ? null : this.quests.active ? this.quests.guide() : (this.social.guide() || this.agents.guide() || this.quests.guide());
     hud.waypoint(this.ren.camera, gd ? { x: gd.x, y: gd.y || 0, z: gd.z } : null, p.pos);
     if (gd && !this.quests.active && gd.npc) hud.objectiveDist(Math.hypot(gd.x - p.pos.x, gd.z - p.pos.z));
 
@@ -533,7 +557,7 @@ export class Game {
     this.mmT -= dt;
     if (this.mmT <= 0) {
       this.mmT = 1 / 15;
-      hud.drawMinimap(p, this.camRig.yaw, [...this.remotes.values()].filter((r) => r.visible), [...this.social.markers(), ...this.quests.markers()]);
+      hud.drawMinimap(p, this.camRig.yaw, [...this.remotes.values()].filter((r) => r.visible), [...this.social.markers(), ...this.agents.markers(), ...this.quests.markers()]);
     }
   }
 

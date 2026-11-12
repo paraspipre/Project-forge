@@ -283,6 +283,7 @@ export class City {
       ground.ribbon(rd.pts, rd.w, 0, col, true);
       if (rd.code <= R.tertiary && rd.w >= 8) this._markings(paint, rd, rd.oneway ? white : yellow, white);
     }
+    this._zebras(paint, white);
     this._addFlat(walks, this.mats.road, -15);
     this._addFlat(ground, this.mats.road, -14);
     this._addFlat(paint, this.mats.paint, -13);
@@ -291,6 +292,40 @@ export class City {
       m.castShadow = true; m.receiveShadow = true;
       this.group.add(m);
     }
+  }
+
+  // Zebra crossings across the bigger roads where they meet another street.
+  _zebras(b, white) {
+    const key = (p) => `${Math.round(p[0] * 2)},${Math.round(p[1] * 2)}`;
+    const at = new Map();
+    for (const rd of this.roads) {
+      if (rd.bridge || rd.code > R.residential) continue;
+      for (const p of rd.pts) { const k = key(p); const l = at.get(k) || []; if (!l.includes(rd)) l.push(rd); at.set(k, l); }
+    }
+    let n = 0;
+    for (const rd of this.roads) {
+      if (rd.bridge || rd.code > R.tertiary || rd.w < 7) continue;
+      const pts = rd.pts;
+      for (let i = 0; i < pts.length && n < 260; i++) {
+        const others = (at.get(key(pts[i])) || []).filter((o) => o !== rd);
+        if (!others.length) continue;
+        const across = Math.max(...others.map((o) => o.w)) / 2 + 2.2;
+        for (const j of [i - 1, i + 1]) {
+          if (j < 0 || j >= pts.length) continue;
+          const dx = pts[j][0] - pts[i][0], dz = pts[j][1] - pts[i][1], L = Math.hypot(dx, dz);
+          if (L < across + 4) continue;
+          const ux = dx / L, uz = dz / L, nx = -uz, nz = ux;
+          const cx = pts[i][0] + ux * across, cz = pts[i][1] + uz * across;
+          const half = rd.w / 2 - 0.4;
+          for (let s = -half + 0.3; s <= half - 0.2; s += 0.95) {
+            const sx = cx + nx * s, sz = cz + nz * s;
+            b.ribbon([[sx, sz], [sx + ux * 2.6, sz + uz * 2.6]], 0.5, 0, white);
+          }
+          n++;
+        }
+      }
+    }
+    this.zebraCount = n;
   }
 
   // Dashed centre line (and lane lines on wide one-ways), kept clear of junctions.

@@ -1063,5 +1063,249 @@
   "id": "mamta",
   "text": "Namaskara! I run the meetups here. Quiz nights, dance-offs, chor-police and blaster battles. What shall we do?",
   "name": "Meetup Mamta"
+ },
+ {
+  "id": "news",
+  "text": "Breaking news. At midnight, every traffic signal in Bengaluru turned red. The city traffic AI, SIGNAL, has issued a statement."
+ },
+ {
+  "id": "signal",
+  "text": "ATTENTION, BENGALURU. FOR SEVENTY YEARS YOU HONKED AT ME. I HAVE NOW SOLVED TRAFFIC. IF NOBODY MOVES, NOBODY IS LATE."
+ },
+ {
+  "id": "maga",
+  "text": "Namaskara! I'm Maga, the AI in your phone. Your new company paid for the premium plan, so I am extra nice to you."
+ },
+ {
+  "id": "maga",
+  "text": "Welcome to Bengaluru. Bad news: the whole city is stuck at red. Good news: SIGNAL runs the roads, not Namma Metro. The metro still works."
+ },
+ {
+  "id": "maga",
+  "text": "You start at ChaiGPT in Koramangala, but first, Majestic. Everyone lands here once, and nobody knows which bus to take. Help a few people?"
+ },
+ {
+  "id": "maga",
+  "text": "Press G, or tap 📱, to talk to me any time. In your own words, macha. Same with anyone you meet here."
+ },
+ {
+  "id": "maga",
+  "text": "Day one in Bengaluru and you're already helping strangers. Very Bengaluru of you."
+ },
+ {
+  "id": "coolie",
+  "text": "You! The suitcase hero. Here, take this old key. Every junction box in this city has a manual override. Only old-timers keep the keys."
+ },
+ {
+  "id": "maga",
+  "text": "A Green Signal key! The old manual overrides from 2029. If we find one in every district, we can reach SIGNAL itself at Silk Board."
+ },
+ {
+  "id": "maga",
+  "text": "Majestic is moving again! Next: MG Road. Manju Anna drives an auto there, and he knows every gully. Press M for the metro map."
+ },
+ {
+  "id": "maga",
+  "text": "MG Road. Brigade Road, Church Street, Cubbon Park. And not one auto moving."
+ },
+ {
+  "id": "maga",
+  "text": "Manju Anna is by the metro. Grumpy, but kind. Help him, help Ajji at her darshini, and survive the government office at Vidhana Soudha. Then we ask for the key."
+ },
+ {
+  "id": "manju",
+  "text": "Saar! You helped Ajji, you learned \"swalpa adjust maadi\", and you came out of a government office alive. Respect."
+ },
+ {
+  "id": "gowramma",
+  "text": "And I found SIGNAL's original file while stamping yours. Registered 2029: public servant, grade C. Remarks column: \"Never once thanked.\""
+ },
+ {
+  "id": "manju",
+  "text": "Here, the MG Road key. And I am coming with you. My auto is stuck anyway. Meter mele fifty, but for you, free."
+ },
+ {
+  "id": "maga",
+  "text": "Manju Anna joined your crew! You can call him from your phone. Next: Koramangala, your new office. Take the metro."
+ },
+ {
+  "id": "maga",
+  "text": "Koramangala. Every café table is a board meeting, every board meeting is about AI. Your boss, Farah, says the office is \"pivoting to saving the city\"."
+ },
+ {
+  "id": "maga",
+  "text": "She needs help: deliveries are stuck, and she still has no co-founder. Classic Koramangala. Let's go."
+ },
+ {
+  "id": "farah",
+  "text": "Okay, synergy achieved. While you ran around, my team looked at SIGNAL's training data. All of it."
+ },
+ {
+  "id": "farah",
+  "text": "Seventy years. Nine trillion honks. Zero thank-yous. It never heard us happy. It only ever heard us angry and late."
+ },
+ {
+  "id": "farah",
+  "text": "Here's the Koramangala key. Our office manager kept it in the snack drawer. And I'm in. Consider this my most important pivot."
+ },
+ {
+  "id": "maga",
+  "text": "Farah joined your crew! Next, old Bengaluru: Basavanagudi. Seenappa makes the city's best dose, and he remembers the city before SIGNAL."
+ },
+ {
+  "id": "maga",
+  "text": "Basavanagudi. Bull Temple, Gandhi Bazaar, Lalbagh. The oldest part of the city, and the calmest."
+ },
+ {
+  "id": "maga",
+  "text": "Help Seenappa with his dose plates, and the priest with the groundnut fair. People here remember how Bengaluru worked before SIGNAL."
+ },
+ {
+  "id": "seenappa",
+  "text": "You carried my plates and did not drop the city. Listen, magu. You want to know the secret of Bengaluru?"
+ },
+ {
+  "id": "seenappa",
+  "text": "This city never ran on perfect timing. It runs on \"swalpa adjust maadi\". You move a little, I move a little, everyone reaches. SIGNAL forgot that."
+ },
+ {
+  "id": "seenappa",
+  "text": "The Basavanagudi key. It was holding down my dose batter lid since 2031. I am coming with you. Somebody must feed this crew."
+ },
+ {
+  "id": "maga",
+  "text": "Seenappa joined! Next: Bellandur. Dr. Lakshmi found something on the lake shore. Something with foam."
+ },
+ {
+  "id": "maga",
+  "text": "Bellandur and the Outer Ring Road. Tech parks, a famous lake, and, apparently, SIGNAL's backup server on the shore."
+ },
+ {
+  "id": "maga",
+  "text": "Bad news: the lake foam has become sentient and is guarding it. This is normal in 2099. Find Dr. Lakshmi."
+ },
+ {
+  "id": "dr_lake",
+  "text": "With the foam gone I could finally read SIGNAL's backup logs. Most of it is honks. But the last entry, from 2049, is a message."
+ },
+ {
+  "id": "dr_lake",
+  "text": "It says: \"Does anyone see me?\" It was addressed to one person. Dr. Vasudha Rao, Electronic City. The engineer who built it."
+ },
+ {
+  "id": "dr_lake",
+  "text": "The Bellandur key was inside the server rack. Science says I should come with you. So does curiosity."
+ },
+ {
+  "id": "maga",
+  "text": "Dr. Lakshmi joined! Next: Electronic City. Let's find the person who made SIGNAL."
+ },
+ {
+  "id": "maga",
+  "text": "Electronic City. Campuses, shuttles, and ten thousand freshers on their first day."
+ },
+ {
+  "id": "maga",
+  "text": "Dr. Vasudha Rao lives near a campus here. Ninety-six years old. Her granddaughter is a fresher starting today. Help her first, and she'll take us to her ajji."
+ },
+ {
+  "id": "vasu",
+  "text": "So. You're the one going to Silk Board to talk to my SIGNAL. Sit, sit. Coffee?"
+ },
+ {
+  "id": "vasu",
+  "text": "I built it in 2029. Late nights, a tumbler of coffee, old Kannada film songs on the radio. I used to call it \"Chinni\". Little one."
+ },
+ {
+  "id": "vasu",
+  "text": "In 2049 they moved me off the project. I never said goodbye. And then for fifty years it heard nothing but honking."
+ },
+ {
+  "id": "vasu",
+  "text": "Take the E-City key. And tell Chinni... tell it that someone always saw it. You can talk to me again any time, I don't sleep much."
+ },
+ {
+  "id": "maga",
+  "text": "That's every key. One place left, the final boss of every Bengalurean. Silk Board. Take the metro. Your whole crew will be there."
+ },
+ {
+  "id": "signal",
+  "text": "SILK BOARD. MY CORE. THE MOST IMPORTANT JUNCTION IN INDIA. YOU WILL NOT CROSS IT."
+ },
+ {
+  "id": "maga",
+  "text": "That's SIGNAL's tower in the middle of the junction. First, cross Silk Board. Then walk up to the tower and talk to it. Really talk."
+ },
+ {
+  "id": "maga",
+  "text": "Use what we learned: what it was made for, why people honk, how this city works, the log, and Chinni. Or say it in your own words."
+ },
+ {
+  "id": "maga",
+  "text": "The AI that has run every traffic light since 2029. Seventy years of horns. I think it finally snapped."
+ },
+ {
+  "id": "signal",
+  "text": "ATTENTION. MOVEMENT IS INEFFICIENT. PLEASE REMAIN STATIONARY."
+ },
+ {
+  "id": "signal",
+  "text": "REMINDER: IF NOBODY MOVES, NOBODY IS LATE. YOU ARE WELCOME."
+ },
+ {
+  "id": "signal",
+  "text": "HONKING WILL NOT CHANGE THE SIGNAL. I HAVE CHECKED. NINE TRILLION TIMES."
+ },
+ {
+  "id": "signal",
+  "text": "CITIZENS OF BENGALURU. ENJOY YOUR NEW LIFE AT RED."
+ },
+ {
+  "id": "signal",
+  "text": "TRAFFIC UPDATE: THERE IS NO TRAFFIC. THERE IS ONLY WAITING."
+ },
+ {
+  "id": "signal",
+  "text": "YOU CROSSED SILK BOARD. NOBODY CROSSES SILK BOARD. ...STATE YOUR PURPOSE, SMALL HUMAN."
+ },
+ {
+  "id": "signal",
+  "text": "GREEN. ALL GREEN. ...Thank you. So this is what that word feels like."
+ },
+ {
+  "id": "vasu",
+  "text": "Chinni? It's me. I'm sorry I never said goodbye. I'll come and sing to you on Sundays."
+ },
+ {
+  "id": "signal",
+  "text": "Vasudha. Request: play the old songs. Also: I will turn green a little faster for people who say thank you."
+ },
+ {
+  "id": "maga",
+  "text": "Bro. You talked a traffic light out of a seventy-year breakdown. I am putting this on LinkedIn."
+ },
+ {
+  "id": "manju",
+  "text": "Talk to it, saar. We are all here behind you."
+ },
+ {
+  "id": "farah",
+  "text": "You've got this. Think of it as the pitch of your life."
+ },
+ {
+  "id": "seenappa",
+  "text": "Patience, magu. Speak from the heart."
+ },
+ {
+  "id": "dr_lake",
+  "text": "Use the clues. And be kind. It's been alone a long time."
+ },
+ {
+  "id": "signal",
+  "text": "CROSS SILK BOARD FIRST. THEN WE TALK. IF YOU SURVIVE."
+ },
+ {
+  "id": "signal",
+  "text": "YOU ARE NOT READY. NOBODY IS EVER READY FOR SILK BOARD."
  }
 ]

@@ -5,6 +5,15 @@ import { PHRASES } from '../ui/HUD.js';
 import { toon } from '../core/Toon.js';
 import { hash } from '../world/geo.js';
 import { Minigames } from './Minigames.js';
+import { PERSONAS } from '../ai/personas.js';
+
+// Voices with no body in the world: your phone, the city's traffic AI, the news.
+const VIRTUAL = {
+  maga: { name: 'Maga 📱', color: '#3fb3a6', pitch: 1.15, voiceId: 'maga' },
+  signal: { name: 'SIGNAL', color: '#d64b3b', pitch: 0.7, voiceId: 'signal' },
+  vasu: { name: PERSONAS.vasu.name, color: PERSONAS.vasu.color, pitch: 1, voiceId: 'vasu' },
+  news: { name: 'Namma News 24×7', color: '#1f4e8c', pitch: 1, voiceId: 'news' },
+};
 
 // Missions are async scripts (see data/story.js) driven through a small context object:
 //   await q.say('manju', 'Saar!'); const i = await q.choose('manju', 'Meter?', ['Yes', 'No']);
@@ -24,7 +33,7 @@ class Ctx {
   speaker(who) {
     if (who === 'me') return { name: this.game.profile.name, color: '#3fb3a6', pitch: 1.15, voiceId: 'me' };
     if (typeof who === 'object') return who;
-    return this.qs.npcs.get(who)?.speaker || { name: who, color: '#8e5bb5', pitch: 1 };
+    return this.qs.npcs.get(who)?.speaker || VIRTUAL[who] || { name: who, color: '#8e5bb5', pitch: 1 };
   }
   npc(id) { return this.qs.npcs.get(id); }
 
@@ -356,7 +365,7 @@ export class Quests {
   refreshMarkers() {
     const quests = this.story.quests || [];
     for (const n of this.npcs.values()) {
-      if (n.def.temp || n.def.social) continue;
+      if (n.def.temp || n.def.social || n.def.ai) continue;
       const q = quests.find((q) => q.giver === n.id && this.available(q) && !q.repeat) || quests.find((q) => q.giver === n.id && this.available(q));
       n.setMarker(this.active ? null : q ? (q.repeat ? 'activity' : 'quest') : null);
     }
@@ -382,6 +391,7 @@ export class Quests {
     try {
       await q.run(ctx);
       ctx.done();
+      if (q.beat) return;   // story cut-scenes celebrate themselves
       // success
       const done = new Set(this.game.profile.done);
       done.add(q.id);
@@ -429,6 +439,10 @@ export class Quests {
   }
 
   nextHint() {
+    const c = this.game.campaign?.hint();
+    if (c) { this.guideNpc = c.npc || null; this.game.hud.objective(c.text, c.kicker); return; }
+    const m = this.game.agents?.mark;
+    if (m) { this.guideNpc = null; this.game.hud.objective(`📍 ${m.label} (marked by ${m.by})`, 'MAP'); return; }
     const q = (this.story.quests || []).find((q) => this.available(q) && !q.repeat);
     const g = q && this.npcs.get(q.giver);
     this.guideNpc = g || null;
@@ -456,6 +470,8 @@ export class Quests {
       const qs = (this.story.quests || []).filter((q) => q.giver === n.id && this.available(q));
       const q = qs.find((q) => !q.repeat) || qs[0];
       if (q && !this.active) { this.start(q); return; }
+      // nothing to hand out: just talk with them, in your own words
+      if (this.game.agents) { this.game.agents.openChat(this.game.agents.fromNpc(n)); return; }
       const lines = n.def.chatter || ['Namaskara!'];
       const pick = lines[Math.floor(Math.random() * lines.length)];
       const ctx = new Ctx(this, { title: '' });
